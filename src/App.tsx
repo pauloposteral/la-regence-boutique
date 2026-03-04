@@ -11,6 +11,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ContaPage from "./pages/ContaPage";
+import AssinaturaPage from "./pages/AssinaturaPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/conta" element={<ContaPage />} />
+            <Route path="/assinatura" element={<AssinaturaPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
