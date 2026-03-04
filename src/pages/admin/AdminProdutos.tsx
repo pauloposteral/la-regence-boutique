@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +15,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type TipoTorra = Database["public"]["Enums"]["tipo_torra"];
 
-const TORRA_LABELS: Record<string, string> = {
-  clara: "Clara", media: "Média", media_escura: "Média Escura", escura: "Escura",
-};
+const TORRA_LABELS: Record<string, string> = { clara: "Clara", media: "Média", media_escura: "Média Escura", escura: "Escura" };
 
 const emptyProduct = {
   nome: "", slug: "", descricao: "", preco: 0, preco_promocional: null as number | null,
@@ -37,29 +35,19 @@ const AdminProdutos = () => {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyProduct);
   const [notasInput, setNotasInput] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const { data: produtos = [] } = useQuery({
     queryKey: ["admin-produtos"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("produtos")
-        .select("*, produto_imagens(url, principal)")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.from("produtos").select("*, produto_imagens(url, principal)").order("created_at", { ascending: false });
       return data || [];
     },
   });
 
-  const filtered = produtos.filter((p: any) =>
-    p.nome.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = produtos.filter((p: any) => p.nome.toLowerCase().includes(search.toLowerCase()));
 
-  const openCreate = () => {
-    setEditing(null);
-    setForm(emptyProduct);
-    setNotasInput("");
-    setDialogOpen(true);
-  };
-
+  const openCreate = () => { setEditing(null); setForm(emptyProduct); setNotasInput(""); setDialogOpen(true); };
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({
@@ -101,15 +89,38 @@ const AdminProdutos = () => {
     toast.success("Produto excluído");
   };
 
+  const handleImageUpload = async (productId: string, file: File) => {
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${productId}/${Date.now()}.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file);
+    if (uploadError) { toast.error("Erro no upload"); setUploading(false); return; }
+    
+    const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(path);
+    
+    const existingImages = await supabase.from("produto_imagens").select("id").eq("produto_id", productId);
+    const isFirst = !existingImages.data || existingImages.data.length === 0;
+
+    await supabase.from("produto_imagens").insert({
+      produto_id: productId,
+      url: publicUrl,
+      principal: isFirst,
+      ordem: (existingImages.data?.length || 0),
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["admin-produtos"] });
+    toast.success("Imagem enviada!");
+    setUploading(false);
+  };
+
   const set = (key: string, value: any) => setForm((f) => ({ ...f, [key]: value }));
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-semibold">Produtos</h1>
-        <Button size="sm" className="gap-1.5 font-body text-xs" onClick={openCreate}>
-          <Plus className="w-4 h-4" /> Novo Produto
-        </Button>
+        <Button size="sm" className="gap-1.5 font-body text-xs" onClick={openCreate}><Plus className="w-4 h-4" /> Novo Produto</Button>
       </div>
 
       <div className="relative max-w-sm">
@@ -117,12 +128,11 @@ const AdminProdutos = () => {
         <Input placeholder="Buscar produto…" className="pl-9 font-body text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
-      {/* Table */}
       <div className="border border-border rounded-lg overflow-hidden bg-card">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted/50">
-              {["Produto", "Preço", "Estoque", "Status", "Ações"].map((h) => (
+              {["Produto", "Preço", "Estoque", "Status", "Imagem", "Ações"].map((h) => (
                 <th key={h} className="text-left px-4 py-3 font-body text-xs font-medium text-muted-foreground">{h}</th>
               ))}
             </tr>
@@ -145,23 +155,26 @@ const AdminProdutos = () => {
                   </td>
                   <td className="px-4 py-3 font-body text-sm">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</td>
                   <td className="px-4 py-3">
-                    <span className={`font-body text-sm font-medium ${p.estoque <= p.estoque_minimo ? "text-destructive" : ""}`}>
-                      {p.estoque}
-                    </span>
+                    <span className={`font-body text-sm font-medium ${p.estoque <= p.estoque_minimo ? "text-destructive" : ""}`}>{p.estoque}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={p.ativo ? "default" : "secondary"} className="font-body text-[10px]">
-                      {p.ativo ? "Ativo" : "Inativo"}
-                    </Badge>
+                    <Badge variant={p.ativo ? "default" : "secondary"} className="font-body text-[10px]">{p.ativo ? "Ativo" : "Inativo"}</Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <label className="cursor-pointer">
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(p.id, file);
+                      }} disabled={uploading} />
+                      <div className="flex items-center gap-1 text-xs font-body text-accent hover:underline">
+                        <Upload className="w-3 h-3" /> {uploading ? "..." : "Upload"}
+                      </div>
+                    </label>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}><Pencil className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
                   </td>
                 </tr>
@@ -169,17 +182,12 @@ const AdminProdutos = () => {
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhum produto encontrado</p>
-        )}
+        {filtered.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhum produto encontrado</p>}
       </div>
 
-      {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-display">{editing ? "Editar Produto" : "Novo Produto"}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">{editing ? "Editar Produto" : "Novo Produto"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="font-body text-xs">Nome</Label><Input value={form.nome} onChange={(e) => set("nome", e.target.value)} /></div>
@@ -198,11 +206,7 @@ const AdminProdutos = () => {
                 <Label className="font-body text-xs">Tipo de torra</Label>
                 <Select value={form.tipo_torra} onValueChange={(v) => set("tipo_torra", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TORRA_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
+                  <SelectContent>{Object.entries(TORRA_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
@@ -225,18 +229,10 @@ const AdminProdutos = () => {
               <div><Label className="font-body text-xs">Retrogosto (1-10)</Label><Input type="number" min={1} max={10} value={form.retrogosto ?? ""} onChange={(e) => set("retrogosto", e.target.value ? +e.target.value : null)} /></div>
             </div>
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Switch checked={form.ativo} onCheckedChange={(v) => set("ativo", v)} />
-                <Label className="font-body text-xs">Ativo</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={form.destaque} onCheckedChange={(v) => set("destaque", v)} />
-                <Label className="font-body text-xs">Destaque</Label>
-              </div>
+              <div className="flex items-center gap-2"><Switch checked={form.ativo} onCheckedChange={(v) => set("ativo", v)} /><Label className="font-body text-xs">Ativo</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={form.destaque} onCheckedChange={(v) => set("destaque", v)} /><Label className="font-body text-xs">Destaque</Label></div>
             </div>
-            <Button onClick={handleSave} className="font-body text-sm">
-              {editing ? "Salvar alterações" : "Criar produto"}
-            </Button>
+            <Button onClick={handleSave} className="font-body text-sm">{editing ? "Salvar alterações" : "Criar produto"}</Button>
           </div>
         </DialogContent>
       </Dialog>

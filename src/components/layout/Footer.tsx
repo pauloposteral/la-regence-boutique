@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, MapPin, Phone, Mail } from "lucide-react";
+import NewsletterFooter from "./NewsletterFooter";
 
 const Footer = () => {
   return (
@@ -69,8 +70,11 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Newsletter */}
+        <NewsletterFooter />
+
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-8 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-primary-foreground/50 font-body">
             © {new Date().getFullYear()} La Régence · Todos os direitos reservados · CNPJ: XX.XXX.XXX/0001-XX
           </p>
