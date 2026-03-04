@@ -142,11 +142,7 @@ serve(async (req) => {
       },
     };
 
-    if (isPix) {
-      sessionConfig.payment_method_types = ["pix"];
-    } else {
-      sessionConfig.payment_method_types = ["card"];
-    }
+    sessionConfig.payment_method_types = ["card"];
 
     if (form.email) {
       sessionConfig.customer_email = form.email;
