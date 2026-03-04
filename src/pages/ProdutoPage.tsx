@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import FlavorWheel from "@/components/product/FlavorWheel";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 const MOAGEM_LABELS: Record<string, string> = {
   graos: "Grãos",
@@ -27,6 +29,7 @@ const ProdutoPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: produto, isLoading, error } = useProdutoBySlug(slug || "");
   const { data: allProdutos = [] } = useProdutos();
+  const { addItem } = useCart();
 
   const [selectedMoagem, setSelectedMoagem] = useState<string | null>(null);
   const [selectedPeso, setSelectedPeso] = useState<number | null>(null);
@@ -285,7 +288,25 @@ const ProdutoPage = () => {
                 </button>
               </div>
 
-              <Button className="flex-1 font-body text-sm tracking-wide" size="lg">
+              <Button
+                className="flex-1 font-body text-sm tracking-wide"
+                size="lg"
+                onClick={() => {
+                  addItem({
+                    produtoId: produto.id,
+                    varianteId: selectedVariant?.id,
+                    nome: produto.nome,
+                    moagem: selectedMoagem || undefined,
+                    peso: selectedPeso || undefined,
+                    preco: currentPrice,
+                    precoPromocional: produto.preco_promocional || undefined,
+                    quantidade,
+                    imagemUrl: produto.imagens?.[0]?.url,
+                    slug: produto.slug,
+                  });
+                  toast.success(`${produto.nome} adicionado ao carrinho!`);
+                }}
+              >
                 <ShoppingBag className="w-4 h-4 mr-2" />
                 Adicionar ao Carrinho
               </Button>
