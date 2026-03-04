@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, User, ShoppingBag, Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "next-themes";
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -19,12 +20,23 @@ const navLinks = [
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { totalItems, openCart } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/cafes?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
 
   return (
     <>
-      {/* Top announcement bar */}
       <div className="bg-primary text-primary-foreground text-center text-xs py-2 font-body tracking-wide">
         Frete grátis para compras acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
@@ -32,23 +44,16 @@ const Header = () => {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Mobile menu toggle */}
-            <button
-              className="lg:hidden p-2 -ml-2"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Menu"
-            >
+            <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
                 La <span className="text-gradient-gold italic">Régence</span>
               </span>
             </Link>
 
-            {/* Desktop nav */}
             <nav className="hidden lg:flex items-center gap-8">
               {navLinks.map((link) => (
                 <Link
@@ -62,14 +67,18 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* Actions */}
             <div className="flex items-center gap-1 lg:gap-2">
+              {/* Dark mode toggle */}
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSearchOpen(!searchOpen)}
-                aria-label="Buscar"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label="Alternar tema"
               >
+                <Sun className="w-4 h-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setSearchOpen(!searchOpen)} aria-label="Buscar">
                 <Search className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="icon" asChild aria-label="Minha conta">
@@ -80,9 +89,14 @@ const Header = () => {
               <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" onClick={openCart}>
                 <ShoppingBag className="w-4 h-4" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <motion.span
+                    key={totalItems}
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center"
+                  >
                     {totalItems}
-                  </span>
+                  </motion.span>
                 )}
               </Button>
             </div>
@@ -99,12 +113,16 @@ const Header = () => {
               className="border-t border-border overflow-hidden"
             >
               <div className="container mx-auto px-4 py-3">
-                <input
-                  type="text"
-                  placeholder="Buscar cafés, métodos de preparo..."
-                  className="w-full bg-transparent text-sm font-body outline-none placeholder:text-muted-foreground"
-                  autoFocus
-                />
+                <form onSubmit={handleSearch}>
+                  <input
+                    type="text"
+                    placeholder="Buscar cafés, métodos de preparo..."
+                    className="w-full bg-transparent text-sm font-body outline-none placeholder:text-muted-foreground"
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </form>
               </div>
             </motion.div>
           )}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Bold, Italic, List, Heading } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,16 @@ const AdminBlog = () => {
 
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
+  const insertMarkdown = (prefix: string, suffix = "") => {
+    const textarea = document.getElementById("blog-content") as HTMLTextAreaElement;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = form.conteudo.slice(start, end);
+    const newText = form.conteudo.slice(0, start) + prefix + selected + suffix + form.conteudo.slice(end);
+    set("conteudo", newText);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -89,7 +99,18 @@ const AdminBlog = () => {
             <div><Label className="font-body text-xs">Título</Label><Input value={form.titulo} onChange={(e) => set("titulo", e.target.value)} /></div>
             <div><Label className="font-body text-xs">Slug</Label><Input value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="auto-gerado" /></div>
             <div><Label className="font-body text-xs">Resumo</Label><Textarea value={form.resumo} onChange={(e) => set("resumo", e.target.value)} rows={2} /></div>
-            <div><Label className="font-body text-xs">Conteúdo</Label><Textarea value={form.conteudo} onChange={(e) => set("conteudo", e.target.value)} rows={8} /></div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="font-body text-xs">Conteúdo (Markdown)</Label>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => insertMarkdown("**", "**")} title="Negrito"><Bold className="w-3 h-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => insertMarkdown("*", "*")} title="Itálico"><Italic className="w-3 h-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => insertMarkdown("## ")} title="Subtítulo"><Heading className="w-3 h-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => insertMarkdown("- ")} title="Lista"><List className="w-3 h-3" /></Button>
+                </div>
+              </div>
+              <Textarea id="blog-content" value={form.conteudo} onChange={(e) => set("conteudo", e.target.value)} rows={12} className="font-mono text-sm" />
+            </div>
             <div><Label className="font-body text-xs">URL da imagem</Label><Input value={form.imagem_url} onChange={(e) => set("imagem_url", e.target.value)} /></div>
             <div><Label className="font-body text-xs">Tags (separar por vírgula)</Label><Input value={form.tags} onChange={(e) => set("tags", e.target.value)} /></div>
             <div className="flex items-center gap-2"><Switch checked={form.publicado} onCheckedChange={(v) => set("publicado", v)} /><Label className="font-body text-xs">Publicado</Label></div>

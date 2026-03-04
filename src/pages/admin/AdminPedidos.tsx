@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -7,19 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, Package } from "lucide-react";
+import { Search, Eye, Package, Download, Bell } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type StatusPedido = Database["public"]["Enums"]["status_pedido"];
 
 const STATUS_COLORS: Record<StatusPedido, string> = {
-  pendente: "bg-yellow-100 text-yellow-700",
-  confirmado: "bg-blue-100 text-blue-700",
-  preparando: "bg-orange-100 text-orange-700",
-  enviado: "bg-purple-100 text-purple-700",
-  entregue: "bg-green-100 text-green-700",
-  cancelado: "bg-red-100 text-red-700",
+  pendente: "bg-yellow-100 text-yellow-700", confirmado: "bg-blue-100 text-blue-700",
+  preparando: "bg-orange-100 text-orange-700", enviado: "bg-purple-100 text-purple-700",
+  entregue: "bg-green-100 text-green-700", cancelado: "bg-red-100 text-red-700",
 };
 
 const STATUS_OPTIONS: StatusPedido[] = ["pendente", "confirmado", "preparando", "enviado", "entregue", "cancelado"];
@@ -33,13 +30,23 @@ const AdminPedidos = () => {
   const { data: pedidos = [] } = useQuery({
     queryKey: ["admin-pedidos"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("pedidos")
-        .select("*, itens_pedido(*, produtos(nome))")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.from("pedidos").select("*, itens_pedido(*, produtos(nome))").order("created_at", { ascending: false });
       return data || [];
     },
   });
+
+  // Realtime notifications for new orders
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pedidos" }, (payload) => {
+        toast.info("🔔 Novo pedido recebido!", { description: `#${(payload.new as any).id?.slice(0, 8)}` });
+        queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   const filtered = pedidos.filter((p: any) => {
     const matchSearch = p.id.includes(search) || (p.email_visitante || "").includes(search);
@@ -59,9 +66,31 @@ const AdminPedidos = () => {
     toast.success("Rastreamento salvo");
   };
 
+  const exportCSV = () => {
+    const rows = filtered.map((p: any) => ({
+      id: p.id.slice(0, 8), data: new Date(p.created_at).toLocaleDateString("pt-BR"),
+      status: p.status, subtotal: p.subtotal, total: p.total, email: p.email_visitante || "Logado",
+    }));
+    const headers = Object.keys(rows[0] || {}).join(",");
+    const csv = [headers, ...rows.map((r: any) => Object.values(r).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `pedidos_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success("CSV exportado!");
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-semibold">Pedidos</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-semibold flex items-center gap-2">
+          Pedidos <Bell className="w-4 h-4 text-accent animate-pulse" />
+        </h1>
+        <Button variant="outline" size="sm" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
+          <Download className="w-3.5 h-3.5" /> Exportar CSV
+        </Button>
+      </div>
 
       <div className="flex flex-wrap gap-3">
         <div className="relative max-w-xs">
@@ -97,15 +126,11 @@ const AdminPedidos = () => {
                     <SelectTrigger className="h-7 w-32">
                       <Badge className={`${STATUS_COLORS[p.status as StatusPedido]} font-body text-[10px] capitalize`}>{p.status}</Badge>
                     </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
-                    </SelectContent>
+                    <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}</SelectContent>
                   </Select>
                 </td>
                 <td className="px-4 py-3">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailOrder(p)}>
-                    <Eye className="w-3.5 h-3.5" />
-                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailOrder(p)}><Eye className="w-3.5 h-3.5" /></Button>
                 </td>
               </tr>
             ))}
@@ -114,7 +139,6 @@ const AdminPedidos = () => {
         {filtered.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhum pedido encontrado</p>}
       </div>
 
-      {/* Detail dialog */}
       <Dialog open={!!detailOrder} onOpenChange={() => setDetailOrder(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle className="font-display">Pedido #{detailOrder?.id.slice(0, 8)}</DialogTitle></DialogHeader>
@@ -126,41 +150,28 @@ const AdminPedidos = () => {
                 <div><p className="text-xs text-muted-foreground">Subtotal</p><p>R$ {Number(detailOrder.subtotal).toFixed(2).replace(".", ",")}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total</p><p className="font-semibold">R$ {Number(detailOrder.total).toFixed(2).replace(".", ",")}</p></div>
               </div>
-
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Itens</p>
                 <div className="space-y-1">
                   {(detailOrder.itens_pedido || []).map((item: any) => (
-                    <div key={item.id} className="flex justify-between">
-                      <span>{item.produtos?.nome || "Produto"} x{item.quantidade}</span>
-                      <span>R$ {Number(item.subtotal).toFixed(2).replace(".", ",")}</span>
-                    </div>
+                    <div key={item.id} className="flex justify-between"><span>{item.produtos?.nome || "Produto"} x{item.quantidade}</span><span>R$ {Number(item.subtotal).toFixed(2).replace(".", ",")}</span></div>
                   ))}
                 </div>
               </div>
-
               {detailOrder.endereco_entrega && (
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Endereço</p>
                   <p className="text-xs">{JSON.stringify(detailOrder.endereco_entrega)}</p>
                 </div>
               )}
-
               <div>
                 <Label className="text-xs">Código de rastreamento</Label>
                 <div className="flex gap-2 mt-1">
-                  <Input
-                    defaultValue={detailOrder.codigo_rastreamento || ""}
-                    placeholder="Ex: BR123456789"
-                    id="tracking-input"
-                    className="text-sm"
-                  />
+                  <Input defaultValue={detailOrder.codigo_rastreamento || ""} placeholder="Ex: BR123456789" id="tracking-input" className="text-sm" />
                   <Button size="sm" className="gap-1 font-body text-xs shrink-0" onClick={() => {
                     const input = document.getElementById("tracking-input") as HTMLInputElement;
                     updateTracking(detailOrder.id, input.value);
-                  }}>
-                    <Package className="w-3 h-3" /> Salvar
-                  </Button>
+                  }}><Package className="w-3 h-3" /> Salvar</Button>
                 </div>
               </div>
             </div>

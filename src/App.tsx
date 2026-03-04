@@ -5,6 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { ThemeProvider } from "next-themes";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Eager: critical path
 import Index from "./pages/Index";
@@ -22,7 +25,6 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const SobrePage = lazy(() => import("./pages/SobrePage"));
 const QuizPage = lazy(() => import("./pages/QuizPage"));
-// InstitucionalPages loaded via named lazy imports below
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -52,50 +54,54 @@ const Loading = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/cafes" element={<CafesPage />} />
-              <Route path="/cafe/:slug" element={<ProdutoPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/conta" element={<ContaPage />} />
-              <Route path="/assinatura" element={<AssinaturaPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/:slug" element={<BlogPostPage />} />
-              <Route path="/sobre" element={<SobrePage />} />
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/contato" element={<LazyContato />} />
-              <Route path="/politica-privacidade" element={<LazyPolitica />} />
-              <Route path="/termos" element={<LazyTermos />} />
-              <Route path="/frete" element={<LazyFrete />} />
-              <Route path="/trocas" element={<LazyTrocas />} />
-              <Route path="/rastreamento" element={<LazyRastreamento />} />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="produtos" element={<AdminProdutos />} />
-                <Route path="pedidos" element={<AdminPedidos />} />
-                <Route path="categorias" element={<AdminCategorias />} />
-                <Route path="cupons" element={<AdminCupons />} />
-                <Route path="banners" element={<AdminBanners />} />
-                <Route path="assinaturas" element={<AdminAssinaturas />} />
-                <Route path="clientes" element={<AdminClientes />} />
-                <Route path="blog" element={<AdminBlog />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </CartProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ErrorBoundary>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/cafes" element={<CafesPage />} />
+                  <Route path="/cafe/:slug" element={<ProdutoPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/conta" element={<ProtectedRoute><ContaPage /></ProtectedRoute>} />
+                  <Route path="/assinatura" element={<AssinaturaPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/blog/:slug" element={<BlogPostPage />} />
+                  <Route path="/sobre" element={<SobrePage />} />
+                  <Route path="/quiz" element={<QuizPage />} />
+                  <Route path="/contato" element={<LazyContato />} />
+                  <Route path="/politica-privacidade" element={<LazyPolitica />} />
+                  <Route path="/termos" element={<LazyTermos />} />
+                  <Route path="/frete" element={<LazyFrete />} />
+                  <Route path="/trocas" element={<LazyTrocas />} />
+                  <Route path="/rastreamento" element={<LazyRastreamento />} />
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="produtos" element={<AdminProdutos />} />
+                    <Route path="pedidos" element={<AdminPedidos />} />
+                    <Route path="categorias" element={<AdminCategorias />} />
+                    <Route path="cupons" element={<AdminCupons />} />
+                    <Route path="banners" element={<AdminBanners />} />
+                    <Route path="assinaturas" element={<AdminAssinaturas />} />
+                    <Route path="clientes" element={<AdminClientes />} />
+                    <Route path="blog" element={<AdminBlog />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

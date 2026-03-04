@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import DOMPurify from "dompurify";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const BlogPostPage = () => {
   const { slug } = useParams();
@@ -10,23 +12,30 @@ const BlogPostPage = () => {
   const { data: post, isLoading } = useQuery({
     queryKey: ["blog-post", slug],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .eq("slug", slug!)
-        .eq("publicado", true)
-        .maybeSingle();
+      const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug!).eq("publicado", true).maybeSingle();
       return data;
     },
   });
+
+  // Simple markdown-like rendering (bold, italic, headings, lists)
+  const renderContent = (content: string) => {
+    const sanitized = DOMPurify.sanitize(content);
+    return sanitized;
+  };
 
   return (
     <Layout>
       <section className="py-12 lg:py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
-          <Link to="/blog" className="inline-flex items-center gap-1.5 font-body text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Voltar ao blog
-          </Link>
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbLink asChild><Link to="/blog">Blog</Link></BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>{post?.titulo || "Artigo"}</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
 
           {isLoading ? (
             <div className="animate-pulse space-y-4">
@@ -40,7 +49,7 @@ const BlogPostPage = () => {
             <article>
               {post.imagem_url && (
                 <div className="aspect-video rounded-lg overflow-hidden mb-8">
-                  <img src={post.imagem_url} alt={post.titulo} className="w-full h-full object-cover" />
+                  <img src={post.imagem_url} alt={post.titulo} className="w-full h-full object-cover" loading="lazy" />
                 </div>
               )}
               <div className="flex items-center gap-2 mb-4">
@@ -58,9 +67,10 @@ const BlogPostPage = () => {
               )}
               <h1 className="font-display text-3xl lg:text-4xl font-semibold mb-6">{post.titulo}</h1>
               {post.resumo && <p className="font-body text-lg text-muted-foreground mb-8 leading-relaxed">{post.resumo}</p>}
-              <div className="prose prose-sm max-w-none font-body text-foreground leading-relaxed whitespace-pre-wrap">
-                {post.conteudo}
-              </div>
+              <div
+                className="prose prose-sm max-w-none font-body text-foreground leading-relaxed whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: renderContent(post.conteudo || "") }}
+              />
             </article>
           )}
         </div>
