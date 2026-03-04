@@ -13,6 +13,16 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ContaPage from "./pages/ContaPage";
 import AssinaturaPage from "./pages/AssinaturaPage";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProdutos from "./pages/admin/AdminProdutos";
+import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminCategorias from "./pages/admin/AdminCategorias";
+import AdminCupons from "./pages/admin/AdminCupons";
+import AdminBanners from "./pages/admin/AdminBanners";
+import AdminAssinaturas from "./pages/admin/AdminAssinaturas";
+import AdminClientes from "./pages/admin/AdminClientes";
+import AdminBlog from "./pages/admin/AdminBlog";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +42,17 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/conta" element={<ContaPage />} />
             <Route path="/assinatura" element={<AssinaturaPage />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="produtos" element={<AdminProdutos />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="categorias" element={<AdminCategorias />} />
+              <Route path="cupons" element={<AdminCupons />} />
+              <Route path="banners" element={<AdminBanners />} />
+              <Route path="assinaturas" element={<AdminAssinaturas />} />
+              <Route path="clientes" element={<AdminClientes />} />
+              <Route path="blog" element={<AdminBlog />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
