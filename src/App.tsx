@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import CafesPage from "./pages/CafesPage";
 import ProdutoPage from "./pages/ProdutoPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ContaPage from "./pages/ContaPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,9 @@ const App = () => (
             <Route path="/cafes" element={<CafesPage />} />
             <Route path="/cafe/:slug" element={<ProdutoPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/conta" element={<ContaPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
