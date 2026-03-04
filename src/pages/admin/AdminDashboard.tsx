@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle, Coffee, CalendarDays } from "lucide-react";
+import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle, Coffee, CalendarDays, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,15 +31,17 @@ const AdminDashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ["admin-stats", dateRange.from.toISOString(), dateRange.to.toISOString()],
     queryFn: async () => {
-      const [pedidos, produtos, assinaturas] = await Promise.all([
+      const [pedidos, produtos, assinaturas, itensPedido] = await Promise.all([
         supabase.from("pedidos").select("total, status, created_at"),
         supabase.from("produtos").select("id, nome, estoque, estoque_minimo, ativo"),
         supabase.from("assinaturas").select("id, status, preco"),
+        supabase.from("itens_pedido").select("produto_id, quantidade, subtotal, pedido_id, pedidos(created_at, status)"),
       ]);
 
       const allOrders = pedidos.data || [];
       const allProducts = produtos.data || [];
       const activeSubs = (assinaturas.data || []).filter((s) => s.status === "ativa");
+      const allItems = itensPedido.data || [];
 
       const rangeOrders = allOrders.filter((o) => {
         const d = new Date(o.created_at);
@@ -49,7 +51,33 @@ const AdminDashboard = () => {
       const revenue = rangeOrders.reduce((acc, o) => acc + Number(o.total), 0);
       const lowStock = allProducts.filter((p) => p.ativo && p.estoque <= p.estoque_minimo);
 
-      // Chart data for the selected range (max 30 bars)
+      // Ticket médio
+      const ticketMedio = rangeOrders.length > 0 ? revenue / rangeOrders.length : 0;
+
+      // Top 5 produtos mais vendidos no período
+      const rangeOrderIds = new Set(rangeOrders.map((o: any) => o.id));
+      // We don't have order ids in rangeOrders directly, let's compute from items
+      const rangeItems = allItems.filter((item: any) => {
+        const d = new Date(item.pedidos?.created_at);
+        return d >= dateRange.from && d <= dateRange.to;
+      });
+
+      const productSales: Record<string, { nome: string; qty: number; revenue: number }> = {};
+      rangeItems.forEach((item: any) => {
+        const pid = item.produto_id;
+        if (!productSales[pid]) {
+          const prod = allProducts.find((p) => p.id === pid);
+          productSales[pid] = { nome: prod?.nome || "Desconhecido", qty: 0, revenue: 0 };
+        }
+        productSales[pid].qty += item.quantidade;
+        productSales[pid].revenue += Number(item.subtotal);
+      });
+
+      const topProducts = Object.values(productSales)
+        .sort((a, b) => b.qty - a.qty)
+        .slice(0, 5);
+
+      // Chart data
       const diffDays = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / 86400000);
       const chartDays = Math.min(diffDays, 30);
       const chart = Array.from({ length: chartDays }, (_, i) => {
@@ -73,6 +101,8 @@ const AdminDashboard = () => {
         subRevenue: activeSubs.reduce((a, s) => a + Number(s.preco), 0),
         lowStock,
         chart,
+        ticketMedio,
+        topProducts,
       };
     },
   });
@@ -80,7 +110,7 @@ const AdminDashboard = () => {
   const cards = [
     { label: "Receita no período", value: `R$ ${(stats?.revenue || 0).toFixed(2).replace(".", ",")}`, icon: TrendingUp, color: "text-green-600" },
     { label: "Pedidos no período", value: stats?.rangeOrders || 0, icon: ShoppingCart, color: "text-accent" },
-    { label: "Produtos ativos", value: stats?.activeProducts || 0, icon: Package, color: "text-blue-600" },
+    { label: "Ticket médio", value: `R$ ${(stats?.ticketMedio || 0).toFixed(2).replace(".", ",")}`, icon: Award, color: "text-blue-600" },
     { label: "Assinaturas ativas", value: stats?.activeSubs || 0, icon: Coffee, color: "text-purple-600" },
   ];
 
@@ -154,6 +184,33 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top 5 Products */}
+      {(stats?.topProducts?.length ?? 0) > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <Award className="w-4 h-4 text-accent" /> Top 5 Mais Vendidos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats!.topProducts.map((p, i) => (
+                <div key={i} className="flex items-center justify-between font-body text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-xs font-semibold text-accent">{i + 1}</span>
+                    <span>{p.nome}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>{p.qty} un.</span>
+                    <span className="font-medium text-foreground">R$ {p.revenue.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Low stock alerts */}
       {(stats?.lowStock?.length ?? 0) > 0 && (

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import Layout from "@/components/layout/Layout";
 import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
 import SEOHead from "@/components/SEOHead";
@@ -36,10 +37,22 @@ const CafesPage = () => {
   const [selectedNotas, setSelectedNotas] = useState<string[]>([]);
   const [selectedTorra, setSelectedTorra] = useState<string | null>(null);
   const [scaMin, setScaMin] = useState<number | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [priceFilterActive, setPriceFilterActive] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
 
-  // Sync from URL query param
+  // Get actual price range from products
+  const actualPriceRange = useMemo(() => {
+    if (produtos.length === 0) return [0, 500];
+    const prices = produtos.map((p) => p.preco_promocional || p.preco);
+    return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
+  }, [produtos]);
+
+  useEffect(() => {
+    if (!priceFilterActive) setPriceRange(actualPriceRange as [number, number]);
+  }, [actualPriceRange, priceFilterActive]);
+
   useEffect(() => {
     const q = searchParams.get("q");
     if (q) setSearch(q);
@@ -64,6 +77,12 @@ const CafesPage = () => {
     if (selectedNotas.length > 0) result = result.filter((p) => selectedNotas.some((n) => p.notas_sensoriais?.includes(n)));
     if (selectedTorra) result = result.filter((p) => p.tipo_torra === selectedTorra);
     if (scaMin) result = result.filter((p) => (p.sca_score || 0) >= scaMin);
+    if (priceFilterActive) {
+      result = result.filter((p) => {
+        const price = p.preco_promocional || p.preco;
+        return price >= priceRange[0] && price <= priceRange[1];
+      });
+    }
 
     switch (sort) {
       case "preco_asc": result.sort((a, b) => a.preco - b.preco); break;
@@ -73,12 +92,13 @@ const CafesPage = () => {
       default: result.sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
     }
     return result;
-  }, [produtos, debouncedSearch, selectedCategoria, selectedNotas, selectedTorra, scaMin, sort]);
+  }, [produtos, debouncedSearch, selectedCategoria, selectedNotas, selectedTorra, scaMin, sort, priceRange, priceFilterActive]);
 
-  const activeFilterCount = [selectedCategoria, selectedTorra, scaMin, selectedNotas.length > 0].filter(Boolean).length;
+  const activeFilterCount = [selectedCategoria, selectedTorra, scaMin, selectedNotas.length > 0, priceFilterActive].filter(Boolean).length;
 
   const clearFilters = () => {
     setSelectedCategoria(null); setSelectedNotas([]); setSelectedTorra(null); setScaMin(null); setSearch("");
+    setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]);
     setVisibleCount(12);
   };
 
@@ -87,7 +107,6 @@ const CafesPage = () => {
       <SEOHead title="Nossos Cafés Especiais" description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito." />
       
       <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-20 relative overflow-hidden">
-        {/* Texture overlay */}
         <div className="absolute inset-0 opacity-[0.04]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
@@ -102,7 +121,6 @@ const CafesPage = () => {
       </section>
 
       <div className="container mx-auto px-4 lg:px-8 py-6">
-        {/* Breadcrumb */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
@@ -111,7 +129,6 @@ const CafesPage = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Search + Sort */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -129,14 +146,13 @@ const CafesPage = () => {
           </div>
         </div>
 
-        {/* Filters panel */}
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-border rounded-lg overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-semibold">Filtrar por</h3>
               {activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-xs">Limpar filtros</Button>}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Categoria</label>
                 <div className="flex flex-wrap gap-2">
@@ -156,28 +172,46 @@ const CafesPage = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Pontuação SCA mínima</label>
+                <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">SCA mínima</label>
                 <div className="flex flex-wrap gap-2">
                   {[80, 84, 86, 88].map((score) => <Badge key={score} variant={scaMin === score ? "default" : "outline"} className="cursor-pointer font-body" onClick={() => setScaMin(scaMin === score ? null : score)}>≥ {score}</Badge>)}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+                  Faixa de Preço
+                </label>
+                <div className="px-1 pt-2">
+                  <Slider
+                    min={actualPriceRange[0]}
+                    max={actualPriceRange[1]}
+                    step={5}
+                    value={priceRange}
+                    onValueChange={(v) => { setPriceRange(v as [number, number]); setPriceFilterActive(true); }}
+                    className="mb-2"
+                  />
+                  <div className="flex justify-between text-[10px] font-body text-muted-foreground">
+                    <span>R$ {priceRange[0]}</span>
+                    <span>R$ {priceRange[1]}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Active filter tags */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {selectedCategoria && <Badge variant="secondary" className="font-body gap-1">{categorias.find((c) => c.id === selectedCategoria)?.nome}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategoria(null)} /></Badge>}
             {selectedTorra && <Badge variant="secondary" className="font-body gap-1">Torra {TORRA_LABELS[selectedTorra]}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedTorra(null)} /></Badge>}
             {selectedNotas.map((n) => <Badge key={n} variant="secondary" className="font-body gap-1">{n}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedNotas(selectedNotas.filter((x) => x !== n))} /></Badge>)}
             {scaMin && <Badge variant="secondary" className="font-body gap-1">SCA ≥ {scaMin}<X className="w-3 h-3 cursor-pointer" onClick={() => setScaMin(null)} /></Badge>}
+            {priceFilterActive && <Badge variant="secondary" className="font-body gap-1">R$ {priceRange[0]}–{priceRange[1]}<X className="w-3 h-3 cursor-pointer" onClick={() => { setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]); }} /></Badge>}
           </div>
         )}
 
         <p className="text-sm text-muted-foreground font-body mb-6">{filtered.length} {filtered.length === 1 ? "café encontrado" : "cafés encontrados"}</p>
 
-        {/* Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -237,7 +271,6 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
-          {/* Low stock warning */}
           {produto.estoque > 0 && produto.estoque <= 5 && <p className="text-[10px] text-destructive font-body font-medium mt-2">⚠️ Últimas {produto.estoque} unidades!</p>}
           <div className="mt-4 flex items-end justify-between">
             <div>

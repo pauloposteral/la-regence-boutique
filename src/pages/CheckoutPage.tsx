@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift } from "lucide-react";
+import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,12 @@ const STEPS = [
 ];
 
 const FRETE_GRATIS_MIN = 150;
+
+const TRUST_BADGES = [
+  { icon: ShieldCheck, label: "Pagamento Seguro" },
+  { icon: Lock, label: "Dados Protegidos" },
+  { icon: Package, label: "Entrega Garantida" },
+];
 
 const CheckoutPage = () => {
   const { items, subtotal, desconto, cupom, clearCart } = useCart();
@@ -94,26 +100,12 @@ const CheckoutPage = () => {
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-payment", {
-        body: {
-          items,
-          form,
-          subtotal,
-          desconto,
-          custoFrete,
-          total,
-          cupomId: null,
-          metodoPagamento: form.metodoPagamento,
-        },
+        body: { items, form, subtotal, desconto, custoFrete, total, cupomId: null, metodoPagamento: form.metodoPagamento },
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("URL de pagamento não recebida");
-      }
+      if (data?.url) { window.location.href = data.url; }
+      else { throw new Error("URL de pagamento não recebida"); }
     } catch (err: any) {
       toast.error("Erro ao processar pagamento: " + (err.message || "Tente novamente"));
     } finally {
@@ -135,7 +127,6 @@ const CheckoutPage = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 lg:px-8 py-8 max-w-4xl">
-        {/* Breadcrumb */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
@@ -143,6 +134,16 @@ const CheckoutPage = () => {
             <BreadcrumbItem><BreadcrumbPage>Checkout</BreadcrumbPage></BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+
+        {/* Trust badges */}
+        <div className="flex items-center justify-center gap-6 mb-8 py-3 bg-card border border-border rounded-lg">
+          {TRUST_BADGES.map((b) => (
+            <div key={b.label} className="flex items-center gap-1.5 text-muted-foreground">
+              <b.icon className="w-4 h-4 text-accent" />
+              <span className="font-body text-xs font-medium">{b.label}</span>
+            </div>
+          ))}
+        </div>
 
         {/* Stepper */}
         <div className="flex items-center justify-between mb-10">
@@ -164,12 +165,7 @@ const CheckoutPage = () => {
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className="flex-1 h-0.5 mx-2 bg-border rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gold rounded-full"
-                      initial={{ width: "0%" }}
-                      animate={{ width: i < step ? "100%" : "0%" }}
-                      transition={{ duration: 0.4 }}
-                    />
+                    <motion.div className="h-full bg-gold rounded-full" initial={{ width: "0%" }} animate={{ width: i < step ? "100%" : "0%" }} transition={{ duration: 0.4 }} />
                   </div>
                 )}
               </div>
@@ -275,44 +271,26 @@ const CheckoutPage = () => {
                     <label
                       key={opt.value}
                       className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
-                        form.metodoPagamento === opt.value
-                          ? "border-accent bg-accent/5 ring-1 ring-accent/20"
-                          : "border-border hover:border-accent/30"
+                        form.metodoPagamento === opt.value ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border hover:border-accent/30"
                       }`}
                       onClick={() => updateField("metodoPagamento", opt.value)}
                     >
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            form.metodoPagamento === opt.value ? "border-accent" : "border-muted-foreground"
-                          }`}
-                        >
-                          {form.metodoPagamento === opt.value && (
-                            <div className="w-2 h-2 rounded-full bg-accent" />
-                          )}
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.metodoPagamento === opt.value ? "border-accent" : "border-muted-foreground"}`}>
+                          {form.metodoPagamento === opt.value && <div className="w-2 h-2 rounded-full bg-accent" />}
                         </div>
                         <div>
-                          <p className="font-body font-medium text-sm flex items-center gap-2">
-                            <span>{opt.icon}</span> {opt.label}
-                          </p>
+                          <p className="font-body font-medium text-sm flex items-center gap-2"><span>{opt.icon}</span> {opt.label}</p>
                           <p className="text-xs text-muted-foreground font-body">{opt.desc}</p>
                         </div>
                       </div>
-                      {opt.value === "pix" && form.metodoPagamento === "pix" && (
-                        <span className="text-xs font-body font-semibold text-accent">
-                          -10%
-                        </span>
-                      )}
+                      {opt.value === "pix" && form.metodoPagamento === "pix" && <span className="text-xs font-body font-semibold text-accent">-10%</span>}
                     </label>
                   ))}
                   {form.metodoPagamento === "pix" && (
                     <div className="bg-accent/10 rounded-lg p-4 text-center">
-                      <p className="font-body text-sm text-accent font-medium">
-                        💰 Desconto Pix aplicado: -R$ {pixDesconto.toFixed(2).replace(".", ",")}
-                      </p>
-                      <p className="font-body text-xs text-muted-foreground mt-1">
-                        Total com Pix: R$ {total.toFixed(2).replace(".", ",")}
-                      </p>
+                      <p className="font-body text-sm text-accent font-medium">💰 Desconto Pix aplicado: -R$ {pixDesconto.toFixed(2).replace(".", ",")}</p>
+                      <p className="font-body text-xs text-muted-foreground mt-1">Total com Pix: R$ {total.toFixed(2).replace(".", ",")}</p>
                     </div>
                   )}
                   <p className="font-body text-xs text-muted-foreground text-center pt-2">

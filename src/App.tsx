@@ -26,6 +26,7 @@ const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const SobrePage = lazy(() => import("./pages/SobrePage"));
 const QuizPage = lazy(() => import("./pages/QuizPage"));
 const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
+const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -49,8 +50,9 @@ const LazyRastreamento = lazy(() => import("./pages/InstitucionalPages").then(m 
 const queryClient = new QueryClient();
 
 const Loading = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-pulse font-body text-muted-foreground">Carregando…</div>
+  <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+    <img src="/images/logo-laregence.jpeg" alt="La Régence" className="w-16 h-16 rounded-xl object-cover animate-pulse" />
+    <span className="font-body text-sm text-muted-foreground animate-pulse">Carregando…</span>
   </div>
 );
 
@@ -78,6 +80,7 @@ const App = () => (
                   <Route path="/sobre" element={<SobrePage />} />
                   <Route path="/quiz" element={<QuizPage />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
+                  <Route path="/favoritos" element={<FavoritosPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
                   <Route path="/termos" element={<LazyTermos />} />

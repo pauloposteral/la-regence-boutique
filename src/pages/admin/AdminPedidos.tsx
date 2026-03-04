@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, Eye, Package, Download, Bell } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import AdminPagination from "@/components/admin/AdminPagination";
+import AddressDisplay from "@/components/admin/AddressDisplay";
 import type { Database } from "@/integrations/supabase/types";
 
 type StatusPedido = Database["public"]["Enums"]["status_pedido"];
@@ -35,7 +38,6 @@ const AdminPedidos = () => {
     },
   });
 
-  // Realtime notifications for new orders
   useEffect(() => {
     const channel = supabase
       .channel("admin-orders")
@@ -44,7 +46,6 @@ const AdminPedidos = () => {
         queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
@@ -53,6 +54,8 @@ const AdminPedidos = () => {
     const matchStatus = filterStatus === "all" || p.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
   const updateStatus = async (id: string, status: StatusPedido) => {
     await supabase.from("pedidos").update({ status }).eq("id", id);
@@ -116,7 +119,7 @@ const AdminPedidos = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p: any) => (
+            {paginated.map((p: any) => (
               <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-xs font-mono">#{p.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 font-body text-sm">{new Date(p.created_at).toLocaleDateString("pt-BR")}</td>
@@ -137,6 +140,9 @@ const AdminPedidos = () => {
           </tbody>
         </table>
         {filtered.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhum pedido encontrado</p>}
+        <div className="px-4 pb-3">
+          <AdminPagination page={page} totalPages={totalPages} total={total} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </div>
       </div>
 
       <Dialog open={!!detailOrder} onOpenChange={() => setDetailOrder(null)}>
@@ -149,6 +155,7 @@ const AdminPedidos = () => {
                 <div><p className="text-xs text-muted-foreground">Status</p><Badge className={`${STATUS_COLORS[detailOrder.status as StatusPedido]} capitalize`}>{detailOrder.status}</Badge></div>
                 <div><p className="text-xs text-muted-foreground">Subtotal</p><p>R$ {Number(detailOrder.subtotal).toFixed(2).replace(".", ",")}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total</p><p className="font-semibold">R$ {Number(detailOrder.total).toFixed(2).replace(".", ",")}</p></div>
+                {detailOrder.metodo_pagamento && <div><p className="text-xs text-muted-foreground">Pagamento</p><p className="capitalize">{detailOrder.metodo_pagamento}</p></div>}
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Itens</p>
@@ -161,7 +168,7 @@ const AdminPedidos = () => {
               {detailOrder.endereco_entrega && (
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Endereço</p>
-                  <p className="text-xs">{JSON.stringify(detailOrder.endereco_entrega)}</p>
+                  <AddressDisplay endereco={detailOrder.endereco_entrega} />
                 </div>
               )}
               <div>
