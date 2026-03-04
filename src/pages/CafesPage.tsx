@@ -37,6 +37,7 @@ const CafesPage = () => {
   const [selectedTorra, setSelectedTorra] = useState<string | null>(null);
   const [scaMin, setScaMin] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   // Sync from URL query param
   useEffect(() => {
@@ -78,6 +79,7 @@ const CafesPage = () => {
 
   const clearFilters = () => {
     setSelectedCategoria(null); setSelectedNotas([]); setSelectedTorra(null); setScaMin(null); setSearch("");
+    setVisibleCount(12);
   };
 
   return (
@@ -188,9 +190,18 @@ const CafesPage = () => {
             <Button variant="outline" className="mt-4 font-body" onClick={clearFilters}>Limpar filtros</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} />)}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} />)}
+            </div>
+            {visibleCount < filtered.length && (
+              <div className="text-center mt-10">
+                <Button variant="outline" className="font-body text-sm px-8" onClick={() => setVisibleCount((v) => v + 12)}>
+                  Carregar mais cafés ({filtered.length - visibleCount} restantes)
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Layout>

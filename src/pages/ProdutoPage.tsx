@@ -10,6 +10,7 @@ import ProductGallery from "@/components/product/ProductGallery";
 import ProductReviews from "@/components/product/ProductReviews";
 import FavoriteButton from "@/components/product/FavoriteButton";
 import ShareButtons from "@/components/product/ShareButtons";
+import PromotionCountdown from "@/components/product/PromotionCountdown";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -156,6 +157,11 @@ const ProdutoPage = () => {
                 <span className="text-accent font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
                 <span className="text-muted-foreground">ou 3x de R$ {(currentPrice / 3).toFixed(2).replace(".", ",")}</span>
               </div>
+              {produto.preco_promocional && (
+                <div className="mt-3">
+                  <PromotionCountdown />
+                </div>
+              )}
             </div>
 
             <p className="font-body text-muted-foreground leading-relaxed">{produto.descricao}</p>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
 
@@ -82,30 +83,69 @@ export const TrocasPage = () => (
   </InstitucionalPage>
 );
 
-export const ContatoPage = () => (
-  <InstitucionalPage title="Fale Conosco">
-    <p>Estamos à disposição para ajudá-lo! Entre em contato por um dos canais abaixo:</p>
-    <div className="grid sm:grid-cols-2 gap-4 mt-6 not-prose">
-      <div className="border border-border rounded-lg p-5">
-        <h3 className="font-display text-base font-semibold mb-2">📱 WhatsApp</h3>
-        <p className="font-body text-sm text-muted-foreground mb-3">Atendimento rápido de Seg a Sáb, 8h às 18h</p>
-        <a href="https://wa.me/5518996540883?text=Olá! Gostaria de mais informações sobre os cafés La Régence." target="_blank" rel="noopener noreferrer" className="font-body text-sm text-accent hover:underline font-medium">(18) 99654-0883</a>
+export const ContatoPage = () => {
+  const [honeypot, setHoneypot] = useState("");
+  const [formData, setFormData] = useState({ nome: "", email: "", mensagem: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (honeypot) return; // Bot detected
+    if (!formData.nome || !formData.email || !formData.mensagem) return;
+    setSubmitted(true);
+  };
+
+  return (
+    <InstitucionalPage title="Fale Conosco">
+      <p>Estamos à disposição para ajudá-lo! Entre em contato por um dos canais abaixo:</p>
+      <div className="grid sm:grid-cols-2 gap-4 mt-6 not-prose">
+        <div className="border border-border rounded-lg p-5">
+          <h3 className="font-display text-base font-semibold mb-2">📱 WhatsApp</h3>
+          <p className="font-body text-sm text-muted-foreground mb-3">Atendimento rápido de Seg a Sáb, 8h às 18h</p>
+          <a href="https://wa.me/5518996540883?text=Olá! Gostaria de mais informações sobre os cafés La Régence." target="_blank" rel="noopener noreferrer" className="font-body text-sm text-accent hover:underline font-medium">(18) 99654-0883</a>
+        </div>
+        <div className="border border-border rounded-lg p-5">
+          <h3 className="font-display text-base font-semibold mb-2">✉️ E-mail</h3>
+          <p className="font-body text-sm text-muted-foreground mb-3">Respondemos em até 24h úteis</p>
+          <a href="mailto:contato@laregence.com.br" className="font-body text-sm text-accent hover:underline font-medium">contato@laregence.com.br</a>
+        </div>
       </div>
-      <div className="border border-border rounded-lg p-5">
-        <h3 className="font-display text-base font-semibold mb-2">✉️ E-mail</h3>
-        <p className="font-body text-sm text-muted-foreground mb-3">Respondemos em até 24h úteis</p>
-        <a href="mailto:contato@laregence.com.br" className="font-body text-sm text-accent hover:underline font-medium">contato@laregence.com.br</a>
+      <div className="border border-border rounded-lg p-5 mt-4 not-prose">
+        <h3 className="font-display text-base font-semibold mb-2">📍 Endereço</h3>
+        <p className="font-body text-sm text-muted-foreground">
+          Andradina-SP, Brasil<br />
+          Seg a Sáb, 8h às 18h
+        </p>
       </div>
-    </div>
-    <div className="border border-border rounded-lg p-5 mt-4 not-prose">
-      <h3 className="font-display text-base font-semibold mb-2">📍 Endereço</h3>
-      <p className="font-body text-sm text-muted-foreground">
-        Andradina-SP, Brasil<br />
-        Seg a Sáb, 8h às 18h
-      </p>
-    </div>
-  </InstitucionalPage>
-);
+
+      {/* Contact Form with honeypot */}
+      <div className="border border-border rounded-lg p-5 mt-4 not-prose">
+        <h3 className="font-display text-base font-semibold mb-4">Envie uma mensagem</h3>
+        {submitted ? (
+          <p className="font-body text-sm text-accent font-medium">✅ Mensagem enviada com sucesso! Retornaremos em breve.</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Honeypot — hidden from users, visible to bots */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              className="absolute opacity-0 h-0 w-0 overflow-hidden"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+            <input className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu nome" value={formData.nome} onChange={(e) => setFormData(f => ({ ...f, nome: e.target.value }))} required />
+            <input type="email" className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu e-mail" value={formData.email} onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))} required />
+            <textarea className="w-full border border-border rounded px-3 py-2 font-body text-sm min-h-[100px]" placeholder="Sua mensagem" value={formData.mensagem} onChange={(e) => setFormData(f => ({ ...f, mensagem: e.target.value }))} required />
+            <button type="submit" className="bg-accent text-accent-foreground px-6 py-2 rounded font-body text-sm font-medium hover:bg-accent/90 transition-colors">Enviar</button>
+          </form>
+        )}
+      </div>
+    </InstitucionalPage>
+  );
+};
 
 export const RastreamentoPage = () => {
   return (
