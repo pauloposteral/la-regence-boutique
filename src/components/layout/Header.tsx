@@ -11,13 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 const navLinks = [
-  { label: "Início", href: "/" },
   { label: "Cafés", href: "/cafes" },
   { label: "Assinatura", href: "/assinatura" },
-  { label: "Sobre Nós", href: "/sobre" },
+  { label: "Sobre", href: "/sobre" },
   { label: "Blog", href: "/blog" },
-  { label: "Quiz ☕", href: "/quiz" },
-  { label: "Contato", href: "/contato" },
 ];
 
 const Header = () => {
@@ -32,7 +29,6 @@ const Header = () => {
   const debouncedSearch = useDebounce(searchQuery, 250);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Favoritos count
   const { data: favCount = 0 } = useQuery({
     queryKey: ["fav-count", user?.id],
     queryFn: async () => {
@@ -43,7 +39,6 @@ const Header = () => {
     enabled: !!user,
   });
 
-  // Autocomplete results
   const { data: searchResults = [] } = useQuery({
     queryKey: ["header-search", debouncedSearch],
     queryFn: async () => {
@@ -68,7 +63,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close search on click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -100,42 +94,36 @@ const Header = () => {
           : "bg-background/95 backdrop-blur-md"
       }`}>
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+          <div className="grid grid-cols-3 items-center h-16 lg:h-20">
+            {/* LEFT — Nav links (desktop) / Hamburger (mobile) */}
+            <div className="flex items-center">
+              <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              <nav className="hidden lg:flex items-center gap-7">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                  >
+                    {link.label}
+                    <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />
+                  </Link>
+                ))}
+              </nav>
+            </div>
 
-            <Link to="/" className="flex items-center gap-2.5">
-              <img 
-                src="/images/logo-laregence.jpeg" 
-                alt="La Régence" 
-                className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg object-cover border border-gold/20" 
-              />
-              <span className="font-display text-xl lg:text-2xl font-semibold tracking-tight text-foreground">
+            {/* CENTER — Brand */}
+            <Link to="/" className="flex items-center justify-center">
+              <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-foreground whitespace-nowrap">
                 La <span className="text-gradient-gold italic">Régence</span>
               </span>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-                >
-                  {link.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />
-                </Link>
-              ))}
-            </nav>
-
-            <div className="flex items-center gap-1 lg:gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Alternar tema"
-              >
+            {/* RIGHT — Icons */}
+            <div className="flex items-center justify-end gap-1 lg:gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Alternar tema" className="hidden lg:inline-flex">
                 <Sun className="w-4 h-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               </Button>
@@ -143,7 +131,7 @@ const Header = () => {
                 <Search className="w-4 h-4" />
               </Button>
               {user && (
-                <Button variant="ghost" size="icon" className="relative" asChild aria-label="Favoritos">
+                <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex" asChild aria-label="Favoritos">
                   <Link to="/favoritos">
                     <Heart className="w-4 h-4" />
                     {favCount > 0 && (
@@ -196,7 +184,6 @@ const Header = () => {
                   />
                 </form>
               </div>
-              {/* Autocomplete dropdown */}
               {searchResults.length > 0 && (
                 <div className="absolute left-0 right-0 bg-background border-b border-border shadow-lg z-50">
                   <div className="container mx-auto px-4 py-2">

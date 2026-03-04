@@ -6,10 +6,10 @@ import SEOHead from "@/components/SEOHead";
 import LazySection from "@/components/home/LazySection";
 import { lazy, Suspense } from "react";
 
-const StorySection = lazy(() => import("@/components/home/StorySection"));
-const BrewMethods = lazy(() => import("@/components/home/BrewMethods"));
-const TestimonialsSection = lazy(() => import("@/components/home/TestimonialsSection"));
+const SensoryNotesBanner = lazy(() => import("@/components/home/SensoryNotesBanner"));
 const SubscriptionBanner = lazy(() => import("@/components/home/SubscriptionBanner"));
+const StatsSection = lazy(() => import("@/components/home/StatsSection"));
+const TestimonialsSection = lazy(() => import("@/components/home/TestimonialsSection"));
 
 const Index = () => {
   const jsonLd = {
@@ -27,23 +27,23 @@ const Index = () => {
       <DynamicBanners />
       <CoffeeCarousel />
       <LazySection>
-        <Suspense fallback={<div className="min-h-[300px]" />}>
-          <StorySection />
-        </Suspense>
-      </LazySection>
-      <LazySection>
-        <Suspense fallback={<div className="min-h-[300px]" />}>
-          <BrewMethods />
-        </Suspense>
-      </LazySection>
-      <LazySection>
-        <Suspense fallback={<div className="min-h-[300px]" />}>
-          <TestimonialsSection />
+        <Suspense fallback={<div className="min-h-[60px]" />}>
+          <SensoryNotesBanner />
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[300px]" />}>
           <SubscriptionBanner />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[200px]" />}>
+          <StatsSection />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[300px]" />}>
+          <TestimonialsSection />
         </Suspense>
       </LazySection>
     </Layout>
