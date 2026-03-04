@@ -25,6 +25,7 @@ const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const SobrePage = lazy(() => import("./pages/SobrePage"));
 const QuizPage = lazy(() => import("./pages/QuizPage"));
+const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -76,6 +77,7 @@ const App = () => (
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/sobre" element={<SobrePage />} />
                   <Route path="/quiz" element={<QuizPage />} />
+                  <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
                   <Route path="/termos" element={<LazyTermos />} />
