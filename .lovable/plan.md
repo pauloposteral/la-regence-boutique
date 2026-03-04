@@ -1,78 +1,108 @@
 
 
-## Plano: Importar dados reais da loja loja.cafelaregence.com.br
+## Plano: Hero Espetacular + 30 Melhorias Visuais (UI Polish)
 
-### Dados coletados do site original
+### Imagens Enviadas
+- **02.jpeg**: Logo La Régence (logomarca da marca, fundo dourado/creme)
+- **PHOTO-3.jpeg**: Logo "La Régence Roasters" (foto da torrefacao/ambiente)
 
-Identifiquei **5 produtos de cafe** + **8 acessorios/kits** na loja WordPress atual. Os dados do banco atual contam com 6 produtos fictícios que precisam ser substituídos pelos reais.
-
-### Inventario de produtos reais coletados
-
-| Produto | Preco | Promo | SCA | Variedade | Processo | Origem | Altitude | Notas Sensoriais | Estoque |
-|---------|-------|-------|-----|-----------|----------|--------|----------|-------------------|---------|
-| Cafe LR Cacau 250g | R$39,90 | - | 88.5 | Catucai Vermelho | Natural | Campestre-MG | 1370m | Cacau, Frutas Vermelhas, Frutas Roxas | em estoque |
-| Cafe LR MEL 500g | R$79,90 | R$69,90 | 87.5 | Catucai Amarelo | Natural | Campestre-MG | 1370m | Mel, Baunilha, Caramelo | fora estoque |
-| Cafe LR Geisha 250g | R$59,90 | - | 89 | Geisha | - | Carmo de Minas | 1370m | Chocolate 70% | fora estoque |
-| Cafe LR MOKA 500g | R$89,00 | - | - | Catucai Amarelo | Natural | Campestre-MG | 1370m | Mel, Baunilha, Caramelo | fora estoque |
-| LR Drip Coffee CX 10 | R$59,90 | - | - | Catucai Amarelo | Natural | Sul de Minas | - | Mel, Baunilha, Caramelo | em estoque |
-
-**Acessorios/Kits coletados:**
-- Caneca Prata 380ml - R$58,90
-- Caneca Bronze 380ml - R$58,90
-- Caneca Preta 380ml - R$58,90
-- Caneca Azul 380ml - R$58,90
-- Caneca Branca 380ml - R$58,90
-- Xicara e Pires Vermelha 80ml - R$54,90
-- Cafeteira Bialetti Venus 4 xicaras - R$499,00
-- Kit Cafe LR + Coador + Xicara - R$199,00
-
-**Imagens coletadas (URLs diretas do WordPress):**
-- Logo: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/01/cropped-logo_site-1.png`
-- LR Cacau principal: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/CAFE-ESPECIAL-EM-GRAOS-scaled.jpg`
-- LR Cacau extras: etiqueta, fazenda, graos (9 imagens)
-- LR MEL principal: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/6a3d5356-bba5-44d7-9230-0694b970cf14.jpeg`
-- LR MEL extras: caracteristicas, cafeteira, fazenda (7 imagens)
-- LR Geisha: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/08/GEISHA-OURO-scaled.jpg`
-- LR Drip Coffee: 3 imagens
-- Canecas: 1 imagem cada
-- Sobre nos: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/lrcacau.jpeg`
-
-**Texto "Sobre nos":**
-> "A historia do Cafe La Regence comecou em 2006, na cidade de Andradina, interior de Sao Paulo, quando a familia Posteral, apaixonada por cafes, decidiu fundar uma cafeteria especializada em cafes especiais..."
-
-**Depoimentos reais coletados:**
-- Maycon Mazotti (Barista): "Cafe muito doce, acidez bem baixa, com corpo equilibrado..."
-- Vitor Benhosi (Barista): "Um cafe equilibrado, com acidez e docura na medida certa..."
-- Alba Lopes (Produtora): "Esta foi nossa melhor safra da historia..."
-- Paulo Posteral (Mestre de Torras): "Estou ha quase 20 anos no mercado de cafes especiais..."
+Ambas serao copiadas para `public/` e usadas no hero e em toda a loja.
 
 ---
 
-### O que sera feito
+### 1. Hero Section -- Redesign Completo
 
-**1. Migrar produtos no banco de dados**
-- Deletar os 6 produtos ficticios atuais (Alta Mogiana, Blend, Cerrado, Chapada, Mogiana, Sul de Minas) + suas variantes
-- Inserir os 5 cafes reais com todas as especificacoes tecnicas coletadas
-- Criar novas categorias: "Cafes Especiais", "Acessorios", "Kits"
-- Inserir os 8 acessorios/kits
-- Criar variantes de moagem para os cafes (Em Graos, Moagem Tradicional/Melita, Espresso, Grossa/Prensa, Media/Chemex)
+**Antes**: Placeholder com emoji de cafe e caixa vazia. Sem imagem real, sem logo.
 
-**2. Inserir imagens reais na tabela `produto_imagens`**
-- Linkar as URLs das imagens do WordPress diretamente (hotlinking das imagens hospedadas no wp-content)
-- Definir imagem principal e secundarias para cada produto
+**Depois**:
+- Fullscreen hero com a foto da torrefacao (PHOTO-3.jpeg) como background com overlay escuro gradiente
+- Logo real (02.jpeg) centralizada no topo do hero, com tamanho responsivo
+- Texto principal sobre a imagem com tipografia Cormorant Garamond elegante
+- Layout mobile-first: em mobile a logo fica centralizada acima do texto, botoes empilhados
+- Em desktop: layout com logo + texto lado a esquerdo, imagem parcialmente visivel a direita
+- Animacoes suaves de entrada com framer-motion (fade + parallax sutil)
+- Cores integradas: dourado da logo (`gold`), espresso escuro como overlay, cream nos textos
 
-**3. Atualizar textos e conteudo**
-- Atualizar a pagina "Sobre Nos" com o texto real da familia Posteral
-- Atualizar a secao de depoimentos (TestimonialsSection) com os reviews reais dos baristas e produtora
-- Atualizar o HeroSection com a marca e identidade visual real
-- Usar a logo real no Header
+### 2. Copiar imagens para o projeto
+- `public/images/logo-laregence.jpeg` (02.jpeg)
+- `public/images/torrefacao.jpeg` (PHOTO-3.jpeg)
 
-**4. Atualizar descricoes detalhadas**
-- Cada produto tera a descricao completa coletada do site original incluindo informacoes do produtor, regiao, fazenda e perfil sensorial detalhado
+### 3. 30 Melhorias Visuais (Polish Completo)
 
-### Consideracoes tecnicas
+**Header (3 melhorias)**
+1. Logo real no header substituindo texto "La Régence" por img + texto
+2. Header com efeito de scroll (background mais opaco e sombra ao scroll)
+3. Mobile menu com animacao slide-down mais suave e backdrop blur
 
-- As imagens serao referenciadas diretamente via URL do WordPress existente (nao sera feito download/upload para o storage). Isso funciona enquanto a loja WordPress estiver no ar. Se preferir, posso fazer upload para o storage do projeto, mas isso requer um passo adicional.
-- Os moagens serao mapeados para o enum existente: `graos`, `fina`, `media`, `grossa`, `extra_fina`
-- Os valores de corpo/acidez/docura/retrogosto serao estimados a partir dos perfis sensoriais descritos
+**Home Sections (8 melhorias)**
+4. CoffeeCarousel: hover com elevacao + sombra suave dourada, badge SCA com fundo dourado
+5. CoffeeCarousel: imagem com aspect-ratio corrigido e object-fit cover
+6. StorySection: substituir placeholder (emoji fabrica) pela foto real da torrefacao
+7. StorySection: adicionar borda dourada decorativa lateral
+8. BrewMethods: icones SVG ou Lucide em vez de emojis. Cards com hover glow dourado
+9. TestimonialsSection: avatares com iniciais estilizadas (circulos coloridos)
+10. SubscriptionBanner: adicionar textura de graos de fundo sutil
+11. DynamicBanners: hover com overlay dourado sutil
+
+**Produto Page (5 melhorias)**
+12. Badge "Fora de estoque" vermelho para produtos sem estoque
+13. Botao "Adicionar ao carrinho" desabilitado quando estoque = 0
+14. Gallery com thumbnail navigation mais refinada
+15. Ficha tecnica com icones coloridos e layout grid mais limpo
+16. Preco com destaque visual maior (font-size, cor dourada no Pix)
+
+**Carrinho/Checkout (4 melhorias)**
+17. CartDrawer: borda superior dourada decorativa
+18. CartDrawer: animacao de shake no botao quando item adicionado
+19. Checkout stepper com icones preenchidos e linha de progresso animada
+20. Resumo do pedido com visual card mais premium
+
+**Footer (3 melhorias)**
+21. Logo real no footer
+22. Separador decorativo com linha dourada fina
+23. Icones de pagamento com visual badges mais polidos
+
+**Paginas internas (4 melhorias)**
+24. AuthPage: logo real, background com textura sutil de graos
+25. CafesPage: hero section com gradiente mais rico e textura
+26. QuizPage: progress bar dourada, cards com borda dourada no hover
+27. AssinaturaPage: badges dos planos com brilho/glow dourado
+
+**Global Polish (3 melhorias)**
+28. Scroll-to-top button suave (aparece apos scroll)
+29. Skeleton loaders com shimmer dourado (em vez de cinza)
+30. WhatsApp button: pulse animation sutil + tooltip "Fale conosco"
+
+---
+
+### Detalhes tecnicos
+
+- As duas imagens serao salvas em `public/images/`
+- O hero usara a foto `torrefacao.jpeg` como `background-image` com overlay CSS (nao tag img) para performance
+- Todas as melhorias serao feitas dentro dos componentes existentes, sem criar novos arquivos exceto:
+  - `src/components/layout/ScrollToTop.tsx` (novo, para o botao scroll-to-top)
+- Mobile-first: todas as classes Tailwind iniciam com base mobile e escalam para `sm:`, `md:`, `lg:`
+- O bug de `forwardRef` no CartDrawer sera corrigido (warning no console)
+- Nenhuma alteracao de banco de dados necessaria
+
+### Arquivos que serao editados
+- `src/components/home/HeroSection.tsx` (redesign completo)
+- `src/components/home/CoffeeCarousel.tsx`
+- `src/components/home/StorySection.tsx`
+- `src/components/home/BrewMethods.tsx`
+- `src/components/home/TestimonialsSection.tsx`
+- `src/components/home/SubscriptionBanner.tsx`
+- `src/components/home/DynamicBanners.tsx`
+- `src/components/layout/Header.tsx`
+- `src/components/layout/Footer.tsx`
+- `src/components/layout/WhatsAppButton.tsx`
+- `src/components/layout/Layout.tsx` (add ScrollToTop)
+- `src/components/cart/CartDrawer.tsx` (fix forwardRef + polish)
+- `src/pages/AuthPage.tsx`
+- `src/pages/CafesPage.tsx`
+- `src/pages/ProdutoPage.tsx`
+- `src/pages/CheckoutPage.tsx`
+- `src/pages/QuizPage.tsx`
+- `src/pages/AssinaturaPage.tsx`
+- `src/components/layout/ScrollToTop.tsx` (novo)
 
