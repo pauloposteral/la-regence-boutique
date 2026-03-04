@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, X, Moon, Sun } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X, Moon, Sun, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
+import { useDebounce } from "@/hooks/useDebounce";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -26,11 +29,54 @@ const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const debouncedSearch = useDebounce(searchQuery, 250);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Favoritos count
+  const { data: favCount = 0 } = useQuery({
+    queryKey: ["fav-count", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { count } = await supabase.from("favoritos").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+      return count || 0;
+    },
+    enabled: !!user,
+  });
+
+  // Autocomplete results
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ["header-search", debouncedSearch],
+    queryFn: async () => {
+      if (!debouncedSearch || debouncedSearch.length < 2) return [];
+      const { data } = await supabase
+        .from("produtos")
+        .select("nome, slug, preco, produto_imagens(url, principal)")
+        .eq("ativo", true)
+        .ilike("nome", `%${debouncedSearch}%`)
+        .limit(5);
+      return (data || []).map((p: any) => ({
+        ...p,
+        img: p.produto_imagens?.find((i: any) => i.principal)?.url || p.produto_imagens?.[0]?.url,
+      }));
+    },
+    enabled: debouncedSearch.length >= 2,
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close search on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -93,9 +139,19 @@ const Header = () => {
                 <Sun className="w-4 h-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setSearchOpen(!searchOpen)} aria-label="Buscar">
+              <Button variant="ghost" size="icon" onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }} aria-label="Buscar">
                 <Search className="w-4 h-4" />
               </Button>
+              {user && (
+                <Button variant="ghost" size="icon" className="relative" asChild aria-label="Favoritos">
+                  <Link to="/favoritos">
+                    <Heart className="w-4 h-4" />
+                    {favCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{favCount}</span>
+                    )}
+                  </Link>
+                </Button>
+              )}
               <Button variant="ghost" size="icon" asChild aria-label="Minha conta">
                 <Link to={user ? "/conta" : "/auth"}>
                   <User className="w-4 h-4" />
@@ -118,14 +174,15 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Search bar */}
+        {/* Search bar with autocomplete */}
         <AnimatePresence>
           {searchOpen && (
             <motion.div
+              ref={searchRef}
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="border-t border-border overflow-hidden"
+              className="border-t border-border overflow-visible relative"
             >
               <div className="container mx-auto px-4 py-3">
                 <form onSubmit={handleSearch}>
@@ -139,6 +196,36 @@ const Header = () => {
                   />
                 </form>
               </div>
+              {/* Autocomplete dropdown */}
+              {searchResults.length > 0 && (
+                <div className="absolute left-0 right-0 bg-background border-b border-border shadow-lg z-50">
+                  <div className="container mx-auto px-4 py-2">
+                    {searchResults.map((r: any) => (
+                      <Link
+                        key={r.slug}
+                        to={`/cafe/${r.slug}`}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-muted/50 transition-colors"
+                        onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                      >
+                        <div className="w-10 h-10 rounded bg-secondary overflow-hidden shrink-0">
+                          {r.img ? <img src={r.img} alt="" className="w-full h-full object-cover" /> : <span className="flex w-full h-full items-center justify-center">☕</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-sm font-medium truncate">{r.nome}</p>
+                        </div>
+                        <span className="font-body text-sm font-semibold text-accent shrink-0">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                      </Link>
+                    ))}
+                    <Link
+                      to={`/cafes?q=${encodeURIComponent(searchQuery)}`}
+                      className="block text-center text-xs font-body text-accent hover:underline py-2"
+                      onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                    >
+                      Ver todos os resultados →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

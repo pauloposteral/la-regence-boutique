@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 const empty = { nome: "", slug: "", descricao: "", imagem_url: "", ordem: 0, ativo: true };
 
@@ -23,6 +25,8 @@ const AdminCategorias = () => {
     queryKey: ["admin-categorias"],
     queryFn: async () => { const { data } = await supabase.from("categorias").select("*").order("ordem"); return data || []; },
   });
+
+  const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(cats, 20);
 
   const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
   const openEdit = (c: any) => { setEditing(c); setForm({ nome: c.nome, slug: c.slug, descricao: c.descricao || "", imagem_url: c.imagem_url || "", ordem: c.ordem, ativo: c.ativo }); setOpen(true); };
@@ -58,7 +62,7 @@ const AdminCategorias = () => {
             ))}
           </tr></thead>
           <tbody>
-            {cats.map((c: any) => (
+            {paginated.map((c: any) => (
               <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-sm font-medium">{c.nome}</td>
                 <td className="px-4 py-3 font-body text-xs text-muted-foreground">{c.slug}</td>
@@ -75,6 +79,9 @@ const AdminCategorias = () => {
           </tbody>
         </table>
         {cats.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhuma categoria</p>}
+        <div className="px-4 pb-3">
+          <AdminPagination page={page} totalPages={totalPages} total={total} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

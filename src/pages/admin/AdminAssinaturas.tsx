@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { usePagination } from "@/hooks/usePagination";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 const STATUS_COLORS: Record<string, string> = {
   ativa: "bg-green-100 text-green-700",
@@ -12,13 +14,12 @@ const AdminAssinaturas = () => {
   const { data: subs = [] } = useQuery({
     queryKey: ["admin-assinaturas"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("assinaturas")
-        .select("*, produtos(nome)")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.from("assinaturas").select("*, produtos(nome)").order("created_at", { ascending: false });
       return data || [];
     },
   });
+
+  const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(subs, 20);
 
   return (
     <div className="space-y-6">
@@ -31,7 +32,7 @@ const AdminAssinaturas = () => {
             ))}
           </tr></thead>
           <tbody>
-            {subs.map((s: any) => (
+            {paginated.map((s: any) => (
               <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-xs font-mono">#{s.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 font-body text-sm capitalize">{s.tipo}</td>
@@ -47,6 +48,9 @@ const AdminAssinaturas = () => {
           </tbody>
         </table>
         {subs.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhuma assinatura</p>}
+        <div className="px-4 pb-3">
+          <AdminPagination page={page} totalPages={totalPages} total={total} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </div>
       </div>
     </div>
   );

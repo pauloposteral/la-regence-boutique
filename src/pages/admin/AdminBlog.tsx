@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 const emptyPost = { titulo: "", slug: "", resumo: "", conteudo: "", imagem_url: "", tags: "" as string, publicado: false };
 
@@ -23,6 +25,8 @@ const AdminBlog = () => {
     queryKey: ["admin-blog"],
     queryFn: async () => { const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false }); return data || []; },
   });
+
+  const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(posts, 20);
 
   const openCreate = () => { setEditing(null); setForm(emptyPost); setOpen(true); };
   const openEdit = (p: any) => {
@@ -73,7 +77,7 @@ const AdminBlog = () => {
             ))}
           </tr></thead>
           <tbody>
-            {posts.map((p: any) => (
+            {paginated.map((p: any) => (
               <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-sm font-medium max-w-xs truncate">{p.titulo}</td>
                 <td className="px-4 py-3 font-body text-xs text-muted-foreground">{(p.tags || []).join(", ") || "—"}</td>
@@ -90,6 +94,9 @@ const AdminBlog = () => {
           </tbody>
         </table>
         {posts.length === 0 && <p className="text-center py-8 font-body text-sm text-muted-foreground">Nenhum post</p>}
+        <div className="px-4 pb-3">
+          <AdminPagination page={page} totalPages={totalPages} total={total} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
