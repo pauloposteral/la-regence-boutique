@@ -3,19 +3,19 @@ import { Coffee, Award, Heart, MapPin, Users, Leaf } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 
 const TIMELINE = [
-  { year: "2006", title: "O começo", desc: "Nasce a La Régence em Andradina-SP, com a missão de levar café especial ao interior paulista." },
+  { year: "2006", title: "O começo", desc: "A família Posteral, apaixonada por cafés, funda uma cafeteria especializada em cafés especiais em Andradina-SP." },
   { year: "2010", title: "Primeira torrefação", desc: "Inauguramos nossa torrefação artesanal, controlando cada etapa do grão à xícara." },
   { year: "2014", title: "Selo SCA", desc: "Nossos cafés alcançam pontuações acima de 80 na escala SCA, consolidando a qualidade." },
-  { year: "2018", title: "Expansão online", desc: "Lançamos a loja virtual para levar nossos cafés a todo o Brasil, com frete grátis." },
+  { year: "2018", title: "Expansão online", desc: "Lançamos a loja virtual para levar nossos cafés a todo o Brasil." },
   { year: "2022", title: "Clube de Assinatura", desc: "Criamos o clube para enviar cafés exclusivos e surpresas mensais aos assinantes." },
-  { year: "2024", title: "Novos horizontes", desc: "Parcerias com produtores premiados e cafés de microlotes de origens raras." },
+  { year: "2024", title: "Novos horizontes", desc: "Parcerias com produtores premiados como a Fazenda Santuário Sul em Carmo de Minas e microlotes de origens raras como o Geisha." },
 ];
 
 const VALUES = [
-  { icon: Leaf, title: "Sustentabilidade", desc: "Embalagens recicláveis e parcerias com produtores que respeitam o meio ambiente." },
-  { icon: Award, title: "Qualidade SCA", desc: "Todos os nossos cafés possuem pontuação acima de 80 pontos na escala SCA." },
-  { icon: Heart, title: "Paixão artesanal", desc: "Cada lote é torrado com cuidado, em pequenas quantidades, para garantir frescor." },
-  { icon: Users, title: "Comunidade", desc: "Valorizamos produtores locais e promovemos a cultura do café especial." },
+  { icon: Leaf, title: "Sustentabilidade", desc: "Trabalhamos em parceria com produtores locais que seguem práticas agrícolas sustentáveis e garantem remuneração justa." },
+  { icon: Award, title: "Qualidade SCA", desc: "Cafés com pontuação acima de 80 pontos na escala SCA. Nosso Geisha alcança 89 pontos." },
+  { icon: Heart, title: "Paixão artesanal", desc: "Cada lote é torrado com cuidado pelo mestre Paulo Posteral, com quase 20 anos de experiência." },
+  { icon: Users, title: "Comércio justo", desc: "Valorizamos produtores locais de Campestre-MG e Carmo de Minas, promovendo a cultura do café especial." },
 ];
 
 const SobrePage = () => {
@@ -24,18 +24,38 @@ const SobrePage = () => {
       {/* Hero */}
       <section className="bg-gradient-espresso text-primary-foreground py-20 lg:py-28 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
-        <div className="container mx-auto px-4 lg:px-8 relative z-10 text-center max-w-3xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Nossa história</span>
-            <h1 className="font-display text-4xl lg:text-6xl font-light mt-3 mb-6">
-              Sobre a La <span className="italic font-medium text-gold">Régence</span>
-            </h1>
-            <p className="text-primary-foreground/70 font-body leading-relaxed">
-              Desde 2006 em Andradina-SP, somos apaixonados por transformar grãos cuidadosamente 
-              selecionados em experiências sensoriais únicas. Cada xícara conta uma história de 
-              origem, dedicação e sabor.
-            </p>
-          </motion.div>
+        <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Nossa história</span>
+              <h1 className="font-display text-4xl lg:text-5xl font-light mt-3 mb-6">
+                Sobre a La <span className="italic font-medium text-gold">Régence</span>
+              </h1>
+              <p className="text-primary-foreground/70 font-body leading-relaxed mb-4">
+                A história do Café La Régence começou em 2006, na cidade de Andradina, interior de São Paulo, 
+                quando a família <strong className="text-primary-foreground">Posteral</strong>, apaixonada por cafés, 
+                decidiu fundar uma cafeteria especializada em cafés especiais.
+              </p>
+              <p className="text-primary-foreground/70 font-body leading-relaxed">
+                Com foco em qualidade e excelência, investimos constantemente em equipamentos de última geração 
+                e na capacitação de nossa equipe, visando sempre aprimorar a qualidade dos produtos e serviços. 
+                Nosso objetivo é difundir a cultura do café especial no Brasil.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-xl overflow-hidden"
+            >
+              <img
+                src="https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/lrcacau.jpeg"
+                alt="Café La Régence - Família Posteral"
+                className="w-full h-72 lg:h-80 object-cover"
+                loading="lazy"
+              />
+            </motion.div>
+          </div>
         </div>
       </section>
 
