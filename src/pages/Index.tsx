@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
+import DynamicBanners from "@/components/home/DynamicBanners";
 import CoffeeCarousel from "@/components/home/CoffeeCarousel";
 import SEOHead from "@/components/SEOHead";
 import LazySection from "@/components/home/LazySection";
@@ -23,6 +24,7 @@ const Index = () => {
     <Layout>
       <SEOHead title="Cafés Especiais — Torrefação Artesanal desde 2006" description="La Régence: cafés especiais com torrefação artesanal sob demanda. Grãos selecionados, pontuação SCA 80+, frete grátis acima de R$ 150." jsonLd={jsonLd} />
       <HeroSection />
+      <DynamicBanners />
       <CoffeeCarousel />
       <LazySection>
         <Suspense fallback={<div className="min-h-[60px]" />}>
