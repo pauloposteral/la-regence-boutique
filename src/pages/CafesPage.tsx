@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Layout from "@/components/layout/Layout";
 import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
+import SEOHead from "@/components/SEOHead";
 
 const TORRA_LABELS: Record<string, string> = {
   clara: "Clara",
@@ -108,6 +109,10 @@ const CafesPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Nossos Cafés Especiais"
+        description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito."
+      />
       {/* Hero */}
       <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8 text-center">

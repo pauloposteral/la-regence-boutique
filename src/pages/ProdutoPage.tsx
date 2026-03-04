@@ -9,6 +9,7 @@ import FlavorWheel from "@/components/product/FlavorWheel";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 const MOAGEM_LABELS: Record<string, string> = {
   graos: "Grãos",
@@ -110,8 +111,32 @@ const ProdutoPage = () => {
     );
   }
 
+  const mainImg = produto.imagens?.find((i: any) => i.principal)?.url || produto.imagens?.[0]?.url;
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: produto.nome,
+    description: produto.descricao || produto.descricao_sensorial || "",
+    image: mainImg,
+    brand: { "@type": "Brand", name: "La Régence" },
+    offers: {
+      "@type": "Offer",
+      price: currentPrice,
+      priceCurrency: "BRL",
+      availability: produto.estoque > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+  };
+
   return (
     <Layout>
+      <SEOHead
+        title={produto.nome}
+        description={produto.descricao_sensorial || produto.descricao || `Café especial ${produto.nome} — La Régence`}
+        image={mainImg}
+        type="product"
+        jsonLd={productJsonLd}
+      />
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 lg:px-8 py-4">
         <div className="flex items-center gap-2 text-sm font-body text-muted-foreground">
