@@ -4,6 +4,7 @@ import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -18,6 +19,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { totalItems, openCart } = useCart();
+  const { user } = useAuth();
 
   return (
     <>
@@ -70,7 +72,7 @@ const Header = () => {
                 <Search className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="icon" asChild aria-label="Minha conta">
-                <Link to="/conta">
+                <Link to={user ? "/conta" : "/auth"}>
                   <User className="w-4 h-4" />
                 </Link>
               </Button>
