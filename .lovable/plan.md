@@ -1,95 +1,78 @@
 
-# La Régence — Loja Virtual de Cafés Especiais
 
-Loja virtual premium para a marca La Régence, cafeteria e torrefação de cafés especiais desde 2006 em Andradina-SP. Design imersivo inspirado na Jouse, com foco em storytelling e experiência sensorial.
+## Plano: Importar dados reais da loja loja.cafelaregence.com.br
+
+### Dados coletados do site original
+
+Identifiquei **5 produtos de cafe** + **8 acessorios/kits** na loja WordPress atual. Os dados do banco atual contam com 6 produtos fictícios que precisam ser substituídos pelos reais.
+
+### Inventario de produtos reais coletados
+
+| Produto | Preco | Promo | SCA | Variedade | Processo | Origem | Altitude | Notas Sensoriais | Estoque |
+|---------|-------|-------|-----|-----------|----------|--------|----------|-------------------|---------|
+| Cafe LR Cacau 250g | R$39,90 | - | 88.5 | Catucai Vermelho | Natural | Campestre-MG | 1370m | Cacau, Frutas Vermelhas, Frutas Roxas | em estoque |
+| Cafe LR MEL 500g | R$79,90 | R$69,90 | 87.5 | Catucai Amarelo | Natural | Campestre-MG | 1370m | Mel, Baunilha, Caramelo | fora estoque |
+| Cafe LR Geisha 250g | R$59,90 | - | 89 | Geisha | - | Carmo de Minas | 1370m | Chocolate 70% | fora estoque |
+| Cafe LR MOKA 500g | R$89,00 | - | - | Catucai Amarelo | Natural | Campestre-MG | 1370m | Mel, Baunilha, Caramelo | fora estoque |
+| LR Drip Coffee CX 10 | R$59,90 | - | - | Catucai Amarelo | Natural | Sul de Minas | - | Mel, Baunilha, Caramelo | em estoque |
+
+**Acessorios/Kits coletados:**
+- Caneca Prata 380ml - R$58,90
+- Caneca Bronze 380ml - R$58,90
+- Caneca Preta 380ml - R$58,90
+- Caneca Azul 380ml - R$58,90
+- Caneca Branca 380ml - R$58,90
+- Xicara e Pires Vermelha 80ml - R$54,90
+- Cafeteira Bialetti Venus 4 xicaras - R$499,00
+- Kit Cafe LR + Coador + Xicara - R$199,00
+
+**Imagens coletadas (URLs diretas do WordPress):**
+- Logo: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/01/cropped-logo_site-1.png`
+- LR Cacau principal: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/CAFE-ESPECIAL-EM-GRAOS-scaled.jpg`
+- LR Cacau extras: etiqueta, fazenda, graos (9 imagens)
+- LR MEL principal: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/6a3d5356-bba5-44d7-9230-0694b970cf14.jpeg`
+- LR MEL extras: caracteristicas, cafeteira, fazenda (7 imagens)
+- LR Geisha: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/08/GEISHA-OURO-scaled.jpg`
+- LR Drip Coffee: 3 imagens
+- Canecas: 1 imagem cada
+- Sobre nos: `https://i0.wp.com/loja.cafelaregence.com.br/wp-content/uploads/2024/02/lrcacau.jpeg`
+
+**Texto "Sobre nos":**
+> "A historia do Cafe La Regence comecou em 2006, na cidade de Andradina, interior de Sao Paulo, quando a familia Posteral, apaixonada por cafes, decidiu fundar uma cafeteria especializada em cafes especiais..."
+
+**Depoimentos reais coletados:**
+- Maycon Mazotti (Barista): "Cafe muito doce, acidez bem baixa, com corpo equilibrado..."
+- Vitor Benhosi (Barista): "Um cafe equilibrado, com acidez e docura na medida certa..."
+- Alba Lopes (Produtora): "Esta foi nossa melhor safra da historia..."
+- Paulo Posteral (Mestre de Torras): "Estou ha quase 20 anos no mercado de cafes especiais..."
 
 ---
 
-## Fase 1 — Fundação: Design System e Layout Base
-- **Design system premium**: Paleta de cores elegante (tons terrosos, dourado, creme), tipografia sofisticada, componentes customizados
-- **Layout base**: Header com navegação (logo, busca, conta, carrinho), Footer completo com links, redes sociais e selos
-- **Responsividade mobile-first**: Todos os breakpoints (375px, 768px, 1024px, 1440px)
-- **Botão flutuante WhatsApp**: Contato direto com mensagem pré-formatada para (18) 99654-0883
+### O que sera feito
 
-## Fase 2 — Homepage Imersiva
-- **Hero section**: Produto destaque em tela cheia com imagem e CTA
-- **Seção "Nossos Cafés"**: Carrossel de cards com nome, nota sensorial principal e pontuação SCA
-- **Storytelling "A Experiência La Régence"**: História da marca desde 2006, torrefação artesanal
-- **Seção de depoimentos**: Avaliações de clientes
-- **Métodos de preparo**: Ícones elegantes (V60, Aeropress, Italiana, Coador, French Press)
-- **Banner assinatura/clube do café**
-- **Feed Instagram** integrado
+**1. Migrar produtos no banco de dados**
+- Deletar os 6 produtos ficticios atuais (Alta Mogiana, Blend, Cerrado, Chapada, Mogiana, Sul de Minas) + suas variantes
+- Inserir os 5 cafes reais com todas as especificacoes tecnicas coletadas
+- Criar novas categorias: "Cafes Especiais", "Acessorios", "Kits"
+- Inserir os 8 acessorios/kits
+- Criar variantes de moagem para os cafes (Em Graos, Moagem Tradicional/Melita, Espresso, Grossa/Prensa, Media/Chemex)
 
-## Fase 3 — Backend Supabase: Banco de Dados e Auth
-- **Habilitar Supabase Cloud**
-- **Tabelas**: produtos (com campos específicos: notas sensoriais, SCA score, variedade, processo, origem, altitude, safra), categorias, variantes (moagem, peso), imagens, avaliações, pedidos, itens de pedido, endereços, assinaturas, cupons, blog posts
-- **Autenticação**: Email/senha, login social (Google), recuperação de senha
-- **RLS (Row Level Security)**: Políticas de segurança em todas as tabelas
-- **Roles**: Tabela de roles para admin/cliente
+**2. Inserir imagens reais na tabela `produto_imagens`**
+- Linkar as URLs das imagens do WordPress diretamente (hotlinking das imagens hospedadas no wp-content)
+- Definir imagem principal e secundarias para cada produto
 
-## Fase 4 — Catálogo de Produtos
-- **Página de listagem** com grid responsivo de cards premium (foto, nome, notas sensoriais em badges, preço, selo SCA)
-- **Filtros inteligentes**: Notas sensoriais, pontuação SCA, tipo de torra, moagem, origem, faixa de preço
-- **Ordenação**: Mais vendidos, novidades, preço, pontuação SCA
-- **Quick view**: Visualização rápida ao clicar no card
-- **Busca inteligente**: Autocomplete com sugestões de produtos, categorias e termos
+**3. Atualizar textos e conteudo**
+- Atualizar a pagina "Sobre Nos" com o texto real da familia Posteral
+- Atualizar a secao de depoimentos (TestimonialsSection) com os reviews reais dos baristas e produtora
+- Atualizar o HeroSection com a marca e identidade visual real
+- Usar a logo real no Header
 
-## Fase 5 — Página de Produto Premium
-- **Design como mini landing page** (inspiração Jouse)
-- **Galeria de imagens** com zoom em alta resolução
-- **Roda de sabores visual** (flavor wheel) com notas sensoriais
-- **Ficha técnica elegante**: SCA, variedade, processo, origem, altitude, safra
-- **Descrição sensorial narrativa**: Corpo, acidez, doçura, retrogosto
-- **Seletor de variantes**: Moagem e peso com preços dinâmicos
-- **Preço com destaque para desconto Pix** (10% off) e parcelamento
-- **Sugestão de método de preparo**
-- **Reviews/avaliações** com estrelas
-- **"Você também vai gostar"**: Produtos relacionados
+**4. Atualizar descricoes detalhadas**
+- Cada produto tera a descricao completa coletada do site original incluindo informacoes do produtor, regiao, fazenda e perfil sensorial detalhado
 
-## Fase 6 — Carrinho e Checkout
-- **Carrinho drawer lateral**: Adiciona sem redirecionar, editar quantidades, foto miniatura
-- **Cálculo de frete por CEP** inline (integração ViaCEP para autocomplete de endereço)
-- **Barra de progresso "Frete grátis a partir de R$ X"**
-- **Cupom de desconto**
-- **Upsell**: Sugestão de produto complementar
-- **Checkout em etapas (stepper)**: Identificação → Endereço → Envio → Pagamento → Confirmação
-- **Compra como visitante** ou logado
-- **Integração Stripe**: Cartão de crédito (parcelamento), com edge function segura
-- **Opção de presente**: Mensagem personalizada, entrega em outro endereço
+### Consideracoes tecnicas
 
-## Fase 7 — Área do Cliente
-- **Painel "Minha Conta"**: Dados pessoais, endereços salvos
-- **Histórico de pedidos** com status e timeline visual
-- **Lista de desejos/favoritos**
-- **Recompra fácil** a partir do histórico
-- **Gerenciamento de assinatura**
+- As imagens serao referenciadas diretamente via URL do WordPress existente (nao sera feito download/upload para o storage). Isso funciona enquanto a loja WordPress estiver no ar. Se preferir, posso fazer upload para o storage do projeto, mas isso requer um passo adicional.
+- Os moagens serao mapeados para o enum existente: `graos`, `fina`, `media`, `grossa`, `extra_fina`
+- Os valores de corpo/acidez/docura/retrogosto serao estimados a partir dos perfis sensoriais descritos
 
-## Fase 8 — Clube de Assinatura
-- **Página dedicada** explicando benefícios do clube
-- **Planos**: Mensal, trimestral, semestral com descontos progressivos
-- **Opções**: Café fixo ou surpresa (curadoria La Régence)
-- **Preferências** de moagem e método de preparo
-- **Gestão**: Pausar, cancelar, trocar café, alterar frequência
-- **Stripe Subscriptions** para cobrança recorrente
-
-## Fase 9 — Painel Administrativo
-- **Dashboard**: Vendas do dia/semana/mês, produtos mais vendidos, ticket médio (com Recharts)
-- **CRUD de produtos**: Todos os campos específicos de café + upload de imagens
-- **Gestão de pedidos**: Visualizar, atualizar status
-- **Gestão de estoque**: Alertas de estoque baixo
-- **Gestão de cupons, banners, categorias**
-- **Gestão de assinaturas e clientes**
-- **Gestão de blog/conteúdo**
-
-## Fase 10 — Conteúdo e Páginas Complementares
-- **Blog/Conteúdo Educativo**: Artigos sobre métodos de preparo, guias sensoriais, receitas
-- **Página "Sobre Nós"**: Storytelling com timeline visual da marca
-- **Quiz "Descubra Seu Café"**: 4-5 perguntas interativas com recomendação personalizada
-- **Páginas institucionais**: Política de privacidade (LGPD), termos de uso, frete, trocas, fale conosco
-- **Página de rastreamento**: Busca por número do pedido
-
-## Fase 11 — Notificações e Polimento
-- **Emails transacionais** via edge functions: Confirmação de pedido, atualização de status, boas-vindas, carrinho abandonado
-- **SEO**: Meta tags dinâmicas, Schema.org para produtos, sitemap, URLs amigáveis
-- **Performance**: Lazy loading de imagens, otimizações de carregamento
-- **Acessibilidade**: Navegação por teclado, alt texts, contraste WCAG AA
