@@ -37,13 +37,15 @@ const CheckoutPage = () => {
     cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
     frete: "padrao" as "padrao" | "expresso",
     presente: false, mensagemPresente: "",
+    metodoPagamento: "card" as "card" | "pix",
   });
 
   const [cepLoading, setCepLoading] = useState(false);
 
   const freteGratis = subtotal >= FRETE_GRATIS_MIN;
   const custoFrete = freteGratis ? 0 : form.frete === "expresso" ? 29.90 : 14.90;
-  const total = Math.max(0, subtotal - desconto + custoFrete);
+  const pixDesconto = form.metodoPagamento === "pix" ? (subtotal - desconto) * 0.1 : 0;
+  const total = Math.max(0, subtotal - desconto - pixDesconto + custoFrete);
 
   const updateField = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -91,43 +93,29 @@ const CheckoutPage = () => {
   const finalizarPedido = async () => {
     setSubmitting(true);
     try {
-      // Create order in database
-      const { data: pedido, error: pedidoError } = await supabase.from("pedidos").insert({
-        user_id: user?.id || null,
-        email_visitante: user ? null : form.email,
-        subtotal,
-        desconto,
-        frete: custoFrete,
-        total,
-        metodo_pagamento: "stripe",
-        presente: form.presente,
-        mensagem_presente: form.mensagemPresente || null,
-        endereco_entrega: {
-          cep: form.cep, logradouro: form.logradouro, numero: form.numero,
-          complemento: form.complemento, bairro: form.bairro, cidade: form.cidade, estado: form.estado,
+      const { data, error } = await supabase.functions.invoke("create-checkout-payment", {
+        body: {
+          items,
+          form,
+          subtotal,
+          desconto,
+          custoFrete,
+          total,
+          cupomId: null,
+          metodoPagamento: form.metodoPagamento,
         },
-      }).select("id").single();
+      });
 
-      if (pedidoError) throw pedidoError;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // Create order items
-      const itens = items.map((item) => ({
-        pedido_id: pedido.id,
-        produto_id: item.produtoId,
-        variante_id: item.varianteId || null,
-        quantidade: item.quantidade,
-        preco_unitario: item.precoPromocional || item.preco,
-        subtotal: (item.precoPromocional || item.preco) * item.quantidade,
-      }));
-
-      const { error: itensError } = await supabase.from("itens_pedido").insert(itens);
-      if (itensError) throw itensError;
-
-      toast.success("Pedido realizado com sucesso! 🎉");
-      clearCart();
-      navigate("/");
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de pagamento não recebida");
+      }
     } catch (err: any) {
-      toast.error("Erro ao finalizar pedido: " + (err.message || "Tente novamente"));
+      toast.error("Erro ao processar pagamento: " + (err.message || "Tente novamente"));
     } finally {
       setSubmitting(false);
     }
@@ -279,16 +267,57 @@ const CheckoutPage = () => {
               {/* Step 3: Pagamento */}
               {step === 3 && (
                 <div className="space-y-4">
-                  <h2 className="font-display text-xl font-semibold mb-4">Pagamento</h2>
-                  <div className="bg-muted/50 rounded-lg p-6 text-center">
-                    <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                    <p className="font-body text-sm text-muted-foreground mb-1">Ao confirmar, você será redirecionado para o Stripe para pagamento seguro.</p>
-                    <p className="font-body text-xs text-muted-foreground">Cartão de crédito · Parcelamento em até 3x sem juros</p>
-                  </div>
-                  <div className="bg-accent/10 rounded-lg p-4 text-center">
-                    <p className="font-body text-sm text-accent font-medium">💰 Pague via Pix e ganhe 10% de desconto!</p>
-                    <p className="font-body text-xs text-muted-foreground mt-1">Total no Pix: R$ {(total * 0.9).toFixed(2).replace(".", ",")}</p>
-                  </div>
+                  <h2 className="font-display text-xl font-semibold mb-4">Método de Pagamento</h2>
+                  {[
+                    { value: "card", label: "Cartão de Crédito", desc: "Parcelamento em até 3x sem juros", icon: "💳" },
+                    { value: "pix", label: "Pix", desc: "10% de desconto · Aprovação imediata", icon: "⚡" },
+                  ].map((opt) => (
+                    <label
+                      key={opt.value}
+                      className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
+                        form.metodoPagamento === opt.value
+                          ? "border-accent bg-accent/5 ring-1 ring-accent/20"
+                          : "border-border hover:border-accent/30"
+                      }`}
+                      onClick={() => updateField("metodoPagamento", opt.value)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            form.metodoPagamento === opt.value ? "border-accent" : "border-muted-foreground"
+                          }`}
+                        >
+                          {form.metodoPagamento === opt.value && (
+                            <div className="w-2 h-2 rounded-full bg-accent" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-body font-medium text-sm flex items-center gap-2">
+                            <span>{opt.icon}</span> {opt.label}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-body">{opt.desc}</p>
+                        </div>
+                      </div>
+                      {opt.value === "pix" && form.metodoPagamento === "pix" && (
+                        <span className="text-xs font-body font-semibold text-accent">
+                          -10%
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                  {form.metodoPagamento === "pix" && (
+                    <div className="bg-accent/10 rounded-lg p-4 text-center">
+                      <p className="font-body text-sm text-accent font-medium">
+                        💰 Desconto Pix aplicado: -R$ {pixDesconto.toFixed(2).replace(".", ",")}
+                      </p>
+                      <p className="font-body text-xs text-muted-foreground mt-1">
+                        Total com Pix: R$ {total.toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+                  )}
+                  <p className="font-body text-xs text-muted-foreground text-center pt-2">
+                    Ao confirmar, você será redirecionado para o pagamento seguro via Stripe.
+                  </p>
                 </div>
               )}
 
@@ -302,6 +331,7 @@ const CheckoutPage = () => {
                     <p><strong>E-mail:</strong> {form.email}</p>
                     <p><strong>Endereço:</strong> {form.logradouro}, {form.numero} — {form.cidade}/{form.estado}</p>
                     <p><strong>Envio:</strong> {form.frete === "expresso" ? "Expresso" : "Padrão"}</p>
+                    <p><strong>Pagamento:</strong> {form.metodoPagamento === "pix" ? "Pix (10% desconto)" : "Cartão de Crédito"}</p>
                     {form.presente && <p><strong>Presente:</strong> Sim</p>}
                   </div>
                 </div>
@@ -347,6 +377,7 @@ const CheckoutPage = () => {
                 <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R$ {subtotal.toFixed(2).replace(".", ",")}</span></div>
                 {desconto > 0 && <div className="flex justify-between text-accent"><span>Cupom ({cupom})</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                 <div className="flex justify-between text-muted-foreground"><span>Frete</span><span>{custoFrete === 0 ? "Grátis" : `R$ ${custoFrete.toFixed(2).replace(".", ",")}`}</span></div>
+                {pixDesconto > 0 && <div className="flex justify-between text-accent"><span>Desconto Pix</span><span>-R$ {pixDesconto.toFixed(2).replace(".", ",")}</span></div>}
                 <div className="flex justify-between font-semibold text-base pt-2 border-t border-border"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
               </div>
               </div>
