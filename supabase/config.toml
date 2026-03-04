@@ -1,1 +1,7 @@
 project_id = "uuuaylqjllxqjjmvdybm"
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.generate-sitemap]
+verify_jwt = false

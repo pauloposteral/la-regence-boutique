@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, ShoppingBag, ChevronLeft, Minus, Plus, MapPin, Mountain, Leaf, Calendar, Coffee, AlertTriangle } from "lucide-react";
+import { Star, ShoppingBag, Minus, Plus, MapPin, Mountain, Leaf, Calendar, Coffee, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import FlavorWheel from "@/components/product/FlavorWheel";
 import ProductGallery from "@/components/product/ProductGallery";
@@ -24,7 +25,7 @@ const ProdutoPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: produto, isLoading, error } = useProdutoBySlug(slug || "");
   const { data: allProdutos = [] } = useProdutos();
-  const { addItem } = useCart();
+  const { addItem, openCart } = useCart();
 
   const [selectedMoagem, setSelectedMoagem] = useState<string | null>(null);
   const [selectedPeso, setSelectedPeso] = useState<number | null>(null);
@@ -93,6 +94,26 @@ const ProdutoPage = () => {
     offers: { "@type": "Offer", price: currentPrice, priceCurrency: "BRL", availability: produto.estoque > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
   };
 
+  const handleAddToCart = () => {
+    addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
+    toast.success(
+      <div className="flex items-center gap-3">
+        {mainImg && <img src={mainImg} alt="" className="w-10 h-10 rounded object-cover shrink-0" />}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{produto.nome}</p>
+          <p className="text-xs text-muted-foreground">Adicionado ao carrinho</p>
+        </div>
+      </div>,
+      {
+        action: {
+          label: "Ver carrinho",
+          onClick: () => openCart(),
+        },
+        duration: 4000,
+      }
+    );
+  };
+
   return (
     <Layout>
       <SEOHead title={produto.nome} description={produto.descricao_sensorial || produto.descricao || `Café especial ${produto.nome} — La Régence`} image={mainImg} type="product" jsonLd={productJsonLd} />
@@ -114,12 +135,7 @@ const ProdutoPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Gallery */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <ProductGallery
-              images={produto.imagens || []}
-              productName={produto.nome}
-              scaScore={produto.sca_score}
-              promoPercent={promoPercent}
-            />
+            <ProductGallery images={produto.imagens || []} productName={produto.nome} scaScore={produto.sca_score} promoPercent={promoPercent} />
           </motion.div>
 
           {/* Details */}
@@ -158,9 +174,7 @@ const ProdutoPage = () => {
                 <span className="text-muted-foreground">ou 3x de R$ {(currentPrice / 3).toFixed(2).replace(".", ",")}</span>
               </div>
               {produto.preco_promocional && (
-                <div className="mt-3">
-                  <PromotionCountdown />
-                </div>
+                <div className="mt-3"><PromotionCountdown /></div>
               )}
             </div>
 
@@ -209,15 +223,7 @@ const ProdutoPage = () => {
                 <button onClick={() => setQuantidade(quantidade + 1)} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                <Button 
-                  className="w-full font-body text-sm tracking-wide" 
-                  size="lg" 
-                  disabled={produto.estoque === 0}
-                  onClick={() => {
-                    addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
-                    toast.success(`${produto.nome} adicionado ao carrinho!`);
-                  }}
-                >
+                <Button className="w-full font-body text-sm tracking-wide" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>
                   <ShoppingBag className="w-4 h-4 mr-2" /> {produto.estoque === 0 ? "Indisponível" : "Adicionar ao Carrinho"}
                 </Button>
               </motion.div>
@@ -226,42 +232,58 @@ const ProdutoPage = () => {
 
             {/* Share */}
             <ShareButtons url={`/cafe/${produto.slug}`} title={produto.nome} />
-
-            {/* Sensory description */}
-            {produto.descricao_sensorial && (
-              <div className="pt-4 border-t border-border">
-                <h3 className="font-display text-lg font-semibold mb-2">Perfil Sensorial</h3>
-                <p className="font-body text-muted-foreground leading-relaxed italic">"{produto.descricao_sensorial}"</p>
-              </div>
-            )}
-
-            {/* Flavor wheel */}
-            {produto.corpo && produto.acidez && produto.docura && produto.retrogosto && (
-              <div className="pt-4 border-t border-border">
-                <h3 className="font-display text-lg font-semibold mb-4 text-center">Roda de Sabores</h3>
-                <FlavorWheel corpo={produto.corpo} acidez={produto.acidez} docura={produto.docura} retrogosto={produto.retrogosto} notas={produto.notas_sensoriais || []} />
-              </div>
-            )}
-
-            {/* Tech specs */}
-            <div className="pt-4 border-t border-border">
-              <h3 className="font-display text-lg font-semibold mb-4">Ficha Técnica</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-accent" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
-                {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-accent" />} label="Variedade" value={produto.variedade} />}
-                {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-accent" />} label="Processo" value={produto.processo} />}
-                {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-accent" />} label="Origem" value={produto.origem} />}
-                {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-accent" />} label="Altitude" value={produto.altitude} />}
-                {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-accent" />} label="Safra" value={produto.safra} />}
-                {produto.tipo_torra && <SpecItem icon={<span className="text-accent text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
-              </div>
-            </div>
           </motion.div>
         </div>
 
-        {/* Reviews section */}
+        {/* Tabs: Descrição / Ficha Técnica / Avaliações */}
         <div className="mt-16">
-          <ProductReviews produtoId={produto.id} />
+          <Tabs defaultValue="descricao" className="w-full">
+            <TabsList className="w-full justify-start bg-card border border-border rounded-lg p-1 h-auto flex-wrap">
+              <TabsTrigger value="descricao" className="font-body text-sm">Descrição</TabsTrigger>
+              {(produto.corpo || produto.sca_score) && <TabsTrigger value="ficha" className="font-body text-sm">Ficha Técnica</TabsTrigger>}
+              <TabsTrigger value="avaliacoes" className="font-body text-sm">Avaliações</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="descricao" className="mt-6 space-y-6">
+              {produto.descricao_sensorial && (
+                <div>
+                  <h3 className="font-display text-lg font-semibold mb-2">Perfil Sensorial</h3>
+                  <p className="font-body text-muted-foreground leading-relaxed italic">"{produto.descricao_sensorial}"</p>
+                </div>
+              )}
+              {produto.corpo && produto.acidez && produto.docura && produto.retrogosto && (
+                <div>
+                  <h3 className="font-display text-lg font-semibold mb-4 text-center">Roda de Sabores</h3>
+                  <FlavorWheel corpo={produto.corpo} acidez={produto.acidez} docura={produto.docura} retrogosto={produto.retrogosto} notas={produto.notas_sensoriais || []} />
+                </div>
+              )}
+              {produto.descricao && (
+                <div>
+                  <h3 className="font-display text-lg font-semibold mb-2">Sobre este café</h3>
+                  <p className="font-body text-muted-foreground leading-relaxed">{produto.descricao}</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {(produto.corpo || produto.sca_score) && (
+              <TabsContent value="ficha" className="mt-6">
+                <h3 className="font-display text-lg font-semibold mb-4">Ficha Técnica</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-accent" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
+                  {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-accent" />} label="Variedade" value={produto.variedade} />}
+                  {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-accent" />} label="Processo" value={produto.processo} />}
+                  {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-accent" />} label="Origem" value={produto.origem} />}
+                  {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-accent" />} label="Altitude" value={produto.altitude} />}
+                  {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-accent" />} label="Safra" value={produto.safra} />}
+                  {produto.tipo_torra && <SpecItem icon={<span className="text-accent text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
+                </div>
+              </TabsContent>
+            )}
+
+            <TabsContent value="avaliacoes" className="mt-6">
+              <ProductReviews produtoId={produto.id} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Related products */}
