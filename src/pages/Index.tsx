@@ -1,12 +1,15 @@
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
-import CoffeeCarousel from "@/components/home/CoffeeCarousel";
-import StorySection from "@/components/home/StorySection";
-import BrewMethods from "@/components/home/BrewMethods";
-import TestimonialsSection from "@/components/home/TestimonialsSection";
-import SubscriptionBanner from "@/components/home/SubscriptionBanner";
 import DynamicBanners from "@/components/home/DynamicBanners";
+import CoffeeCarousel from "@/components/home/CoffeeCarousel";
 import SEOHead from "@/components/SEOHead";
+import LazySection from "@/components/home/LazySection";
+import { lazy, Suspense } from "react";
+
+const StorySection = lazy(() => import("@/components/home/StorySection"));
+const BrewMethods = lazy(() => import("@/components/home/BrewMethods"));
+const TestimonialsSection = lazy(() => import("@/components/home/TestimonialsSection"));
+const SubscriptionBanner = lazy(() => import("@/components/home/SubscriptionBanner"));
 
 const Index = () => {
   const jsonLd = {
@@ -23,10 +26,26 @@ const Index = () => {
       <HeroSection />
       <DynamicBanners />
       <CoffeeCarousel />
-      <StorySection />
-      <BrewMethods />
-      <TestimonialsSection />
-      <SubscriptionBanner />
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[300px]" />}>
+          <StorySection />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[300px]" />}>
+          <BrewMethods />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[300px]" />}>
+          <TestimonialsSection />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[300px]" />}>
+          <SubscriptionBanner />
+        </Suspense>
+      </LazySection>
     </Layout>
   );
 };

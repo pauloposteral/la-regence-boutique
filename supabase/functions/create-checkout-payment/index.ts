@@ -43,6 +43,42 @@ serve(async (req) => {
       userId = data.user?.id ?? null;
     }
 
+    // ==========================================
+    // STOCK VALIDATION (Melhoria #22)
+    // ==========================================
+    const produtoIds = items.map((i: any) => i.produtoId);
+    const varianteIds = items.filter((i: any) => i.varianteId).map((i: any) => i.varianteId);
+
+    // Check product stock
+    const { data: produtos } = await supabaseAdmin
+      .from("produtos")
+      .select("id, nome, estoque")
+      .in("id", produtoIds);
+
+    // Check variant stock
+    let variantes: any[] = [];
+    if (varianteIds.length > 0) {
+      const { data: v } = await supabaseAdmin
+        .from("variantes")
+        .select("id, estoque, produto_id")
+        .in("id", varianteIds);
+      variantes = v || [];
+    }
+
+    for (const item of items) {
+      if (item.varianteId) {
+        const variante = variantes.find((v: any) => v.id === item.varianteId);
+        if (variante && variante.estoque < item.quantidade) {
+          throw new Error(`Estoque insuficiente para "${item.nome}". Disponível: ${variante.estoque}`);
+        }
+      } else {
+        const produto = (produtos || []).find((p: any) => p.id === item.produtoId);
+        if (produto && produto.estoque < item.quantidade) {
+          throw new Error(`Estoque insuficiente para "${produto.nome}". Disponível: ${produto.estoque}`);
+        }
+      }
+    }
+
     const isPix = metodoPagamento === "pix";
     const pixDiscount = isPix ? 0.1 : 0;
     const subtotalAfterCoupon = Math.max(0, subtotal - (desconto || 0));
