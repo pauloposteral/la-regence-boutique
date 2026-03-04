@@ -1,0 +1,18 @@
+{
+  "name": "La Régence — Cafés Especiais",
+  "short_name": "La Régence",
+  "description": "Cafeteria e torrefação artesanal de cafés especiais desde 2006",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf5ef",
+  "theme_color": "#2a1a0f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["food", "shopping"]
+}

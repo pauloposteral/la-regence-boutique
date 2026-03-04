@@ -60,6 +60,15 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                  onMouseEnter={() => {
+                    // Prefetch hint - browser will preload on hover
+                    const prefetchLink = document.createElement("link");
+                    prefetchLink.rel = "prefetch";
+                    prefetchLink.href = link.href;
+                    if (!document.querySelector(`link[href="${link.href}"]`)) {
+                      document.head.appendChild(prefetchLink);
+                    }
+                  }}
                 >
                   {link.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />

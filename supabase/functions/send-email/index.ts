@@ -12,6 +12,22 @@ interface EmailRequest {
   data: Record<string, any>;
 }
 
+// Simple in-memory rate limiter (per-isolate)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5; // max emails per window
+const RATE_WINDOW_MS = 60000; // 1 minute
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,6 +35,14 @@ Deno.serve(async (req) => {
 
   try {
     const { type, to, data } = (await req.json()) as EmailRequest;
+
+    // Rate limit check
+    if (isRateLimited(to)) {
+      return new Response(
+        JSON.stringify({ error: "Muitas solicitações. Tente novamente em 1 minuto." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let subject = "";
     let html = "";
