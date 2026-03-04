@@ -165,12 +165,25 @@ const CheckoutPage = () => {
             return (
               <div key={s.id} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-body transition-colors ${done ? "bg-accent text-accent-foreground" : active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                  <motion.div
+                    initial={false}
+                    animate={{ scale: active ? 1.1 : 1 }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-body transition-colors ${done ? "bg-gold text-accent-foreground shadow-md" : active ? "bg-primary text-primary-foreground ring-2 ring-gold/30" : "bg-muted text-muted-foreground"}`}
+                  >
                     {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                  </div>
-                  <span className={`text-[10px] font-body mt-1.5 ${active || done ? "text-foreground" : "text-muted-foreground"}`}>{s.label}</span>
+                  </motion.div>
+                  <span className={`text-[10px] font-body mt-1.5 ${active || done ? "text-foreground font-medium" : "text-muted-foreground"}`}>{s.label}</span>
                 </div>
-                {i < STEPS.length - 1 && <div className={`flex-1 h-px mx-2 ${i < step ? "bg-accent" : "bg-border"}`} />}
+                {i < STEPS.length - 1 && (
+                  <div className="flex-1 h-0.5 mx-2 bg-border rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gold rounded-full"
+                      initial={{ width: "0%" }}
+                      animate={{ width: i < step ? "100%" : "0%" }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -312,7 +325,9 @@ const CheckoutPage = () => {
 
           {/* Order summary sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-card border border-border rounded-lg p-5 sticky top-24 space-y-4">
+            <div className="bg-card border border-border rounded-lg overflow-hidden sticky top-24 space-y-4">
+              <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
+              <div className="px-5 pt-3 pb-5 space-y-4">
               <h3 className="font-display text-lg font-semibold">Resumo do Pedido</h3>
               <div className="space-y-3 max-h-60 overflow-y-auto">
                 {items.map((item) => (
@@ -333,6 +348,7 @@ const CheckoutPage = () => {
                 {desconto > 0 && <div className="flex justify-between text-accent"><span>Cupom ({cupom})</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                 <div className="flex justify-between text-muted-foreground"><span>Frete</span><span>{custoFrete === 0 ? "Grátis" : `R$ ${custoFrete.toFixed(2).replace(".", ",")}`}</span></div>
                 <div className="flex justify-between font-semibold text-base pt-2 border-t border-border"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
+              </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,17 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [scrolled, setScrolled] = useState(false);
   const { totalItems, openCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,15 +48,24 @@ const Header = () => {
         Frete grátis para compras acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
 
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <header className={`sticky top-0 z-50 border-b border-border transition-all duration-300 ${
+        scrolled 
+          ? "bg-background/98 backdrop-blur-lg shadow-md" 
+          : "bg-background/95 backdrop-blur-md"
+      }`}>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <Link to="/" className="flex items-center gap-2">
-              <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
+            <Link to="/" className="flex items-center gap-2.5">
+              <img 
+                src="/images/logo-laregence.jpeg" 
+                alt="La Régence" 
+                className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg object-cover border border-gold/20" 
+              />
+              <span className="font-display text-xl lg:text-2xl font-semibold tracking-tight text-foreground">
                 La <span className="text-gradient-gold italic">Régence</span>
               </span>
             </Link>
@@ -60,15 +76,6 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-                  onMouseEnter={() => {
-                    // Prefetch hint - browser will preload on hover
-                    const prefetchLink = document.createElement("link");
-                    prefetchLink.rel = "prefetch";
-                    prefetchLink.href = link.href;
-                    if (!document.querySelector(`link[href="${link.href}"]`)) {
-                      document.head.appendChild(prefetchLink);
-                    }
-                  }}
                 >
                   {link.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent transition-all group-hover:w-full" />
@@ -77,7 +84,6 @@ const Header = () => {
             </nav>
 
             <div className="flex items-center gap-1 lg:gap-2">
-              {/* Dark mode toggle */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -144,14 +150,14 @@ const Header = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden border-t border-border overflow-hidden"
+              className="lg:hidden border-t border-border overflow-hidden backdrop-blur-lg bg-background/98"
             >
               <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="text-sm font-body font-medium text-muted-foreground hover:text-foreground py-2 border-b border-border/50 last:border-0"
+                    className="text-sm font-body font-medium text-muted-foreground hover:text-foreground py-2 border-b border-border/50 last:border-0 transition-colors"
                     onClick={() => setMobileOpen(false)}
                   >
                     {link.label}

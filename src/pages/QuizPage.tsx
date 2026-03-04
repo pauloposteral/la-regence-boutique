@@ -131,7 +131,14 @@ const QuizPage = () => {
                 {/* Progress */}
                 <div className="flex gap-2 mb-8">
                   {QUESTIONS.map((_, i) => (
-                    <div key={i} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-accent" : "bg-border"}`} />
+                    <div key={i} className="flex-1 h-1.5 rounded-full overflow-hidden bg-border">
+                      <motion.div
+                        className="h-full bg-gold rounded-full"
+                        initial={{ width: "0%" }}
+                        animate={{ width: i <= step ? "100%" : "0%" }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
                   ))}
                 </div>
 
@@ -143,7 +150,7 @@ const QuizPage = () => {
                     <button
                       key={i}
                       onClick={() => handleAnswer(i)}
-                      className="text-left rounded-lg border-2 border-border p-5 hover:border-accent hover:bg-accent/5 transition-all group"
+                      className="text-left rounded-lg border-2 border-border p-5 hover:border-gold hover:bg-gold/5 hover:shadow-[0_0_15px_-5px_hsl(var(--gold)/0.2)] transition-all group"
                     >
                       <span className="font-body text-sm font-medium group-hover:text-accent transition-colors">{opt.label}</span>
                     </button>

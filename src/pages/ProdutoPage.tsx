@@ -147,14 +147,14 @@ const ProdutoPage = () => {
                 {produto.preco_promocional ? (
                   <>
                     <span className="text-sm text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-display text-3xl font-bold text-foreground">R$ {(selectedVariant?.preco ? selectedVariant.preco * (produto.preco_promocional / produto.preco) : produto.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                    <span className="font-display text-4xl font-bold text-foreground">R$ {(selectedVariant?.preco ? selectedVariant.preco * (produto.preco_promocional / produto.preco) : produto.preco_promocional).toFixed(2).replace(".", ",")}</span>
                   </>
                 ) : (
-                  <span className="font-display text-3xl font-bold text-foreground">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-display text-4xl font-bold text-foreground">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
                 )}
               </div>
               <div className="mt-2 flex items-center gap-4 text-sm font-body">
-                <span className="text-accent font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
+                <span className="text-gold font-semibold">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
                 <span className="text-muted-foreground">ou 3x de R$ {(currentPrice / 3).toFixed(2).replace(".", ",")}</span>
               </div>
               {produto.preco_promocional && (
@@ -194,6 +194,13 @@ const ProdutoPage = () => {
               </div>
             )}
 
+            {/* Out of stock badge */}
+            {produto.estoque === 0 && (
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-center">
+                <span className="font-body text-sm font-semibold text-destructive">Fora de estoque</span>
+              </div>
+            )}
+
             {/* Quantity + Add to cart */}
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-border rounded">
@@ -202,11 +209,16 @@ const ProdutoPage = () => {
                 <button onClick={() => setQuantidade(quantidade + 1)} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                <Button className="w-full font-body text-sm tracking-wide" size="lg" onClick={() => {
-                  addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
-                  toast.success(`${produto.nome} adicionado ao carrinho!`);
-                }}>
-                  <ShoppingBag className="w-4 h-4 mr-2" /> Adicionar ao Carrinho
+                <Button 
+                  className="w-full font-body text-sm tracking-wide" 
+                  size="lg" 
+                  disabled={produto.estoque === 0}
+                  onClick={() => {
+                    addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
+                    toast.success(`${produto.nome} adicionado ao carrinho!`);
+                  }}
+                >
+                  <ShoppingBag className="w-4 h-4 mr-2" /> {produto.estoque === 0 ? "Indisponível" : "Adicionar ao Carrinho"}
                 </Button>
               </motion.div>
               <FavoriteButton produtoId={produto.id} />

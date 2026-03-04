@@ -86,8 +86,12 @@ const CafesPage = () => {
     <Layout>
       <SEOHead title="Nossos Cafés Especiais" description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito." />
       
-      <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-20">
-        <div className="container mx-auto px-4 lg:px-8 text-center">
+      <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-20 relative overflow-hidden">
+        {/* Texture overlay */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+        <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
           <h1 className="font-display text-4xl lg:text-5xl font-light mb-3">
             Nossos <span className="italic font-medium text-gold">Cafés</span>
           </h1>
