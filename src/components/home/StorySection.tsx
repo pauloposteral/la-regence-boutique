@@ -5,17 +5,20 @@ const StorySection = () => {
     <section className="py-20 lg:py-28 bg-secondary">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Image placeholder */}
+          {/* Real image with gold border accent */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="aspect-[4/5] bg-muted rounded-lg flex items-center justify-center"
+            className="relative"
           >
-            <div className="text-center text-muted-foreground">
-              <span className="text-6xl">🏭</span>
-              <p className="font-body text-sm mt-4">Foto da torrefação</p>
-            </div>
+            <div className="absolute -left-3 top-8 bottom-8 w-1 bg-gradient-to-b from-gold/0 via-gold/60 to-gold/0 rounded-full hidden lg:block" />
+            <img
+              src="/images/torrefacao.jpeg"
+              alt="Torrefação La Régence em Andradina-SP"
+              className="aspect-[4/5] w-full object-cover rounded-lg shadow-xl"
+              loading="lazy"
+            />
           </motion.div>
 
           <motion.div

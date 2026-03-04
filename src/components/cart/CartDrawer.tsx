@@ -64,6 +64,9 @@ const CartDrawer = () => {
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background z-50 flex flex-col shadow-2xl"
           >
+            {/* Gold top accent */}
+            <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
+
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-border">
               <div className="flex items-center gap-2">
@@ -162,7 +165,7 @@ const CartDrawer = () => {
                   {desconto > 0 && <div className="flex justify-between text-accent"><span>Desconto</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                   <div className="flex justify-between text-muted-foreground"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
                   <div className="flex justify-between font-semibold text-base pt-2 border-t border-border"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
-                  <p className="text-[10px] text-accent text-right">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
+                  <p className="text-[10px] text-accent text-right font-medium">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>

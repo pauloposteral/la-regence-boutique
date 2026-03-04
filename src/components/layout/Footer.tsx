@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, MapPin, Phone, Mail } from "lucide-react";
+import { Instagram, Facebook, MapPin, Phone, Mail, CreditCard, Smartphone } from "lucide-react";
 import NewsletterFooter from "./NewsletterFooter";
 
 const Footer = () => {
@@ -9,18 +9,25 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <span className="font-display text-2xl font-semibold tracking-tight">
-              La <span className="text-gold italic">Régence</span>
-            </span>
-            <p className="mt-4 text-sm text-primary-foreground/70 font-body leading-relaxed">
+            <div className="flex items-center gap-2.5 mb-4">
+              <img 
+                src="/images/logo-laregence.jpeg" 
+                alt="La Régence" 
+                className="w-10 h-10 rounded-lg object-cover border border-gold/20" 
+              />
+              <span className="font-display text-2xl font-semibold tracking-tight">
+                La <span className="text-gold italic">Régence</span>
+              </span>
+            </div>
+            <p className="text-sm text-primary-foreground/70 font-body leading-relaxed">
               Cafeteria e torrefação de cafés especiais desde 2006. 
               Cada grão conta uma história de origem, cuidado e paixão.
             </p>
             <div className="flex gap-3 mt-6">
-              <a href="https://instagram.com/laregencecafe" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center hover:bg-primary-foreground/10 transition-colors" aria-label="Instagram">
+              <a href="https://instagram.com/laregencecafe" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center hover:bg-gold/20 hover:border-gold/50 transition-colors" aria-label="Instagram">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center hover:bg-primary-foreground/10 transition-colors" aria-label="Facebook">
+              <a href="#" className="w-9 h-9 rounded-full border border-primary-foreground/20 flex items-center justify-center hover:bg-gold/20 hover:border-gold/50 transition-colors" aria-label="Facebook">
                 <Facebook className="w-4 h-4" />
               </a>
             </div>
@@ -73,16 +80,23 @@ const Footer = () => {
         {/* Newsletter */}
         <NewsletterFooter />
 
+        {/* Gold separator */}
+        <div className="mt-8 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+
         {/* Bottom */}
-        <div className="mt-8 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-primary-foreground/50 font-body">
             © {new Date().getFullYear()} La Régence · Todos os direitos reservados · CNPJ: XX.XXX.XXX/0001-XX
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-primary-foreground/50 font-body">Pagamentos seguros via</span>
             <div className="flex gap-2">
-              <span className="text-[10px] bg-primary-foreground/10 px-2 py-1 rounded font-body">Stripe</span>
-              <span className="text-[10px] bg-primary-foreground/10 px-2 py-1 rounded font-body">Pix</span>
+              <span className="text-[10px] bg-primary-foreground/10 px-2.5 py-1.5 rounded-md font-body font-medium flex items-center gap-1 border border-primary-foreground/5">
+                <CreditCard className="w-3 h-3" /> Stripe
+              </span>
+              <span className="text-[10px] bg-primary-foreground/10 px-2.5 py-1.5 rounded-md font-body font-medium flex items-center gap-1 border border-primary-foreground/5">
+                <Smartphone className="w-3 h-3" /> Pix
+              </span>
             </div>
           </div>
         </div>

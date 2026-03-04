@@ -26,11 +26,11 @@ const CoffeeCarousel = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-lg border border-border animate-pulse">
-                <div className="aspect-[3/4] bg-muted rounded-t-lg" />
+              <div key={i} className="bg-card rounded-lg border border-border overflow-hidden">
+                <div className="aspect-[3/4] bg-muted rounded-t-lg shimmer-gold" />
                 <div className="p-4 space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+                  <div className="h-4 bg-muted rounded w-3/4 shimmer-gold" />
+                  <div className="h-3 bg-muted rounded w-1/2 shimmer-gold" />
                 </div>
               </div>
             ))}
@@ -47,7 +47,7 @@ const CoffeeCarousel = () => {
               >
                 <Link
                   to={`/cafe/${coffee.slug}`}
-                  className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-accent/30 hover:shadow-lg transition-all duration-300"
+                  className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--gold)/0.3)] transition-all duration-300"
                 >
                   <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative overflow-hidden">
                     {coffee.imagens && coffee.imagens.length > 0 ? (
@@ -55,19 +55,20 @@ const CoffeeCarousel = () => {
                         src={coffee.imagens.find((i) => i.principal)?.url || coffee.imagens[0]?.url}
                         alt={coffee.nome}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        loading="lazy"
                       />
                     ) : (
                       <span className="text-5xl group-hover:scale-110 transition-transform duration-500">☕</span>
                     )}
                     {coffee.sca_score && (
-                      <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-gold text-gold" />
+                      <div className="absolute top-3 right-3 bg-gold text-accent-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                        <Star className="w-3 h-3 fill-current" />
                         SCA {coffee.sca_score}
                       </div>
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="font-display text-lg font-semibold">{coffee.nome}</h3>
+                    <h3 className="font-display text-lg font-semibold group-hover:text-accent transition-colors">{coffee.nome}</h3>
                     <p className="text-xs text-muted-foreground font-body mt-1">
                       {coffee.notas_sensoriais?.join(" · ")}
                     </p>
@@ -75,7 +76,7 @@ const CoffeeCarousel = () => {
                       <span className="font-body font-semibold text-foreground">
                         R$ {coffee.preco.toFixed(2).replace(".", ",")}
                       </span>
-                      <span className="text-[10px] text-accent font-body">10% off no Pix</span>
+                      <span className="text-[10px] text-accent font-body font-medium">10% off no Pix</span>
                     </div>
                   </div>
                 </Link>

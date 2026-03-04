@@ -10,6 +10,11 @@ const SubscriptionBanner = () => {
       <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
       <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full border border-gold/5" />
 
+      {/* Subtle coffee bean texture */}
+      <div className="absolute inset-0 opacity-[0.04]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Cellipse cx='20' cy='20' rx='6' ry='9' transform='rotate(30 20 20)'/%3E%3C/g%3E%3C/svg%3E")`,
+      }} />
+
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <div className="max-w-2xl mx-auto text-center">
           <motion.div
