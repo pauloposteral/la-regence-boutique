@@ -33,9 +33,9 @@ const PromotionCountdown = ({ endDate }: PromotionCountdownProps) => {
   }
 
   return (
-    <div className="flex items-center gap-2 bg-destructive/10 rounded-lg px-3 py-2">
-      <Clock className="w-3.5 h-3.5 text-destructive" />
-      <span className="font-body text-xs text-destructive font-medium">Promoção encerra em</span>
+    <div className="flex items-center gap-2 bg-destructive/10 rounded-lg px-3 py-2 flex-wrap">
+      <Clock className="w-3.5 h-3.5 text-destructive shrink-0" />
+      <span className="font-body text-xs text-destructive font-medium whitespace-nowrap">Promoção encerra em</span>
       <div className="flex gap-1.5 ml-auto">
         {[
           { value: remaining.days, label: "d" },
