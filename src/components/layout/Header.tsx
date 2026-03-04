@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Assinatura", href: "/assinatura" },
   { label: "Sobre Nós", href: "/sobre" },
   { label: "Blog", href: "/blog" },
+  { label: "Quiz ☕", href: "/quiz" },
   { label: "Contato", href: "/contato" },
 ];
 

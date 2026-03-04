@@ -12,6 +12,11 @@ import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ContaPage from "./pages/ContaPage";
 import AssinaturaPage from "./pages/AssinaturaPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import SobrePage from "./pages/SobrePage";
+import QuizPage from "./pages/QuizPage";
+import { PoliticaPrivacidadePage, TermosPage, FretePage, TrocasPage, ContatoPage, RastreamentoPage } from "./pages/InstitucionalPages";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -42,6 +47,16 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/conta" element={<ContaPage />} />
             <Route path="/assinatura" element={<AssinaturaPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/sobre" element={<SobrePage />} />
+            <Route path="/quiz" element={<QuizPage />} />
+            <Route path="/contato" element={<ContatoPage />} />
+            <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
+            <Route path="/termos" element={<TermosPage />} />
+            <Route path="/frete" element={<FretePage />} />
+            <Route path="/trocas" element={<TrocasPage />} />
+            <Route path="/rastreamento" element={<RastreamentoPage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="produtos" element={<AdminProdutos />} />
