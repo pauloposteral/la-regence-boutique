@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -16,6 +17,7 @@ const navLinks = [
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { totalItems, openCart } = useCart();
 
   return (
     <>
@@ -72,11 +74,13 @@ const Header = () => {
                   <User className="w-4 h-4" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho">
+              <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" onClick={openCart}>
                 <ShoppingBag className="w-4 h-4" />
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  0
-                </span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
               </Button>
             </div>
           </div>
