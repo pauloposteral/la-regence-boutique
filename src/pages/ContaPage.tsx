@@ -1,9 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check } from "lucide-react";
+import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -168,8 +181,55 @@ const ContaPage = () => {
                     <div><Label className="font-body text-xs">E-mail</Label><Input value={user?.email || ""} disabled className="font-body bg-muted/50" /></div>
                     <div><Label className="font-body text-xs">Telefone</Label><Input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className="font-body" placeholder="(00) 00000-0000" /></div>
                     <div><Label className="font-body text-xs">CPF</Label><Input value={profile.cpf} onChange={(e) => setProfile((p) => ({ ...p, cpf: e.target.value }))} className="font-body" placeholder="000.000.000-00" /></div>
-                  </div>
+                   </div>
                   <Button onClick={saveProfile} disabled={saving} className="font-body text-sm">{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+
+                  {/* LGPD - Delete Account */}
+                  <div className="border-t border-border pt-6 mt-6">
+                    <h3 className="font-display text-base font-semibold text-destructive flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-4 h-4" /> Zona de Perigo
+                    </h3>
+                    <p className="font-body text-xs text-muted-foreground mb-3">
+                      Ao excluir sua conta, todos os seus dados pessoais serão removidos permanentemente conforme a LGPD.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" className="font-body text-xs gap-1.5">
+                          <Trash2 className="w-3.5 h-3.5" /> Excluir minha conta
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="font-display">Excluir conta permanentemente?</AlertDialogTitle>
+                          <AlertDialogDescription className="font-body text-sm">
+                            Esta ação é irreversível. Todos os seus dados pessoais, favoritos, endereços e histórico serão apagados.
+                            Pedidos anteriores serão mantidos anonimizados.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="font-body">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-body"
+                            onClick={async () => {
+                              try {
+                                const { data: { session } } = await supabase.auth.getSession();
+                                const res = await supabase.functions.invoke("delete-account", {
+                                  headers: { Authorization: `Bearer ${session?.access_token}` },
+                                });
+                                if (res.error) throw res.error;
+                                toast.success("Conta excluída com sucesso");
+                                navigate("/");
+                              } catch {
+                                toast.error("Erro ao excluir conta. Tente novamente.");
+                              }
+                            }}
+                          >
+                            Sim, excluir tudo
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </>
               )}
             </motion.div>
