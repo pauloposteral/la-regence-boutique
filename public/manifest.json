@@ -12,7 +12,20 @@
       "src": "/favicon.ico",
       "sizes": "64x64",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/images/logo-laregence.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo-laregence.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["food", "shopping"]
+  "categories": ["food", "shopping"],
+  "prefer_related_applications": false
 }
