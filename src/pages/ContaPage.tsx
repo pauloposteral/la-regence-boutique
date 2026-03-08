@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
+import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,6 +88,50 @@ const ContaPage = () => {
     enabled: !!user,
   });
 
+  const { data: pontosData } = useQuery({
+    queryKey: ["pontos", user?.id],
+    queryFn: async () => {
+      const [{ data: historico }, { data: totalData }] = await Promise.all([
+        supabase.from("pontos_fidelidade").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
+        supabase.rpc("get_user_points", { _user_id: user!.id }),
+      ]);
+      return { historico: historico || [], total: (totalData as number) || 0 };
+    },
+    enabled: !!user,
+  });
+
+  const [redeeming, setRedeeming] = useState(false);
+
+  const redeemPoints = async (pontos: number, desconto: number) => {
+    if (!user || (pontosData?.total || 0) < pontos) {
+      toast.error("Pontos insuficientes");
+      return;
+    }
+    setRedeeming(true);
+    // Create coupon and deduct points
+    const codigo = `FIDELIDADE${Date.now().toString(36).toUpperCase()}`;
+    const { error: cupomError } = await supabase.from("cupons").insert({
+      codigo,
+      desconto_valor: desconto,
+      ativo: true,
+      usos_restantes: 1,
+      valido_ate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    if (cupomError) { toast.error("Erro ao criar cupom"); setRedeeming(false); return; }
+
+    const { error: pontosError } = await supabase.from("pontos_fidelidade").insert({
+      user_id: user.id,
+      pontos: -pontos,
+      tipo: "resgate",
+      descricao: `Resgate: cupom ${codigo} (R$ ${desconto})`,
+    });
+    if (pontosError) { toast.error("Erro ao registrar resgate"); setRedeeming(false); return; }
+
+    queryClient.invalidateQueries({ queryKey: ["pontos"] });
+    setRedeeming(false);
+    toast.success(`Cupom ${codigo} criado! R$ ${desconto} de desconto, válido por 30 dias.`, { duration: 8000 });
+  };
+
   const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
@@ -162,6 +206,7 @@ const ContaPage = () => {
           <TabsList className="bg-secondary/50 w-full justify-start overflow-x-auto">
             <TabsTrigger value="perfil" className="font-body text-xs gap-1.5"><User className="w-3.5 h-3.5" /> Perfil</TabsTrigger>
             <TabsTrigger value="pedidos" className="font-body text-xs gap-1.5"><ShoppingBag className="w-3.5 h-3.5" /> Pedidos</TabsTrigger>
+            <TabsTrigger value="pontos" className="font-body text-xs gap-1.5"><Award className="w-3.5 h-3.5" /> Pontos</TabsTrigger>
             <TabsTrigger value="enderecos" className="font-body text-xs gap-1.5"><MapPin className="w-3.5 h-3.5" /> Endereços</TabsTrigger>
             <TabsTrigger value="favoritos" className="font-body text-xs gap-1.5"><Heart className="w-3.5 h-3.5" /> Favoritos</TabsTrigger>
           </TabsList>
@@ -290,7 +335,74 @@ const ContaPage = () => {
             </motion.div>
           </TabsContent>
 
-          {/* Addresses Tab */}
+          {/* Points Tab */}
+          <TabsContent value="pontos">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              {/* Balance Card */}
+              <div className="bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20 rounded-lg p-6 text-center">
+                <Award className="w-10 h-10 text-accent mx-auto mb-2" />
+                <p className="font-body text-xs text-muted-foreground uppercase tracking-wider mb-1">Seus Pontos</p>
+                <p className="font-display text-4xl font-bold text-accent">{pontosData?.total || 0}</p>
+                <p className="font-body text-xs text-muted-foreground mt-2">Ganhe 1 ponto por cada R$ 1 em compras entregues</p>
+              </div>
+
+              {/* Redemption Options */}
+              <div>
+                <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gift className="w-4 h-4 text-accent" /> Trocar Pontos</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { pontos: 100, desconto: 10 },
+                    { pontos: 250, desconto: 30 },
+                    { pontos: 500, desconto: 70 },
+                  ].map((opt) => (
+                    <div key={opt.pontos} className="bg-card border border-border rounded-lg p-4 text-center">
+                      <p className="font-display text-lg font-bold">{opt.pontos} pts</p>
+                      <p className="font-body text-sm text-accent font-medium">R$ {opt.desconto} de desconto</p>
+                      <Button
+                        size="sm"
+                        variant={(pontosData?.total || 0) >= opt.pontos ? "default" : "outline"}
+                        className="mt-3 font-body text-xs w-full"
+                        disabled={(pontosData?.total || 0) < opt.pontos || redeeming}
+                        onClick={() => redeemPoints(opt.pontos, opt.desconto)}
+                      >
+                        {(pontosData?.total || 0) >= opt.pontos ? "Resgatar" : `Faltam ${opt.pontos - (pontosData?.total || 0)} pts`}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* History */}
+              {(pontosData?.historico?.length || 0) > 0 && (
+                <div>
+                  <h3 className="font-display text-base font-semibold mb-3">Histórico</h3>
+                  <div className="space-y-2">
+                    {pontosData!.historico.map((item: any) => (
+                      <div key={item.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3">
+                        <div>
+                          <p className="font-body text-sm">{item.descricao}</p>
+                          <p className="font-body text-[10px] text-muted-foreground">{new Date(item.created_at).toLocaleDateString("pt-BR")}</p>
+                        </div>
+                        <span className={`font-display font-bold text-sm ${item.pontos > 0 ? "text-green-600" : "text-destructive"}`}>
+                          {item.pontos > 0 ? "+" : ""}{item.pontos} pts
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(pontosData?.historico?.length || 0) === 0 && (
+                <div className="bg-card border border-border rounded-lg p-10 text-center">
+                  <Award className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="font-display text-lg mb-2">Nenhum ponto ainda</p>
+                  <p className="font-body text-sm text-muted-foreground mb-4">Faça uma compra e ganhe pontos quando ela for entregue!</p>
+                  <Button asChild variant="outline"><Link to="/cafes">Comprar Cafés</Link></Button>
+                </div>
+              )}
+            </motion.div>
+          </TabsContent>
+
           <TabsContent value="enderecos">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
               {enderecos.length === 0 ? (

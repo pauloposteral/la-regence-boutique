@@ -473,6 +473,44 @@ export type Database = {
           },
         ]
       }
+      pontos_fidelidade: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          pedido_id: string | null
+          pontos: number
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          pedido_id?: string | null
+          pontos: number
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          pedido_id?: string | null
+          pontos?: number
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_fidelidade_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produto_imagens: {
         Row: {
           alt_text: string | null
@@ -700,6 +738,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_points: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
