@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { CompareProvider } from "@/contexts/CompareContext";
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -27,6 +28,7 @@ const SobrePage = lazy(() => import("./pages/SobrePage"));
 const QuizPage = lazy(() => import("./pages/QuizPage"));
 const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
 const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
+const CompararPage = lazy(() => import("./pages/CompararPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -69,6 +71,7 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
       <CartProvider>
+        <CompareProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -90,6 +93,7 @@ const App = () => (
                   <Route path="/quiz" element={<QuizPage />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
                   <Route path="/favoritos" element={<FavoritosPage />} />
+                  <Route path="/comparar" element={<CompararPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
                   <Route path="/termos" element={<LazyTermos />} />
@@ -113,6 +117,7 @@ const App = () => (
             </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
+        </CompareProvider>
       </CartProvider>
     </QueryClientProvider>
   </ThemeProvider>
