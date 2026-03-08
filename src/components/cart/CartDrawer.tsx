@@ -86,12 +86,12 @@ const CartDrawer = () => {
                       Faltam <strong className="text-foreground">R$ {faltaFreteGratis.toFixed(2).replace(".", ",")}</strong> para frete grátis
                     </span>
                   ) : (
-                    <span className="text-accent font-medium">🎉 Frete grátis!</span>
+                    <span className="text-gold font-medium">🎉 Frete grátis!</span>
                   )}
                   <span className="text-muted-foreground">R$ {FRETE_GRATIS_MIN},00</span>
                 </div>
                 <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-accent rounded-full" initial={{ width: 0 }} animate={{ width: `${progressoFrete}%` }} transition={{ duration: 0.5 }} />
+                  <motion.div className="h-full bg-gold rounded-full" initial={{ width: 0 }} animate={{ width: `${progressoFrete}%` }} transition={{ duration: 0.5 }} />
                 </div>
               </div>
             )}
@@ -120,7 +120,7 @@ const CartDrawer = () => {
                         {item.imagemUrl ? <img src={item.imagemUrl} alt={item.nome} className="w-full h-full object-cover" loading="lazy" /> : <span className="text-2xl">☕</span>}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block hover:text-accent transition-colors" onClick={closeCart}>{item.nome}</Link>
+                        <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block hover:text-gold transition-colors duration-300" onClick={closeCart}>{item.nome}</Link>
                         <p className="text-[10px] text-muted-foreground font-body">
                           {item.moagem && MOAGEM_LABELS[item.moagem]}{item.peso && ` · ${item.peso >= 1000 ? `${item.peso / 1000}kg` : `${item.peso}g`}`}
                         </p>
@@ -155,21 +155,21 @@ const CartDrawer = () => {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between bg-accent/10 rounded px-3 py-2">
-                    <span className="text-xs font-body font-medium text-accent">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
+                    <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
                     <button onClick={() => { setCupom(null); setDesconto(0); }} className="text-xs text-muted-foreground hover:text-destructive"><X className="w-3.5 h-3.5" /></button>
                   </div>
                 )}
 
                 <div className="space-y-1.5 text-sm font-body">
                   <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R$ {subtotal.toFixed(2).replace(".", ",")}</span></div>
-                  {desconto > 0 && <div className="flex justify-between text-accent"><span>Desconto</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
+                  {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                   <div className="flex justify-between text-muted-foreground"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
                   <div className="flex justify-between font-semibold text-base pt-2 border-t border-border"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
-                  <p className="text-[10px] text-accent text-right font-medium">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
+                  <p className="text-[10px] text-gold text-right font-medium">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>
-                  <Button asChild className="w-full font-body text-sm tracking-wide" size="lg" onClick={closeCart}>
+                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-light rounded-none transition-all duration-300" size="lg" onClick={closeCart}>
                     <Link to="/checkout">Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" /></Link>
                   </Button>
                 </motion.div>

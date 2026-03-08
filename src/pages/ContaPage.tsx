@@ -225,7 +225,7 @@ const ContaPage = () => {
                     <div><Label className="font-body text-xs">Telefone</Label><Input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className="font-body" placeholder="(00) 00000-0000" /></div>
                     <div><Label className="font-body text-xs">CPF</Label><Input value={profile.cpf} onChange={(e) => setProfile((p) => ({ ...p, cpf: e.target.value }))} className="font-body" placeholder="000.000.000-00" /></div>
                    </div>
-                  <Button onClick={saveProfile} disabled={saving} className="font-body text-sm">{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+                  <Button onClick={saveProfile} disabled={saving} className="font-body text-sm bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wider">{saving ? "Salvando..." : "Salvar Alterações"}</Button>
 
                   {/* LGPD - Delete Account */}
                   <div className="border-t border-border pt-6 mt-6">
@@ -306,8 +306,8 @@ const ContaPage = () => {
                         const done = i <= statusOrder && pedido.status !== "cancelado";
                         return (
                           <div key={s} className="flex items-center flex-1 last:flex-none">
-                            <div className={`w-2.5 h-2.5 rounded-full ${done ? "bg-accent" : "bg-border"}`} />
-                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < statusOrder ? "bg-accent" : "bg-border"}`} />}
+                            <div className={`w-2.5 h-2.5 rounded-full ${done ? "bg-gold" : "bg-border"}`} />
+                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < statusOrder ? "bg-gold" : "bg-border"}`} />}
                           </div>
                         );
                       })}
@@ -339,16 +339,16 @@ const ContaPage = () => {
           <TabsContent value="pontos">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               {/* Balance Card */}
-              <div className="bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20 rounded-lg p-6 text-center">
-                <Award className="w-10 h-10 text-accent mx-auto mb-2" />
+              <div className="bg-gradient-to-br from-gold/10 via-gold/5 to-transparent border border-gold/20 rounded-lg p-6 text-center">
+                <Award className="w-10 h-10 text-gold mx-auto mb-2" />
                 <p className="font-body text-xs text-muted-foreground uppercase tracking-wider mb-1">Seus Pontos</p>
-                <p className="font-display text-4xl font-bold text-accent">{pontosData?.total || 0}</p>
+                <p className="font-display text-4xl font-bold text-gold">{pontosData?.total || 0}</p>
                 <p className="font-body text-xs text-muted-foreground mt-2">Ganhe 1 ponto por cada R$ 1 em compras entregues</p>
               </div>
 
               {/* Redemption Options */}
               <div>
-                <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gift className="w-4 h-4 text-accent" /> Trocar Pontos</h3>
+                <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gift className="w-4 h-4 text-gold" /> Trocar Pontos</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
                     { pontos: 100, desconto: 10 },
@@ -357,7 +357,7 @@ const ContaPage = () => {
                   ].map((opt) => (
                     <div key={opt.pontos} className="bg-card border border-border rounded-lg p-4 text-center">
                       <p className="font-display text-lg font-bold">{opt.pontos} pts</p>
-                      <p className="font-body text-sm text-accent font-medium">R$ {opt.desconto} de desconto</p>
+                      <p className="font-body text-sm text-gold font-medium">R$ {opt.desconto} de desconto</p>
                       <Button
                         size="sm"
                         variant={(pontosData?.total || 0) >= opt.pontos ? "default" : "outline"}
@@ -452,7 +452,7 @@ const ContaPage = () => {
                           {img ? <img src={img} alt={p.nome} className="w-full h-full object-cover rounded" loading="lazy" /> : <span className="text-3xl">☕</span>}
                         </Link>
                         <div className="flex-1 min-w-0">
-                          <Link to={`/cafe/${p.slug}`} className="font-body font-medium text-sm hover:text-accent transition-colors">{p.nome}</Link>
+                          <Link to={`/cafe/${p.slug}`} className="font-body font-medium text-sm hover:text-gold transition-colors duration-300">{p.nome}</Link>
                           <p className="font-body text-sm font-semibold mt-1">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
                           <button onClick={() => removeFavorite(fav.id)} className="text-xs font-body text-destructive hover:underline mt-2">Remover</button>
                         </div>

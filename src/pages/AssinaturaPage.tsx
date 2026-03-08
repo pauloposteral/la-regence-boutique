@@ -127,23 +127,23 @@ const AssinaturaPage = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-espresso text-primary-foreground py-20 lg:py-28 relative overflow-hidden">
+      <section className="bg-background border-b border-border py-20 lg:py-28 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
         <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full border border-gold/5" />
         <div className="container mx-auto px-4 lg:px-8 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Clube La Régence</span>
-            <h1 className="font-display text-4xl lg:text-6xl font-light mt-3 mb-6">
+            <h1 className="font-display text-4xl lg:text-6xl font-light mt-3 mb-6 text-foreground">
               Café especial em sua{" "}
-              <span className="italic font-medium text-gold">porta</span>
+              <span className="italic font-medium text-gradient-gold">porta</span>
             </h1>
-            <p className="text-primary-foreground/70 font-body leading-relaxed max-w-xl mx-auto mb-8">
+            <p className="text-muted-foreground font-body leading-relaxed max-w-xl mx-auto mb-8">
               Receba mensalmente cafés selecionados pela nossa equipe de especialistas, com torrefação
               artesanal e entrega no conforto da sua casa.
             </p>
             <Button
               size="lg"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-body text-sm tracking-wide px-8"
+              className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-8 rounded-none transition-all duration-300"
               onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conhecer Planos <ArrowRight className="w-4 h-4 ml-1" />
@@ -165,8 +165,8 @@ const AssinaturaPage = () => {
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center">
-                  <b.icon className="w-5 h-5 text-accent" />
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gold/10 flex items-center justify-center">
+                  <b.icon className="w-5 h-5 text-gold" />
                 </div>
                 <h3 className="font-display text-sm font-semibold mb-1">{b.title}</h3>
                 <p className="font-body text-xs text-muted-foreground leading-relaxed">{b.desc}</p>
@@ -260,14 +260,14 @@ const AssinaturaPage = () => {
                         <span className="font-body text-xs text-muted-foreground">{plan.period}</span>
                       </div>
                       {plan.discount && (
-                        <p className="font-body text-xs text-accent font-medium">
+                        <p className="font-body text-xs text-gold font-medium">
                           {plan.discount} — era R$ {plan.originalPrice.toFixed(2).replace(".", ",")}
                         </p>
                       )}
                       <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        active ? "border-accent bg-accent" : "border-border"
+                        active ? "border-gold bg-gold" : "border-border"
                       }`}>
-                        {active && <Check className="w-3 h-3 text-accent-foreground" />}
+                        {active && <Check className="w-3 h-3 text-primary-foreground" />}
                       </div>
                     </button>
                   );
@@ -285,20 +285,20 @@ const AssinaturaPage = () => {
                     <button
                       onClick={() => setCafeSurpresa(true)}
                       className={`rounded-lg border-2 p-4 text-left transition-all ${
-                        cafeSurpresa ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
+                        cafeSurpresa ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
                       }`}
                     >
-                      <Gift className="w-5 h-5 text-accent mb-2" />
+                      <Gift className="w-5 h-5 text-gold mb-2" />
                       <p className="font-body text-sm font-medium">Café surpresa</p>
                       <p className="font-body text-xs text-muted-foreground">Curadoria La Régence todo mês</p>
                     </button>
                     <button
                       onClick={() => setCafeSurpresa(false)}
                       className={`rounded-lg border-2 p-4 text-left transition-all ${
-                        !cafeSurpresa ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
+                        !cafeSurpresa ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
                       }`}
                     >
-                      <Coffee className="w-5 h-5 text-accent mb-2" />
+                      <Coffee className="w-5 h-5 text-gold mb-2" />
                       <p className="font-body text-sm font-medium">Café fixo</p>
                       <p className="font-body text-xs text-muted-foreground">Escolha seu favorito</p>
                     </button>
@@ -318,7 +318,7 @@ const AssinaturaPage = () => {
                             key={cafe.id}
                             onClick={() => setSelectedCafe(cafe.id)}
                             className={`rounded-lg border-2 p-3 text-left transition-all flex gap-3 items-center ${
-                              active ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
+                              active ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
                             }`}
                           >
                             <div className="w-12 h-12 rounded bg-secondary flex-shrink-0 overflow-hidden">
@@ -347,8 +347,8 @@ const AssinaturaPage = () => {
                         onClick={() => setMoagem(key)}
                         className={`px-3 py-1.5 rounded-full text-xs font-body transition-all border ${
                           moagem === key
-                            ? "border-accent bg-accent/10 text-accent font-medium"
-                            : "border-border text-muted-foreground hover:border-accent/40"
+                            ? "border-gold bg-gold/10 text-gold font-medium"
+                            : "border-border text-muted-foreground hover:border-gold/40"
                         }`}
                       >
                         {label}
@@ -362,7 +362,7 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-body text-sm tracking-wide px-10"
+                  className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-10 rounded-none transition-all duration-300"
                   onClick={handleSubscribe}
                   disabled={!cafeSurpresa && !selectedCafe}
                 >
@@ -396,7 +396,7 @@ const AssinaturaPage = () => {
                 transition={{ delay: i * 0.1 }}
                 className="flex gap-5"
               >
-                <span className="font-display text-3xl font-bold text-accent/20 shrink-0">{item.step}</span>
+                <span className="font-display text-3xl font-bold text-gold/20 shrink-0">{item.step}</span>
                 <div>
                   <h3 className="font-display text-base font-semibold mb-1">{item.title}</h3>
                   <p className="font-body text-sm text-muted-foreground">{item.desc}</p>

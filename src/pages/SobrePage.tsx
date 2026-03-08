@@ -22,21 +22,21 @@ const SobrePage = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-espresso text-primary-foreground py-20 lg:py-28 relative overflow-hidden">
+      <section className="bg-background border-b border-border py-20 lg:py-28 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
         <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Nossa história</span>
-              <h1 className="font-display text-4xl lg:text-5xl font-light mt-3 mb-6">
-                Sobre a La <span className="italic font-medium text-gold">Régence</span>
+              <h1 className="font-display text-4xl lg:text-5xl font-light mt-3 mb-6 text-foreground">
+                Sobre a La <span className="italic font-medium text-gradient-gold">Régence</span>
               </h1>
-              <p className="text-primary-foreground/70 font-body leading-relaxed mb-4">
+              <p className="text-muted-foreground font-body leading-relaxed mb-4">
                 A história do Café La Régence começou em 2006, na cidade de Andradina, interior de São Paulo, 
-                quando a família <strong className="text-primary-foreground">Posteral</strong>, apaixonada por cafés, 
+                quando a família <strong className="text-foreground">Posteral</strong>, apaixonada por cafés, 
                 decidiu fundar uma cafeteria especializada em cafés especiais.
               </p>
-              <p className="text-primary-foreground/70 font-body leading-relaxed">
+              <p className="text-muted-foreground font-body leading-relaxed">
                 Com foco em qualidade e excelência, investimos constantemente em equipamentos de última geração 
                 e na capacitação de nossa equipe, visando sempre aprimorar a qualidade dos produtos e serviços. 
                 Nosso objetivo é difundir a cultura do café especial no Brasil.
@@ -73,8 +73,8 @@ const SobrePage = () => {
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
-                  <v.icon className="w-6 h-6 text-accent" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/10 flex items-center justify-center">
+                  <v.icon className="w-6 h-6 text-gold" />
                 </div>
                 <h3 className="font-display text-sm font-semibold mb-1">{v.title}</h3>
                 <p className="font-body text-xs text-muted-foreground leading-relaxed">{v.desc}</p>
@@ -101,13 +101,13 @@ const SobrePage = () => {
                   className={`relative flex items-start gap-6 ${i % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"} lg:text-${i % 2 === 0 ? "right" : "left"}`}
                 >
                   <div className={`hidden lg:block flex-1 ${i % 2 === 0 ? "text-right pr-8" : "text-left pl-8"}`}>
-                    <span className="font-display text-3xl font-bold text-accent/30">{item.year}</span>
+                    <span className="font-display text-3xl font-bold text-gold/30">{item.year}</span>
                     <h3 className="font-display text-base font-semibold mt-1">{item.title}</h3>
                     <p className="font-body text-sm text-muted-foreground mt-1">{item.desc}</p>
                   </div>
-                  <div className="absolute left-4 lg:left-1/2 w-3 h-3 rounded-full bg-accent border-2 border-background -translate-x-1.5 mt-1.5 z-10" />
+                  <div className="absolute left-4 lg:left-1/2 w-3 h-3 rounded-full bg-gold border-2 border-background -translate-x-1.5 mt-1.5 z-10" />
                   <div className="flex-1 lg:hidden pl-10">
-                    <span className="font-display text-2xl font-bold text-accent/30">{item.year}</span>
+                    <span className="font-display text-2xl font-bold text-gold/30">{item.year}</span>
                     <h3 className="font-display text-base font-semibold mt-1">{item.title}</h3>
                     <p className="font-body text-sm text-muted-foreground mt-1">{item.desc}</p>
                   </div>
@@ -122,7 +122,7 @@ const SobrePage = () => {
       {/* Location */}
       <section className="py-16 lg:py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
-          <MapPin className="w-8 h-8 text-accent mx-auto mb-4" />
+          <MapPin className="w-8 h-8 text-gold mx-auto mb-4" />
           <h2 className="font-display text-2xl font-semibold mb-3">Visite-nos</h2>
           <p className="font-body text-sm text-muted-foreground leading-relaxed mb-2">
             Nossa cafeteria e torrefação ficam em Andradina, no interior de São Paulo.
@@ -132,7 +132,7 @@ const SobrePage = () => {
           </p>
           <p className="font-body text-sm text-muted-foreground mt-1">
             <strong className="text-foreground">Telefone:</strong>{" "}
-            <a href="tel:+5518996540883" className="text-accent hover:underline">(18) 99654-0883</a>
+            <a href="tel:+5518996540883" className="text-gold hover:underline">(18) 99654-0883</a>
           </p>
         </div>
       </section>

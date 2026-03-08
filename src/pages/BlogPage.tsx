@@ -21,13 +21,13 @@ const BlogPage = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-24">
+      <section className="bg-background border-b border-border py-16 lg:py-24">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Blog</span>
-          <h1 className="font-display text-3xl lg:text-5xl font-light mt-3">
-            Histórias & <span className="italic font-medium text-gold">Sabores</span>
+          <h1 className="font-display text-3xl lg:text-5xl font-light mt-3 text-foreground">
+            Histórias & <span className="italic font-medium text-gradient-gold">Sabores</span>
           </h1>
-          <p className="text-primary-foreground/70 font-body text-sm mt-4 max-w-lg mx-auto">
+          <p className="text-muted-foreground font-body text-sm mt-4 max-w-lg mx-auto">
             Dicas de preparo, curiosidades sobre café e receitas exclusivas da La Régence.
           </p>
         </div>
@@ -64,13 +64,13 @@ const BlogPage = () => {
                     {post.tags?.length > 0 && (
                       <div className="flex gap-1.5 mb-2">
                         {post.tags.slice(0, 3).map((tag: string) => (
-                          <span key={tag} className="text-[10px] font-body bg-accent/10 text-accent px-2 py-0.5 rounded-full">{tag}</span>
+                          <span key={tag} className="text-[10px] font-body bg-gold/10 text-gold px-2 py-0.5 rounded-sm border border-gold/20">{tag}</span>
                         ))}
                       </div>
                     )}
-                    <h2 className="font-display text-lg font-semibold group-hover:text-accent transition-colors mb-1">{post.titulo}</h2>
+                    <h2 className="font-display text-lg font-semibold group-hover:text-gold transition-colors duration-300 mb-1">{post.titulo}</h2>
                     {post.resumo && <p className="font-body text-sm text-muted-foreground line-clamp-2">{post.resumo}</p>}
-                    <span className="inline-flex items-center gap-1 font-body text-xs text-accent font-medium mt-3 group-hover:gap-2 transition-all">
+                    <span className="inline-flex items-center gap-1 font-body text-xs text-gold font-medium mt-3 group-hover:gap-2 transition-all">
                       Ler mais <ArrowRight className="w-3 h-3" />
                     </span>
                   </Link>

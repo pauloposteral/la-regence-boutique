@@ -54,7 +54,7 @@ const CompararPage = () => {
           {p.preco_promocional ? (
             <>
               <span className="line-through text-muted-foreground text-xs">R$ {p.preco.toFixed(2).replace(".", ",")}</span>
-              <p className="font-display text-lg font-bold text-accent">R$ {p.preco_promocional.toFixed(2).replace(".", ",")}</p>
+              <p className="font-display text-lg font-bold text-gold">R$ {p.preco_promocional.toFixed(2).replace(".", ",")}</p>
             </>
           ) : (
             <p className="font-display text-lg font-bold">R$ {p.preco.toFixed(2).replace(".", ",")}</p>
@@ -62,7 +62,7 @@ const CompararPage = () => {
         </div>
       ),
     },
-    { label: "Pontuação SCA", render: (p) => <span className="font-display text-xl font-bold text-accent">{p.sca_score || "—"}</span> },
+    { label: "Pontuação SCA", render: (p) => <span className="font-display text-xl font-bold text-gold">{p.sca_score || "—"}</span> },
     { label: "Origem", render: (p) => <span className="font-body text-sm">{p.origem || "—"}</span> },
     { label: "Variedade", render: (p) => <span className="font-body text-sm">{p.variedade || "—"}</span> },
     { label: "Processo", render: (p) => <span className="font-body text-sm">{p.processo || "—"}</span> },
@@ -74,7 +74,7 @@ const CompararPage = () => {
         p.notas_sensoriais?.length > 0 ? (
           <div className="flex flex-wrap gap-1 justify-center">
             {p.notas_sensoriais.map((n: string) => (
-              <span key={n} className="text-[10px] font-body bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{n}</span>
+              <span key={n} className="text-[10px] font-body bg-gold/5 text-gold/70 border border-gold/20 px-2 py-0.5 rounded-sm">{n}</span>
             ))}
           </div>
         ) : (
@@ -136,7 +136,7 @@ const CompararPage = () => {
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
-                        <Link to={`/cafe/${p.slug}`} className="font-display text-sm font-semibold hover:text-accent transition-colors">
+                        <Link to={`/cafe/${p.slug}`} className="font-display text-sm font-semibold hover:text-gold transition-colors duration-300">
                           {p.nome}
                         </Link>
                       </div>
