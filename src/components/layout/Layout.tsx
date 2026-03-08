@@ -7,6 +7,9 @@ import ScrollProgress from "./ScrollProgress";
 import FreeShippingBar from "./FreeShippingBar";
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
+import NewsletterPopup from "./NewsletterPopup";
+import PWAInstallPrompt from "./PWAInstallPrompt";
+import PageTransition from "./PageTransition";
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,12 +23,16 @@ const Layout = ({ children }: LayoutProps) => {
       <ScrollProgress />
       <Header />
       <FreeShippingBar />
-      <main id="main-content" className="flex-1 mb-bottom-nav">{children}</main>
+      <main id="main-content" className="flex-1 mb-bottom-nav">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <Footer />
       <WhatsAppButton />
       <ScrollToTop />
       <CartDrawer />
       <BottomNav />
+      <NewsletterPopup />
+      <PWAInstallPrompt />
     </div>
   );
 };
