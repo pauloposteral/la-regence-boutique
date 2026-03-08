@@ -68,7 +68,7 @@ const Loading = () => (
 );
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <CompareProvider>
