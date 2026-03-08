@@ -61,9 +61,11 @@ const queryClient = new QueryClient({
 });
 
 const Loading = () => (
-  <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-    <img src="/images/logo-laregence.jpeg" alt="La Régence" className="w-16 h-16 rounded-xl object-cover animate-pulse" />
-    <span className="font-body text-sm text-muted-foreground animate-pulse">Carregando…</span>
+  <div className="min-h-screen bg-background flex items-center justify-center flex-col gap-4">
+    <div className="w-16 h-16 rounded-full border border-gold/25 flex items-center justify-center bg-gold/[0.03] animate-pulse">
+      <span className="font-display text-sm font-semibold text-gold">LR</span>
+    </div>
+    <span className="font-body text-xs text-muted-foreground tracking-[0.2em] uppercase animate-pulse">Carregando…</span>
   </div>
 );
 
