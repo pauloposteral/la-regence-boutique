@@ -24,10 +24,10 @@ const NewsletterFooter = () => {
   };
 
   return (
-    <div className="mt-8 pt-8 border-t border-primary-foreground/10">
+    <div className="mt-10 pt-10 border-t border-border">
       <div className="max-w-md mx-auto text-center">
-        <h4 className="font-display text-lg font-semibold mb-2">Receba novidades</h4>
-        <p className="text-xs text-primary-foreground/60 font-body mb-4">
+        <h4 className="font-display text-lg font-semibold text-foreground mb-2">Receba novidades</h4>
+        <p className="text-[11px] text-muted-foreground font-body mb-4 tracking-wide">
           Dicas de preparo, lançamentos e promoções exclusivas.
         </p>
         <div className="flex gap-2">
@@ -36,13 +36,13 @@ const NewsletterFooter = () => {
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 font-body text-sm"
+            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground font-body text-sm"
             onKeyDown={(e) => e.key === "Enter" && subscribe()}
           />
           <Button
             onClick={subscribe}
             disabled={loading}
-            className="bg-accent text-accent-foreground hover:bg-accent/90 font-body text-xs shrink-0"
+            className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-xs shrink-0 rounded-none tracking-wider uppercase transition-all duration-300"
           >
             {loading ? "..." : "Inscrever"}
           </Button>

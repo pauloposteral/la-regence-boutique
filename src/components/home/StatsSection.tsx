@@ -3,14 +3,14 @@ import { Coffee, Users, Flame, Award } from "lucide-react";
 
 const stats = [
   { icon: Flame, value: "+7.000", label: "dias torrando café" },
-  { icon: Users, value: "+7.000", label: "nossos clientes\nsatisfeitos" },
-  { icon: Coffee, value: "", label: "Torrefação própria\nprópria", isIcon: true },
-  { icon: Award, value: "+X mil", label: "clientes atendidos" },
+  { icon: Users, value: "+7.000", label: "clientes\nsatisfeitos" },
+  { icon: Coffee, value: "", label: "Torrefação\nprópria", isIcon: true },
+  { icon: Award, value: "+X mil", label: "clientes\natendidos" },
 ];
 
 const StatsSection = () => {
   return (
-    <section className="py-16 lg:py-24 bg-gradient-cream">
+    <section className="py-20 lg:py-28 bg-secondary/50 border-y border-border">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat, i) => (
@@ -23,9 +23,9 @@ const StatsSection = () => {
               className="text-center"
             >
               {stat.isIcon ? (
-                <stat.icon className="w-12 h-12 mx-auto mb-2 text-accent" />
+                <stat.icon className="w-12 h-12 mx-auto mb-2 text-gold" />
               ) : (
-                <p className="font-display text-3xl lg:text-4xl font-bold text-foreground">
+                <p className="font-display text-3xl lg:text-4xl font-bold text-gradient-gold">
                   {stat.value}
                 </p>
               )}
