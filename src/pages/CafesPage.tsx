@@ -336,15 +336,26 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
             <span className="text-[10px] text-accent font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
           </div>
-          <Button
-            variant="default"
-            size="sm"
-            className="w-full mt-3 font-body text-xs"
-            onClick={handleQuickAdd}
-          >
-            <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
-            Adicionar ao carrinho
-          </Button>
+          <div className="flex gap-2 mt-3">
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 font-body text-xs"
+              onClick={handleQuickAdd}
+            >
+              <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
+              Adicionar
+            </Button>
+            <Button
+              variant={comparing ? "secondary" : "outline"}
+              size="sm"
+              className="font-body text-xs px-2.5"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(produto.id); }}
+              title="Comparar"
+            >
+              <GitCompareArrows className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       </Link>
     </motion.div>
