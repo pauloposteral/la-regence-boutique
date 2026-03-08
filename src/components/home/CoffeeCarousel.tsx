@@ -1,37 +1,33 @@
 import { motion } from "framer-motion";
-import { Star, ShoppingBag } from "lucide-react";
+import { Star, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProdutos } from "@/hooks/useProdutos";
 import { Button } from "@/components/ui/button";
-
-const sensorIcons: Record<string, string> = {
-  chocolate: "🍫",
-  caramelo: "🍮",
-  frutado: "🍒",
-  citrus: "🍊",
-  cítrico: "🍋",
-  floral: "🌸",
-  castanhas: "🥜",
-  nozes: "🥜",
-  mel: "🍯",
-  baunilha: "🍦",
-  especiarias: "🌶️",
-  amêndoa: "🥜",
-  laranja: "🍊",
-};
-
-const getSensorIcon = (nota: string) => {
-  const lower = nota.toLowerCase();
-  for (const [key, icon] of Object.entries(sensorIcons)) {
-    if (lower.includes(key)) return icon;
-  }
-  return "☕";
-};
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 const CoffeeCarousel = () => {
   const { data: produtos = [], isLoading } = useProdutos();
   const destaques = produtos.filter((p) => p.destaque).slice(0, 4);
   const items = destaques.length > 0 ? destaques : produtos.slice(0, 4);
+  const { addItem, openCart } = useCart();
+
+  const handleQuickAdd = (e: React.MouseEvent, coffee: typeof items[0]) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      produtoId: coffee.id,
+      nome: coffee.nome,
+      preco: coffee.preco,
+      precoPromocional: coffee.preco_promocional || undefined,
+      quantidade: 1,
+      imagemUrl: coffee.imagens?.find((i) => i.principal)?.url || coffee.imagens?.[0]?.url,
+      slug: coffee.slug,
+    });
+    toast.success(`${coffee.nome} adicionado ao carrinho`, {
+      action: { label: "Ver carrinho", onClick: () => openCart() },
+    });
+  };
 
   return (
     <section className="py-20 lg:py-28 bg-background">
@@ -42,14 +38,11 @@ const CoffeeCarousel = () => {
           viewport={{ once: true }}
           className="text-center mb-14"
         >
-          <h2 className="font-display text-3xl lg:text-4xl font-semibold">
-            Nossos Cafés
-          </h2>
+          <h2 className="font-display text-3xl lg:text-4xl font-semibold">Nossos Cafés</h2>
           <p className="text-sm text-muted-foreground font-body mt-3 max-w-xl mx-auto leading-relaxed">
             Experimente nossos cafés especiais, com pontuação SCA acima de 80 pontos, 
             selecionados e torrados artesanalmente para uma experiência sensorial incomparável.
           </p>
-          {/* Decorative line */}
           <div className="w-16 h-0.5 bg-accent mx-auto mt-5" />
         </motion.div>
 
@@ -72,6 +65,7 @@ const CoffeeCarousel = () => {
               const basePrice = coffee.preco_promocional || coffee.preco;
               const pixPrice = basePrice * 0.9;
               const parcela = coffee.preco / 3;
+              const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
                 <motion.div
@@ -85,7 +79,6 @@ const CoffeeCarousel = () => {
                     to={`/cafe/${coffee.slug}`}
                     className="group block bg-card rounded-xl overflow-hidden border border-border hover:border-accent/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--gold)/0.3)] transition-all duration-300"
                   >
-                    {/* Image - square aspect */}
                     <div className="aspect-square bg-secondary flex items-center justify-center relative overflow-hidden p-4">
                       {coffee.imagens && coffee.imagens.length > 0 ? (
                         <img
@@ -103,29 +96,29 @@ const CoffeeCarousel = () => {
                           SCA {coffee.sca_score}
                         </div>
                       )}
+                      {lowStock && (
+                        <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Últimas {coffee.estoque} un.
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-5">
-                      {/* Name */}
                       <h3 className="font-display text-base font-semibold group-hover:text-accent transition-colors leading-tight min-h-[2.5rem]">
                         {coffee.nome}
                       </h3>
 
-                      {/* Star rating */}
                       <div className="flex items-center gap-0.5 mt-2">
                         {Array.from({ length: 5 }).map((_, s) => (
                           <Star key={s} className={`w-3.5 h-3.5 ${s < 4 ? "fill-accent text-accent" : "text-border"}`} />
                         ))}
                       </div>
 
-                      {/* Sensory notes */}
                       {coffee.notas_sensoriais && coffee.notas_sensoriais.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-3">
                           {coffee.notas_sensoriais.slice(0, 2).map((nota) => (
-                            <span
-                              key={nota}
-                              className="inline-flex items-center gap-1 text-[11px] font-body text-muted-foreground"
-                            >
+                            <span key={nota} className="inline-flex items-center gap-1 text-[11px] font-body text-muted-foreground">
                               <span className="w-2 h-2 rounded-full bg-accent/60" />
                               {nota}
                             </span>
@@ -133,7 +126,6 @@ const CoffeeCarousel = () => {
                         </div>
                       )}
 
-                      {/* Price */}
                       <p className="font-body font-bold text-xl text-foreground mt-4">
                         R$ {coffee.preco.toFixed(2).replace(".", ",")}
                       </p>
@@ -141,13 +133,23 @@ const CoffeeCarousel = () => {
                         Em até 3x de R$ {parcela.toFixed(2).replace(".", ",")} s/ juros
                       </p>
 
-                      {/* Pix price or CTA button */}
                       <div className="mt-3 border border-accent/30 rounded-md px-3 py-2 text-center">
                         <span className="text-xs font-body font-semibold text-accent flex items-center justify-center gap-1.5">
                           <ShoppingBag className="w-3 h-3" />
                           À vista R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
                         </span>
                       </div>
+
+                      {/* Quick-add button */}
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full mt-3 font-body text-xs"
+                        onClick={(e) => handleQuickAdd(e, coffee)}
+                      >
+                        <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
+                        Adicionar ao carrinho
+                      </Button>
                     </div>
                   </Link>
                 </motion.div>

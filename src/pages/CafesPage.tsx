@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Search, SlidersHorizontal, X } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
 import SEOHead from "@/components/SEOHead";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
   clara: "Clara", media: "Média", media_escura: "Média Escura", escura: "Escura",
