@@ -189,7 +189,7 @@ const AssinaturaPage = () => {
                     <p className="font-body text-xs text-muted-foreground uppercase tracking-wider">Plano</p>
                     <p className="font-display text-xl font-semibold capitalize">{assinatura.tipo}</p>
                   </div>
-                  <Badge className="bg-green-100 text-green-700 font-body text-xs">Ativa</Badge>
+                  <Badge className="bg-gold/15 text-gold font-body text-xs border border-gold/30">Ativa</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
