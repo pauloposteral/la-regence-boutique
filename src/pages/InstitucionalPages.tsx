@@ -61,7 +61,7 @@ export const FretePage = () => (
     <h2 className="font-display text-xl font-semibold mt-6">Assinantes do Clube</h2>
     <p>Todos os assinantes do Clube La Régence têm <strong>frete grátis</strong> em todas as entregas da assinatura, independentemente do valor.</p>
     <h2 className="font-display text-xl font-semibold mt-6">Rastreamento</h2>
-    <p>Após o envio, você receberá um e-mail com o código de rastreamento. Também é possível acompanhar pela sua <Link to="/conta" className="text-accent hover:underline">área do cliente</Link>.</p>
+    <p>Após o envio, você receberá um e-mail com o código de rastreamento. Também é possível acompanhar pela sua <Link to="/conta" className="text-gold hover:underline">área do cliente</Link>.</p>
   </InstitucionalPage>
 );
 
@@ -107,7 +107,7 @@ export const ContatoPage = () => {
         <div className="border border-border rounded-lg p-5">
           <h3 className="font-display text-base font-semibold mb-2">✉️ E-mail</h3>
           <p className="font-body text-sm text-muted-foreground mb-3">Respondemos em até 24h úteis</p>
-          <a href="mailto:contato@laregence.com.br" className="font-body text-sm text-accent hover:underline font-medium">contato@laregence.com.br</a>
+          <a href="mailto:contato@laregence.com.br" className="font-body text-sm text-gold hover:underline font-medium">contato@laregence.com.br</a>
         </div>
       </div>
       <div className="border border-border rounded-lg p-5 mt-4 not-prose">
@@ -122,7 +122,7 @@ export const ContatoPage = () => {
       <div className="border border-border rounded-lg p-5 mt-4 not-prose">
         <h3 className="font-display text-base font-semibold mb-4">Envie uma mensagem</h3>
         {submitted ? (
-          <p className="font-body text-sm text-accent font-medium">✅ Mensagem enviada com sucesso! Retornaremos em breve.</p>
+          <p className="font-body text-sm text-gold font-medium">✅ Mensagem enviada com sucesso! Retornaremos em breve.</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Honeypot — hidden from users, visible to bots */}
@@ -139,7 +139,7 @@ export const ContatoPage = () => {
             <input className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu nome" value={formData.nome} onChange={(e) => setFormData(f => ({ ...f, nome: e.target.value }))} required />
             <input type="email" className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu e-mail" value={formData.email} onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))} required />
             <textarea className="w-full border border-border rounded px-3 py-2 font-body text-sm min-h-[100px]" placeholder="Sua mensagem" value={formData.mensagem} onChange={(e) => setFormData(f => ({ ...f, mensagem: e.target.value }))} required />
-            <button type="submit" className="bg-accent text-accent-foreground px-6 py-2 rounded font-body text-sm font-medium hover:bg-accent/90 transition-colors">Enviar</button>
+            <button type="submit" className="bg-gold text-primary-foreground px-6 py-2 rounded-none font-body text-sm font-medium tracking-wider uppercase hover:bg-gold-light transition-colors">Enviar</button>
           </form>
         )}
       </div>
@@ -150,8 +150,8 @@ export const ContatoPage = () => {
 export const RastreamentoPage = () => {
   return (
     <InstitucionalPage title="Rastrear Pedido">
-      <p>Para rastrear seu pedido, acesse sua <Link to="/conta" className="text-accent hover:underline font-medium">área do cliente</Link> e veja o status e código de rastreamento na aba "Pedidos".</p>
-      <p>Se você comprou como visitante, entre em contato pelo <a href="https://wa.me/5518996540883" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">WhatsApp</a> informando o e-mail usado na compra e ajudaremos a localizar seu pedido.</p>
+      <p>Para rastrear seu pedido, acesse sua <Link to="/conta" className="text-gold hover:underline font-medium">área do cliente</Link> e veja o status e código de rastreamento na aba "Pedidos".</p>
+      <p>Se você comprou como visitante, entre em contato pelo <a href="https://wa.me/5518996540883" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">WhatsApp</a> informando o e-mail usado na compra e ajudaremos a localizar seu pedido.</p>
     </InstitucionalPage>
   );
 };
