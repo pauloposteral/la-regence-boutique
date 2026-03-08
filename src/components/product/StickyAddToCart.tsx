@@ -16,7 +16,6 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
 
   useEffect(() => {
     const onScroll = () => {
-      // Show after scrolling past 400px
       setVisible(window.scrollY > 400);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -35,13 +34,13 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="font-display text-sm font-semibold truncate">{productName}</p>
-              <p className="text-xs font-body text-accent font-medium">
+              <p className="text-xs font-body text-gold font-medium">
                 R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
               </p>
             </div>
             <Button
               size="sm"
-              className="font-body text-xs shrink-0 btn-hover"
+              className="font-body text-xs shrink-0 bg-gold text-background hover:bg-gold-dark rounded-none uppercase tracking-wider"
               onClick={onAddToCart}
               disabled={disabled}
             >

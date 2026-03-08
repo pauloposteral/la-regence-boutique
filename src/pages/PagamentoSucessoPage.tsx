@@ -22,9 +22,9 @@ const PagamentoSucessoPage = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6"
+          className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-6"
         >
-          <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+          <CheckCircle className="w-10 h-10 text-gold" />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -34,15 +34,15 @@ const PagamentoSucessoPage = () => {
           </p>
           {pedidoId && (
             <p className="font-body text-xs text-muted-foreground mb-8">
-              Código do pedido: <span className="font-mono text-foreground">{pedidoId.slice(0, 8)}</span>
+              Código do pedido: <span className="font-mono text-gold">{pedidoId.slice(0, 8)}</span>
             </p>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild variant="outline" className="font-body">
+            <Button asChild variant="outline" className="font-body rounded-none">
               <Link to="/"><Home className="w-4 h-4 mr-2" /> Voltar ao Início</Link>
             </Button>
-            <Button asChild className="font-body bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button asChild className="font-body bg-gold text-background hover:bg-gold-dark rounded-none uppercase tracking-wider">
               <Link to="/cafes"><ShoppingBag className="w-4 h-4 mr-2" /> Continuar Comprando</Link>
             </Button>
           </div>

@@ -86,7 +86,6 @@ const QuizPage = () => {
     setDone(false);
   };
 
-  // Score products based on tag matching
   const getRecommendations = () => {
     const allTags: string[] = [];
     answers.forEach((ansIdx, qIdx) => {
@@ -111,13 +110,13 @@ const QuizPage = () => {
 
   return (
     <Layout>
-      <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-24">
+      <section className="bg-background border-b border-border py-16 lg:py-24">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <Coffee className="w-8 h-8 text-gold mx-auto mb-4" />
           <h1 className="font-display text-3xl lg:text-5xl font-light">
-            Descubra seu <span className="italic font-medium text-gold">Café</span>
+            Descubra seu <span className="italic font-medium text-gradient-gold">Café</span>
           </h1>
-          <p className="text-primary-foreground/70 font-body text-sm mt-4 max-w-md mx-auto">
+          <p className="text-muted-foreground font-body text-sm mt-4 max-w-md mx-auto">
             Responda 4 perguntas rápidas e encontraremos o café perfeito para você.
           </p>
         </div>
@@ -142,7 +141,7 @@ const QuizPage = () => {
                   ))}
                 </div>
 
-                <p className="font-body text-xs text-muted-foreground mb-2">Pergunta {step + 1} de {QUESTIONS.length}</p>
+                <p className="font-body text-xs text-muted-foreground mb-2 tracking-widest uppercase">Pergunta {step + 1} de {QUESTIONS.length}</p>
                 <h2 className="font-display text-xl lg:text-2xl font-semibold mb-6">{QUESTIONS[step].question}</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -150,15 +149,15 @@ const QuizPage = () => {
                     <button
                       key={i}
                       onClick={() => handleAnswer(i)}
-                      className="text-left rounded-lg border-2 border-border p-5 hover:border-gold hover:bg-gold/5 hover:shadow-[0_0_15px_-5px_hsl(var(--gold)/0.2)] transition-all group"
+                      className="text-left border border-border p-5 hover:border-gold hover:bg-gold/5 hover:shadow-[0_0_15px_-5px_hsl(var(--gold)/0.2)] transition-all group"
                     >
-                      <span className="font-body text-sm font-medium group-hover:text-accent transition-colors">{opt.label}</span>
+                      <span className="font-body text-sm font-medium group-hover:text-gold transition-colors">{opt.label}</span>
                     </button>
                   ))}
                 </div>
 
                 {step > 0 && (
-                  <button onClick={goBack} className="inline-flex items-center gap-1.5 font-body text-sm text-muted-foreground hover:text-foreground mt-6 transition-colors">
+                  <button onClick={goBack} className="inline-flex items-center gap-1.5 font-body text-sm text-muted-foreground hover:text-gold mt-6 transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Voltar
                   </button>
                 )}
@@ -181,20 +180,20 @@ const QuizPage = () => {
                         <Link
                           key={p.id}
                           to={`/cafe/${p.slug}`}
-                          className="flex items-center gap-4 border border-border rounded-lg p-4 hover:border-accent hover:bg-accent/5 transition-all group"
+                          className="relative flex items-center gap-4 border border-border p-4 hover:border-gold hover:bg-gold/5 transition-all group"
                         >
-                          {i === 0 && <span className="text-xs font-body bg-accent text-accent-foreground px-2 py-0.5 rounded-full absolute -top-2 left-4">⭐ Melhor match</span>}
-                          <div className="w-16 h-16 rounded-lg bg-secondary overflow-hidden shrink-0">
+                          {i === 0 && <span className="text-xs font-body bg-gold text-background px-2 py-0.5 absolute -top-2 left-4 tracking-wider uppercase">⭐ Melhor match</span>}
+                          <div className="w-16 h-16 bg-secondary overflow-hidden shrink-0">
                             {img ? <img src={img} alt={p.nome} className="w-full h-full object-cover" /> : <span className="flex w-full h-full items-center justify-center text-2xl">☕</span>}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-display text-base font-semibold group-hover:text-accent transition-colors">{p.nome}</h3>
+                            <h3 className="font-display text-base font-semibold group-hover:text-gold transition-colors">{p.nome}</h3>
                             <p className="font-body text-xs text-muted-foreground truncate">
                               {(p.notas_sensoriais || []).slice(0, 4).join(" · ")}
                             </p>
-                            <p className="font-body text-sm font-medium mt-1">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
+                            <p className="font-mono text-sm font-medium mt-1 text-gold">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-accent shrink-0" />
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-gold shrink-0" />
                         </Link>
                       );
                     })}
@@ -204,10 +203,10 @@ const QuizPage = () => {
                 )}
 
                 <div className="flex justify-center gap-4 mt-8">
-                  <Button variant="outline" size="sm" className="font-body text-xs gap-1.5" onClick={restart}>
+                  <Button variant="outline" size="sm" className="font-body text-xs gap-1.5 rounded-none" onClick={restart}>
                     <RefreshCw className="w-3.5 h-3.5" /> Refazer quiz
                   </Button>
-                  <Button size="sm" className="font-body text-xs" asChild>
+                  <Button size="sm" className="font-body text-xs bg-gold text-background hover:bg-gold-dark rounded-none uppercase tracking-wider" asChild>
                     <Link to="/cafes">Ver todos os cafés</Link>
                   </Button>
                 </div>
