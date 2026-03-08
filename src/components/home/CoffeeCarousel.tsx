@@ -77,7 +77,7 @@ const CoffeeCarousel = () => {
                 >
                   <Link
                     to={`/cafe/${coffee.slug}`}
-                    className="group block bg-card rounded-xl overflow-hidden border border-border hover:border-accent/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--gold)/0.3)] transition-all duration-300"
+                    className="group block bg-card rounded-xl overflow-hidden border border-border hover:border-accent/40 card-tilt transition-all duration-300"
                   >
                     <div className="aspect-square bg-secondary flex items-center justify-center relative overflow-hidden p-4">
                       {coffee.imagens && coffee.imagens.length > 0 ? (
