@@ -54,18 +54,20 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
+    <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar-background text-sidebar-foreground flex flex-col transition-transform lg:translate-x-0 lg:static",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform lg:translate-x-0 lg:static",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border shrink-0">
-          <Coffee className="w-5 h-5 text-sidebar-primary" />
+        <div className="h-16 flex items-center gap-2 px-5 border-b border-border shrink-0">
+          <div className="w-7 h-7 rounded-full border border-gold flex items-center justify-center">
+            <span className="font-display text-[10px] font-bold text-gold">LR</span>
+          </div>
           <span className="font-display text-lg font-semibold">La Régence</span>
-          <span className="text-[10px] font-body bg-sidebar-accent px-1.5 py-0.5 rounded ml-auto">Admin</span>
+          <span className="text-[10px] font-body bg-gold/10 text-gold px-1.5 py-0.5 ml-auto tracking-wider uppercase">Admin</span>
           <button className="lg:hidden ml-2" onClick={() => setSidebarOpen(false)}>
             <X className="w-5 h-5" />
           </button>
@@ -80,10 +82,10 @@ const AdminLayout = () => {
                 to={item.to}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-body transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 text-sm font-body transition-colors",
                   active
-                    ? "bg-sidebar-accent text-sidebar-primary font-medium"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    ? "bg-gold/10 text-gold font-medium border-l-2 border-gold"
+                    : "text-muted-foreground hover:bg-gold/5 hover:text-foreground"
                 )}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
@@ -93,13 +95,13 @@ const AdminLayout = () => {
           })}
         </nav>
 
-        <div className="p-3 border-t border-sidebar-border">
-          <Link to="/" className="flex items-center gap-2 px-3 py-2 text-xs font-body text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors">
+        <div className="p-3 border-t border-border">
+          <Link to="/" className="flex items-center gap-2 px-3 py-2 text-xs font-body text-muted-foreground hover:text-gold transition-colors">
             <ChevronRight className="w-3 h-3" /> Voltar à loja
           </Link>
           <button
             onClick={signOut}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-body text-sidebar-foreground/50 hover:text-destructive transition-colors w-full"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-body text-muted-foreground hover:text-destructive transition-colors w-full"
           >
             <LogOut className="w-3 h-3" /> Sair
           </button>

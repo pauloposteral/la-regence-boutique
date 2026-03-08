@@ -14,7 +14,6 @@ const BottomNav = () => {
   const location = useLocation();
   const { totalItems, openCart } = useCart();
 
-  // Hide on admin pages
   if (location.pathname.startsWith("/admin")) return null;
 
   return (
@@ -38,7 +37,7 @@ const BottomNav = () => {
                       key={totalItems}
                       initial={{ scale: 0.5 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-2 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center"
+                      className="absolute -top-1.5 -right-2 w-4 h-4 bg-gold text-background text-[9px] font-bold rounded-full flex items-center justify-center"
                     >
                       {totalItems}
                     </motion.span>
@@ -54,7 +53,7 @@ const BottomNav = () => {
               key={label}
               to={href}
               className={`flex flex-col items-center gap-0.5 transition-colors ${
-                isActive ? "text-accent" : "text-muted-foreground"
+                isActive ? "text-gold" : "text-muted-foreground"
               }`}
             >
               <Icon className="w-5 h-5" />
