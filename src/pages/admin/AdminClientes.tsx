@@ -101,7 +101,7 @@ const AdminClientes = () => {
                 <div><p className="text-xs text-muted-foreground">Telefone</p><p>{selectedClient.phone || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground">CPF</p><p>{selectedClient.cpf || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total de pedidos</p><p className="font-semibold">{clientOrders.length}</p></div>
-                <div><p className="text-xs text-muted-foreground">Total gasto</p><p className="font-semibold text-accent">R$ {clientTotal.toFixed(2).replace(".", ",")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Total gasto</p><p className="font-semibold text-gold">R$ {clientTotal.toFixed(2).replace(".", ",")}</p></div>
               </div>
               {clientOrders.length > 0 && (
                 <div>

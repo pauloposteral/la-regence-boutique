@@ -82,11 +82,11 @@ const NewsletterPopup = () => {
             </button>
 
             <div className="p-8 text-center">
-              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-2xl font-semibold mb-2">
-                Ganhe <span className="text-accent">10% OFF</span>
+                Ganhe <span className="text-gold">10% OFF</span>
               </h3>
               <p className="font-body text-sm text-muted-foreground mb-6">
                 Inscreva-se na newsletter e receba um cupom exclusivo de desconto na sua primeira compra.

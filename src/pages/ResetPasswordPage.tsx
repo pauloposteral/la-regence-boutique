@@ -73,7 +73,7 @@ const ResetPasswordPage = () => {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full font-body" disabled={loading}>
+            <Button type="submit" className="w-full font-body bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wider uppercase" disabled={loading}>
               {loading ? "Aguarde..." : <>Alterar Senha <ArrowRight className="w-4 h-4 ml-2" /></>}
             </Button>
           </form>
