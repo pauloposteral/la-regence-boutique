@@ -70,7 +70,7 @@ export const TrocasPage = () => (
     <h2 className="font-display text-xl font-semibold">Direito de arrependimento</h2>
     <p>Conforme o Código de Defesa do Consumidor, você pode desistir da compra em até <strong>7 dias corridos</strong> após o recebimento, desde que o produto esteja lacrado e em sua embalagem original.</p>
     <h2 className="font-display text-xl font-semibold mt-6">Produtos com defeito</h2>
-    <p>Se o produto chegar avariado ou com defeito de fabricação, entre em contato conosco em até 30 dias pelo e-mail <a href="mailto:contato@laregence.com.br" className="text-accent hover:underline">contato@laregence.com.br</a> ou WhatsApp <a href="tel:+5518996540883" className="text-accent hover:underline">(18) 99654-0883</a>.</p>
+    <p>Se o produto chegar avariado ou com defeito de fabricação, entre em contato conosco em até 30 dias pelo e-mail <a href="mailto:contato@laregence.com.br" className="text-gold hover:underline">contato@laregence.com.br</a> ou WhatsApp <a href="tel:+5518996540883" className="text-gold hover:underline">(18) 99654-0883</a>.</p>
     <h2 className="font-display text-xl font-semibold mt-6">Como solicitar</h2>
     <ol className="list-decimal pl-6 space-y-1">
       <li>Entre em contato informando o número do pedido</li>
