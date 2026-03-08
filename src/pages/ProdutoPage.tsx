@@ -29,6 +29,7 @@ const ProdutoPage = () => {
   const { data: produto, isLoading, error } = useProdutoBySlug(slug || "");
   const { data: allProdutos = [] } = useProdutos();
   const { addItem, openCart } = useCart();
+  const { addProduct } = useRecentlyViewed();
 
   const [selectedMoagem, setSelectedMoagem] = useState<string | null>(null);
   const [selectedPeso, setSelectedPeso] = useState<number | null>(null);
@@ -63,6 +64,15 @@ const ProdutoPage = () => {
     return allProdutos.filter((p) => p.id !== produto.id).slice(0, 4);
   }, [allProdutos, produto]);
 
+  const mainImg = produto?.imagens?.find((i: any) => i.principal)?.url || produto?.imagens?.[0]?.url;
+
+  // Track recently viewed
+  useEffect(() => {
+    if (produto) {
+      addProduct({ id: produto.id, nome: produto.nome, slug: produto.slug, preco: produto.preco, imagemUrl: mainImg });
+    }
+  }, [produto?.id]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -87,16 +97,7 @@ const ProdutoPage = () => {
     );
   }
 
-  const mainImg = produto.imagens?.find((i: any) => i.principal)?.url || produto.imagens?.[0]?.url;
   const promoPercent = produto.preco_promocional ? Math.round((1 - produto.preco_promocional / produto.preco) * 100) : null;
-
-  // Track recently viewed
-  const { addProduct } = useRecentlyViewed();
-  useEffect(() => {
-    if (produto) {
-      addProduct({ id: produto.id, nome: produto.nome, slug: produto.slug, preco: produto.preco, imagemUrl: mainImg });
-    }
-  }, [produto?.id]);
 
   const productJsonLd = {
     "@context": "https://schema.org", "@type": "Product",
