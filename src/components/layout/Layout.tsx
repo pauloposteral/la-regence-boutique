@@ -10,12 +10,15 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import NewsletterPopup from "./NewsletterPopup";
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
+import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  usePrefetchRoutes();
+  
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip to content (accessibility) */}
