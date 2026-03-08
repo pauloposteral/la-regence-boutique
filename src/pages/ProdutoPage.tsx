@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, Minus, Plus, MapPin, Mountain, Leaf, Calendar, Coffee, AlertTriangle } from "lucide-react";
@@ -13,6 +13,8 @@ import FavoriteButton from "@/components/product/FavoriteButton";
 import ShareButtons from "@/components/product/ShareButtons";
 import PromotionCountdown from "@/components/product/PromotionCountdown";
 import StickyAddToCart from "@/components/product/StickyAddToCart";
+import RecentlyViewed from "@/components/product/RecentlyViewed";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -27,6 +29,7 @@ const ProdutoPage = () => {
   const { data: produto, isLoading, error } = useProdutoBySlug(slug || "");
   const { data: allProdutos = [] } = useProdutos();
   const { addItem, openCart } = useCart();
+  const { addProduct } = useRecentlyViewed();
 
   const [selectedMoagem, setSelectedMoagem] = useState<string | null>(null);
   const [selectedPeso, setSelectedPeso] = useState<number | null>(null);
@@ -61,6 +64,15 @@ const ProdutoPage = () => {
     return allProdutos.filter((p) => p.id !== produto.id).slice(0, 4);
   }, [allProdutos, produto]);
 
+  const mainImg = produto?.imagens?.find((i: any) => i.principal)?.url || produto?.imagens?.[0]?.url;
+
+  // Track recently viewed
+  useEffect(() => {
+    if (produto) {
+      addProduct({ id: produto.id, nome: produto.nome, slug: produto.slug, preco: produto.preco, imagemUrl: mainImg });
+    }
+  }, [produto?.id]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -85,7 +97,6 @@ const ProdutoPage = () => {
     );
   }
 
-  const mainImg = produto.imagens?.find((i: any) => i.principal)?.url || produto.imagens?.[0]?.url;
   const promoPercent = produto.preco_promocional ? Math.round((1 - produto.preco_promocional / produto.preco) * 100) : null;
 
   const productJsonLd = {
@@ -310,6 +321,9 @@ const ProdutoPage = () => {
             </div>
           </section>
         )}
+
+        {/* Recently viewed */}
+        <RecentlyViewed currentProductId={produto.id} />
       </div>
 
       {/* Sticky add-to-cart mobile (32) */}

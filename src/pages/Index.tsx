@@ -10,6 +10,8 @@ const SensoryNotesBanner = lazy(() => import("@/components/home/SensoryNotesBann
 const SubscriptionBanner = lazy(() => import("@/components/home/SubscriptionBanner"));
 const StatsSection = lazy(() => import("@/components/home/StatsSection"));
 const TestimonialsSection = lazy(() => import("@/components/home/TestimonialsSection"));
+const BrewMethods = lazy(() => import("@/components/home/BrewMethods"));
+const StorySection = lazy(() => import("@/components/home/StorySection"));
 
 const Index = () => {
   const jsonLd = {
@@ -44,6 +46,16 @@ const Index = () => {
       <LazySection>
         <Suspense fallback={<div className="min-h-[300px]" />}>
           <TestimonialsSection />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[400px]" />}>
+          <BrewMethods />
+        </Suspense>
+      </LazySection>
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[500px]" />}>
+          <StorySection />
         </Suspense>
       </LazySection>
     </Layout>

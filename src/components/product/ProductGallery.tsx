@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star } from "lucide-react";
 
@@ -20,20 +20,41 @@ const ProductGallery = ({ images, productName, scaScore, promoPercent }: Props) 
     const mainIdx = images.findIndex((i) => i.principal);
     return mainIdx >= 0 ? mainIdx : 0;
   });
+  const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedImg = images[selectedIdx]?.url;
 
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomStyle({ transformOrigin: `${x}% ${y}%`, transform: "scale(2)" });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setZoomStyle({ transformOrigin: "center", transform: "scale(1)" });
+  }, []);
+
   return (
     <div className="sticky top-24 space-y-3">
-      {/* Main image with zoom */}
-      <div className="aspect-square bg-secondary rounded-lg flex items-center justify-center relative overflow-hidden group cursor-zoom-in">
+      {/* Main image with mouse-follow zoom */}
+      <div
+        ref={containerRef}
+        className="aspect-square bg-secondary rounded-lg flex items-center justify-center relative overflow-hidden cursor-zoom-in"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
         <AnimatePresence mode="wait">
           {selectedImg ? (
             <motion.img
               key={selectedIdx}
               src={selectedImg}
               alt={productName}
-              className="w-full h-full object-cover group-hover:scale-150 transition-transform duration-500 origin-center"
+              className="w-full h-full object-cover transition-transform duration-200 will-change-transform"
+              style={zoomStyle}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
