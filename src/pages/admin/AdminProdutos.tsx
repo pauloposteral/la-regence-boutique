@@ -30,6 +30,8 @@ const emptyProduct = {
   acidez: null as number | null, corpo: null as number | null,
   docura: null as number | null, retrogosto: null as number | null,
   peso_padrao: 250,
+  sku: "",
+  intensidade: null as number | null,
 };
 
 interface Variante {
@@ -77,6 +79,8 @@ const AdminProdutos = () => {
       notas_sensoriais: p.notas_sensoriais || [], descricao_sensorial: p.descricao_sensorial || "",
       acidez: p.acidez, corpo: p.corpo, docura: p.docura, retrogosto: p.retrogosto,
       peso_padrao: p.peso_padrao || 250,
+      sku: (p as any).sku || "",
+      intensidade: (p as any).intensidade ?? null,
     });
     setNotasInput((p.notas_sensoriais || []).join(", "));
     setVariantes((p.variantes || []).map((v: any) => ({ ...v })));
@@ -95,6 +99,8 @@ const AdminProdutos = () => {
       notas_sensoriais: p.notas_sensoriais || [], descricao_sensorial: p.descricao_sensorial || "",
       acidez: p.acidez, corpo: p.corpo, docura: p.docura, retrogosto: p.retrogosto,
       peso_padrao: p.peso_padrao || 250,
+      sku: "",
+      intensidade: (p as any).intensidade ?? null,
     });
     setNotasInput((p.notas_sensoriais || []).join(", "));
     setVariantes((p.variantes || []).map((v: any) => ({ moagem: v.moagem, peso: v.peso, preco: v.preco, estoque: 0, ativo: v.ativo })));
@@ -277,7 +283,11 @@ const AdminProdutos = () => {
               <div><Label className="font-body text-xs">Altitude</Label><Input value={form.altitude} onChange={(e) => set("altitude", e.target.value)} /></div>
               <div><Label className="font-body text-xs">Safra</Label><Input value={form.safra} onChange={(e) => set("safra", e.target.value)} /></div>
             </div>
-            <div><Label className="font-body text-xs">SCA Score</Label><Input type="number" value={form.sca_score ?? ""} onChange={(e) => set("sca_score", e.target.value ? +e.target.value : null)} /></div>
+            <div className="grid grid-cols-3 gap-4">
+              <div><Label className="font-body text-xs">SKU</Label><Input value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="LR-001" /></div>
+              <div><Label className="font-body text-xs">Intensidade (1-10)</Label><Input type="number" min={1} max={10} value={form.intensidade ?? ""} onChange={(e) => set("intensidade", e.target.value ? +e.target.value : null)} /></div>
+              <div><Label className="font-body text-xs">SCA Score</Label><Input type="number" value={form.sca_score ?? ""} onChange={(e) => set("sca_score", e.target.value ? +e.target.value : null)} /></div>
+            </div>
             <div><Label className="font-body text-xs">Notas sensoriais (separar por vírgula)</Label><Input value={notasInput} onChange={(e) => setNotasInput(e.target.value)} placeholder="Chocolate, Caramelo, Frutas vermelhas" /></div>
             <div><Label className="font-body text-xs">Descrição sensorial</Label><Textarea value={form.descricao_sensorial} onChange={(e) => set("descricao_sensorial", e.target.value)} rows={2} /></div>
             <div className="grid grid-cols-4 gap-4">

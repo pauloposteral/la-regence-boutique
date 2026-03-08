@@ -219,6 +219,78 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_produtos: {
+        Row: {
+          collection_id: string
+          id: string
+          ordem: number
+          produto_id: string
+        }
+        Insert: {
+          collection_id: string
+          id?: string
+          ordem?: number
+          produto_id: string
+        }
+        Update: {
+          collection_id?: string
+          id?: string
+          ordem?: number
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_produtos_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          imagem_url: string | null
+          nome: string
+          ordem: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          nome: string
+          ordem?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          nome?: string
+          ordem?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cupons: {
         Row: {
           ativo: boolean
@@ -402,6 +474,41 @@ export type Database = {
         }
         Relationships: []
       }
+      order_status_history: {
+        Row: {
+          created_at: string
+          id: string
+          observacao: string | null
+          pedido_id: string
+          status_anterior: string | null
+          status_novo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          pedido_id: string
+          status_anterior?: string | null
+          status_novo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          pedido_id?: string
+          status_anterior?: string | null
+          status_novo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedidos: {
         Row: {
           codigo_rastreamento: string | null
@@ -414,6 +521,7 @@ export type Database = {
           id: string
           mensagem_presente: string | null
           metodo_pagamento: string | null
+          order_number: number | null
           presente: boolean | null
           status: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent: string | null
@@ -434,6 +542,7 @@ export type Database = {
           id?: string
           mensagem_presente?: string | null
           metodo_pagamento?: string | null
+          order_number?: number | null
           presente?: boolean | null
           status?: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent?: string | null
@@ -454,6 +563,7 @@ export type Database = {
           id?: string
           mensagem_presente?: string | null
           metodo_pagamento?: string | null
+          order_number?: number | null
           presente?: boolean | null
           status?: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent?: string | null
@@ -561,6 +671,7 @@ export type Database = {
           estoque: number
           estoque_minimo: number
           id: string
+          intensidade: number | null
           nome: string
           notas_sensoriais: string[] | null
           origem: string | null
@@ -571,6 +682,7 @@ export type Database = {
           retrogosto: number | null
           safra: string | null
           sca_score: number | null
+          sku: string | null
           slug: string
           tipo_torra: Database["public"]["Enums"]["tipo_torra"] | null
           updated_at: string
@@ -590,6 +702,7 @@ export type Database = {
           estoque?: number
           estoque_minimo?: number
           id?: string
+          intensidade?: number | null
           nome: string
           notas_sensoriais?: string[] | null
           origem?: string | null
@@ -600,6 +713,7 @@ export type Database = {
           retrogosto?: number | null
           safra?: string | null
           sca_score?: number | null
+          sku?: string | null
           slug: string
           tipo_torra?: Database["public"]["Enums"]["tipo_torra"] | null
           updated_at?: string
@@ -619,6 +733,7 @@ export type Database = {
           estoque?: number
           estoque_minimo?: number
           id?: string
+          intensidade?: number | null
           nome?: string
           notas_sensoriais?: string[] | null
           origem?: string | null
@@ -629,6 +744,7 @@ export type Database = {
           retrogosto?: number | null
           safra?: string | null
           sca_score?: number | null
+          sku?: string | null
           slug?: string
           tipo_torra?: Database["public"]["Enums"]["tipo_torra"] | null
           updated_at?: string

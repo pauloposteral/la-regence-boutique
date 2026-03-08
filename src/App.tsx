@@ -41,6 +41,7 @@ const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 const AdminAssinaturas = lazy(() => import("./pages/admin/AdminAssinaturas"));
 const AdminClientes = lazy(() => import("./pages/admin/AdminClientes"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminCollections = lazy(() => import("./pages/admin/AdminCollections"));
 
 const LazyPolitica = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.PoliticaPrivacidadePage })));
 const LazyTermos = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.TermosPage })));
@@ -112,6 +113,7 @@ const App = () => (
                     <Route path="assinaturas" element={<AdminAssinaturas />} />
                     <Route path="clientes" element={<AdminClientes />} />
                     <Route path="blog" element={<AdminBlog />} />
+                    <Route path="colecoes" element={<AdminCollections />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
