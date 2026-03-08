@@ -335,7 +335,74 @@ const ContaPage = () => {
             </motion.div>
           </TabsContent>
 
-          {/* Addresses Tab */}
+          {/* Points Tab */}
+          <TabsContent value="pontos">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              {/* Balance Card */}
+              <div className="bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20 rounded-lg p-6 text-center">
+                <Award className="w-10 h-10 text-accent mx-auto mb-2" />
+                <p className="font-body text-xs text-muted-foreground uppercase tracking-wider mb-1">Seus Pontos</p>
+                <p className="font-display text-4xl font-bold text-accent">{pontosData?.total || 0}</p>
+                <p className="font-body text-xs text-muted-foreground mt-2">Ganhe 1 ponto por cada R$ 1 em compras entregues</p>
+              </div>
+
+              {/* Redemption Options */}
+              <div>
+                <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gift className="w-4 h-4 text-accent" /> Trocar Pontos</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { pontos: 100, desconto: 10 },
+                    { pontos: 250, desconto: 30 },
+                    { pontos: 500, desconto: 70 },
+                  ].map((opt) => (
+                    <div key={opt.pontos} className="bg-card border border-border rounded-lg p-4 text-center">
+                      <p className="font-display text-lg font-bold">{opt.pontos} pts</p>
+                      <p className="font-body text-sm text-accent font-medium">R$ {opt.desconto} de desconto</p>
+                      <Button
+                        size="sm"
+                        variant={(pontosData?.total || 0) >= opt.pontos ? "default" : "outline"}
+                        className="mt-3 font-body text-xs w-full"
+                        disabled={(pontosData?.total || 0) < opt.pontos || redeeming}
+                        onClick={() => redeemPoints(opt.pontos, opt.desconto)}
+                      >
+                        {(pontosData?.total || 0) >= opt.pontos ? "Resgatar" : `Faltam ${opt.pontos - (pontosData?.total || 0)} pts`}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* History */}
+              {(pontosData?.historico?.length || 0) > 0 && (
+                <div>
+                  <h3 className="font-display text-base font-semibold mb-3">Histórico</h3>
+                  <div className="space-y-2">
+                    {pontosData!.historico.map((item: any) => (
+                      <div key={item.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3">
+                        <div>
+                          <p className="font-body text-sm">{item.descricao}</p>
+                          <p className="font-body text-[10px] text-muted-foreground">{new Date(item.created_at).toLocaleDateString("pt-BR")}</p>
+                        </div>
+                        <span className={`font-display font-bold text-sm ${item.pontos > 0 ? "text-green-600" : "text-destructive"}`}>
+                          {item.pontos > 0 ? "+" : ""}{item.pontos} pts
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(pontosData?.historico?.length || 0) === 0 && (
+                <div className="bg-card border border-border rounded-lg p-10 text-center">
+                  <Award className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="font-display text-lg mb-2">Nenhum ponto ainda</p>
+                  <p className="font-body text-sm text-muted-foreground mb-4">Faça uma compra e ganhe pontos quando ela for entregue!</p>
+                  <Button asChild variant="outline"><Link to="/cafes">Comprar Cafés</Link></Button>
+                </div>
+              )}
+            </motion.div>
+          </TabsContent>
+
           <TabsContent value="enderecos">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
               {enderecos.length === 0 ? (
