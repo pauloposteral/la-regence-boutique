@@ -139,7 +139,7 @@ const CheckoutPage = () => {
         <div className="flex items-center justify-center gap-6 mb-8 py-3 bg-card border border-border rounded-lg">
           {TRUST_BADGES.map((b) => (
             <div key={b.label} className="flex items-center gap-1.5 text-muted-foreground">
-              <b.icon className="w-4 h-4 text-accent" />
+              <b.icon className="w-4 h-4 text-gold" />
               <span className="font-body text-xs font-medium">{b.label}</span>
             </div>
           ))}
@@ -157,7 +157,7 @@ const CheckoutPage = () => {
                   <motion.div
                     initial={false}
                     animate={{ scale: active ? 1.1 : 1 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-body transition-colors ${done ? "bg-gold text-accent-foreground shadow-md" : active ? "bg-primary text-primary-foreground ring-2 ring-gold/30" : "bg-muted text-muted-foreground"}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-body transition-colors ${done ? "bg-gold text-primary-foreground shadow-md" : active ? "bg-gold/20 text-gold ring-2 ring-gold/30" : "bg-muted text-muted-foreground"}`}
                   >
                     {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                   </motion.div>
@@ -242,9 +242,9 @@ const CheckoutPage = () => {
                     { value: "padrao", label: "Padrão", desc: "5 a 10 dias úteis", price: freteGratis ? "Grátis" : "R$ 14,90" },
                     { value: "expresso", label: "Expresso", desc: "2 a 4 dias úteis", price: freteGratis ? "Grátis" : "R$ 29,90" },
                   ].map((opt) => (
-                    <label key={opt.value} className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${form.frete === opt.value ? "border-accent bg-accent/5" : "border-border hover:border-accent/30"}`}>
+                    <label key={opt.value} className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${form.frete === opt.value ? "border-gold bg-gold/5" : "border-border hover:border-gold/30"}`}>
                       <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full border-2 ${form.frete === opt.value ? "border-accent bg-accent" : "border-muted-foreground"}`}>{form.frete === opt.value && <div className="w-full h-full rounded-full bg-accent" />}</div>
+                        <div className={`w-4 h-4 rounded-full border-2 ${form.frete === opt.value ? "border-gold bg-gold" : "border-muted-foreground"}`}>{form.frete === opt.value && <div className="w-full h-full rounded-full bg-gold" />}</div>
                         <div><p className="font-body font-medium text-sm">{opt.label}</p><p className="text-xs text-muted-foreground font-body">{opt.desc}</p></div>
                       </div>
                       <span className="font-body font-semibold text-sm">{opt.price}</span>
@@ -253,7 +253,7 @@ const CheckoutPage = () => {
                   <div className="pt-4 border-t border-border">
                     <div className="flex items-center gap-2 mb-3">
                       <Checkbox checked={form.presente} onCheckedChange={(v) => updateField("presente", !!v)} id="presente" />
-                      <Label htmlFor="presente" className="font-body text-sm flex items-center gap-1.5 cursor-pointer"><Gift className="w-4 h-4 text-accent" /> É um presente</Label>
+                      <Label htmlFor="presente" className="font-body text-sm flex items-center gap-1.5 cursor-pointer"><Gift className="w-4 h-4 text-gold" /> É um presente</Label>
                     </div>
                     {form.presente && <Input placeholder="Mensagem personalizada (opcional)" value={form.mensagemPresente} onChange={(e) => updateField("mensagemPresente", e.target.value)} className="font-body text-sm" />}
                   </div>
@@ -271,25 +271,25 @@ const CheckoutPage = () => {
                     <label
                       key={opt.value}
                       className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
-                        form.metodoPagamento === opt.value ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border hover:border-accent/30"
+                        form.metodoPagamento === opt.value ? "border-gold bg-gold/5 ring-1 ring-gold/20" : "border-border hover:border-gold/30"
                       }`}
                       onClick={() => updateField("metodoPagamento", opt.value)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.metodoPagamento === opt.value ? "border-accent" : "border-muted-foreground"}`}>
-                          {form.metodoPagamento === opt.value && <div className="w-2 h-2 rounded-full bg-accent" />}
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.metodoPagamento === opt.value ? "border-gold" : "border-muted-foreground"}`}>
+                          {form.metodoPagamento === opt.value && <div className="w-2 h-2 rounded-full bg-gold" />}
                         </div>
                         <div>
                           <p className="font-body font-medium text-sm flex items-center gap-2"><span>{opt.icon}</span> {opt.label}</p>
                           <p className="text-xs text-muted-foreground font-body">{opt.desc}</p>
                         </div>
                       </div>
-                      {opt.value === "pix" && form.metodoPagamento === "pix" && <span className="text-xs font-body font-semibold text-accent">-10%</span>}
+                      {opt.value === "pix" && form.metodoPagamento === "pix" && <span className="text-xs font-body font-semibold text-gold">-10%</span>}
                     </label>
                   ))}
                   {form.metodoPagamento === "pix" && (
-                    <div className="bg-accent/10 rounded-lg p-4 text-center">
-                      <p className="font-body text-sm text-accent font-medium">💰 Desconto Pix aplicado: -R$ {pixDesconto.toFixed(2).replace(".", ",")}</p>
+                    <div className="bg-gold/10 rounded-lg p-4 text-center">
+                      <p className="font-body text-sm text-gold font-medium">💰 Desconto Pix aplicado: -R$ {pixDesconto.toFixed(2).replace(".", ",")}</p>
                       <p className="font-body text-xs text-muted-foreground mt-1">Total com Pix: R$ {total.toFixed(2).replace(".", ",")}</p>
                     </div>
                   )}
@@ -302,7 +302,7 @@ const CheckoutPage = () => {
               {/* Step 4: Confirmação */}
               {step === 4 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto"><Check className="w-8 h-8 text-accent" /></div>
+                  <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center mx-auto"><Check className="w-8 h-8 text-gold" /></div>
                   <h2 className="font-display text-2xl font-semibold">Confirmar Pedido</h2>
                   <div className="text-left bg-muted/30 rounded-lg p-4 space-y-1 text-sm font-body">
                     <p><strong>Nome:</strong> {form.nome}</p>
@@ -319,10 +319,10 @@ const CheckoutPage = () => {
               <div className="flex justify-between mt-6 pt-4 border-t border-border">
                 {step > 0 ? <Button variant="ghost" onClick={prevStep} className="font-body text-sm"><ChevronLeft className="w-4 h-4 mr-1" /> Voltar</Button> : <div />}
                 {step < 4 ? (
-                  <motion.div whileTap={{ scale: 0.97 }}><Button onClick={nextStep} className="font-body text-sm">Continuar</Button></motion.div>
+                  <motion.div whileTap={{ scale: 0.97 }}><Button onClick={nextStep} className="font-body text-sm bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wider">Continuar</Button></motion.div>
                 ) : (
                   <motion.div whileTap={{ scale: 0.97 }}>
-                    <Button onClick={finalizarPedido} disabled={submitting} className="font-body text-sm bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Button onClick={finalizarPedido} disabled={submitting} className="font-body text-sm bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wider">
                       {submitting ? "Processando..." : "Confirmar e Pagar"}
                     </Button>
                   </motion.div>
@@ -353,9 +353,9 @@ const CheckoutPage = () => {
               </div>
               <div className="border-t border-border pt-3 space-y-1.5 text-sm font-body">
                 <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R$ {subtotal.toFixed(2).replace(".", ",")}</span></div>
-                {desconto > 0 && <div className="flex justify-between text-accent"><span>Cupom ({cupom})</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
+                {desconto > 0 && <div className="flex justify-between text-gold"><span>Cupom ({cupom})</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                 <div className="flex justify-between text-muted-foreground"><span>Frete</span><span>{custoFrete === 0 ? "Grátis" : `R$ ${custoFrete.toFixed(2).replace(".", ",")}`}</span></div>
-                {pixDesconto > 0 && <div className="flex justify-between text-accent"><span>Desconto Pix</span><span>-R$ {pixDesconto.toFixed(2).replace(".", ",")}</span></div>}
+                {pixDesconto > 0 && <div className="flex justify-between text-gold"><span>Desconto Pix</span><span>-R$ {pixDesconto.toFixed(2).replace(".", ",")}</span></div>}
                 <div className="flex justify-between font-semibold text-base pt-2 border-t border-border"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
               </div>
               </div>

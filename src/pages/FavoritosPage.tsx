@@ -82,12 +82,12 @@ const FavoritosPage = () => {
                     {img ? <img src={img} alt={p.nome} className="w-full h-full object-cover" loading="lazy" /> : <span className="flex w-full h-full items-center justify-center text-5xl">☕</span>}
                   </Link>
                   <div className="p-4">
-                    <Link to={`/cafe/${p.slug}`} className="font-display text-lg font-semibold hover:text-accent transition-colors">{p.nome}</Link>
-                    <p className="font-body font-bold text-accent mt-1">R$ {Number(p.preco_promocional || p.preco).toFixed(2).replace(".", ",")}</p>
+                    <Link to={`/cafe/${p.slug}`} className="font-display text-lg font-semibold hover:text-gold transition-colors duration-300">{p.nome}</Link>
+                    <p className="font-mono font-bold text-foreground mt-1">R$ {Number(p.preco_promocional || p.preco).toFixed(2).replace(".", ",")}</p>
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
-                        className="flex-1 font-body text-xs"
+                        className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wide"
                         disabled={p.estoque === 0}
                         onClick={() => {
                           addItem({ produtoId: p.id, nome: p.nome, preco: p.preco, precoPromocional: p.preco_promocional || undefined, quantidade: 1, imagemUrl: img, slug: p.slug });

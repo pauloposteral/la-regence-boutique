@@ -152,7 +152,7 @@ const ProdutoPage = () => {
 
           {/* Details */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            {produto.categoria && <span className="text-xs font-body text-accent uppercase tracking-[0.2em]">{produto.categoria.nome}</span>}
+            {produto.categoria && <span className="text-xs font-body text-gold uppercase tracking-[0.2em]">{produto.categoria.nome}</span>}
             <h1 className="font-display text-3xl lg:text-4xl font-semibold leading-tight">{produto.nome}</h1>
 
             {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
@@ -200,7 +200,7 @@ const ProdutoPage = () => {
                   <div className="flex flex-wrap gap-2">
                     {moagens.map((m) => (
                       <button key={m} onClick={() => { setSelectedMoagem(m); setSelectedPeso(null); }}
-                        className={`px-4 py-2 rounded border text-sm font-body transition-all ${selectedMoagem === m ? "border-accent bg-accent/10 text-foreground font-medium" : "border-border text-muted-foreground hover:border-accent/50"}`}>
+                        className={`px-4 py-2 rounded border text-sm font-body transition-all ${selectedMoagem === m ? "border-gold bg-gold/10 text-foreground font-medium" : "border-border text-muted-foreground hover:border-gold/50"}`}>
                         {MOAGEM_LABELS[m] || m}
                       </button>
                     ))}
@@ -211,7 +211,7 @@ const ProdutoPage = () => {
                   <div className="flex flex-wrap gap-2">
                     {pesos.map((p) => (
                       <button key={p} onClick={() => setSelectedPeso(p)}
-                        className={`px-4 py-2 rounded border text-sm font-body transition-all ${selectedPeso === p ? "border-accent bg-accent/10 text-foreground font-medium" : "border-border text-muted-foreground hover:border-accent/50"}`}>
+                        className={`px-4 py-2 rounded border text-sm font-body transition-all ${selectedPeso === p ? "border-gold bg-gold/10 text-foreground font-medium" : "border-border text-muted-foreground hover:border-gold/50"}`}>
                         {p >= 1000 ? `${p / 1000}kg` : `${p}g`}
                       </button>
                     ))}
@@ -235,7 +235,7 @@ const ProdutoPage = () => {
                 <button onClick={() => setQuantidade(quantidade + 1)} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                <Button className="w-full font-body text-sm tracking-wide" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>
+                <Button className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-light rounded-none transition-all duration-300" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>
                   <ShoppingBag className="w-4 h-4 mr-2" /> {produto.estoque === 0 ? "Indisponível" : "Adicionar ao Carrinho"}
                 </Button>
               </motion.div>
@@ -281,13 +281,13 @@ const ProdutoPage = () => {
               <TabsContent value="ficha" className="mt-6">
                 <h3 className="font-display text-lg font-semibold mb-4">Ficha Técnica</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-accent" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
-                  {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-accent" />} label="Variedade" value={produto.variedade} />}
-                  {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-accent" />} label="Processo" value={produto.processo} />}
-                  {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-accent" />} label="Origem" value={produto.origem} />}
-                  {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-accent" />} label="Altitude" value={produto.altitude} />}
-                  {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-accent" />} label="Safra" value={produto.safra} />}
-                  {produto.tipo_torra && <SpecItem icon={<span className="text-accent text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
+                  {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-gold" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
+                  {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-gold" />} label="Variedade" value={produto.variedade} />}
+                  {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-gold" />} label="Processo" value={produto.processo} />}
+                  {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-gold" />} label="Origem" value={produto.origem} />}
+                  {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-gold" />} label="Altitude" value={produto.altitude} />}
+                  {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-gold" />} label="Safra" value={produto.safra} />}
+                  {produto.tipo_torra && <SpecItem icon={<span className="text-gold text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
                 </div>
               </TabsContent>
             )}
@@ -304,12 +304,12 @@ const ProdutoPage = () => {
             <h2 className="font-display text-2xl lg:text-3xl font-light mb-8 text-center">Você também vai <span className="italic font-medium">gostar</span></h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {related.map((p) => (
-                <Link key={p.id} to={`/cafe/${p.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-accent/30 hover:shadow-md transition-all">
+                <Link key={p.id} to={`/cafe/${p.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
                   <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative">
                     {p.imagens && p.imagens.length > 0 ? (
                       <img src={p.imagens.find((i: any) => i.principal)?.url || p.imagens[0]?.url} alt={p.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     ) : <span className="text-4xl">☕</span>}
-                    {p.sca_score && <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[9px] font-body font-semibold px-2 py-0.5 rounded flex items-center gap-1"><Star className="w-2.5 h-2.5 fill-gold text-gold" />{p.sca_score}</div>}
+                    {p.sca_score && <div className="absolute top-2 right-2 bg-gold text-primary-foreground text-[9px] font-mono font-semibold px-2 py-0.5 rounded-sm flex items-center gap-1"><Star className="w-2.5 h-2.5 fill-current" />{p.sca_score}</div>}
                   </div>
                   <div className="p-3">
                     <h3 className="font-display text-sm font-semibold truncate">{p.nome}</h3>
@@ -341,7 +341,7 @@ const ProdutoPage = () => {
 function SpecItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">{icon}</div>
+      <div className="w-9 h-9 rounded-full bg-gold/10 flex items-center justify-center">{icon}</div>
       <div>
         <p className="text-[10px] font-body text-muted-foreground uppercase tracking-wide">{label}</p>
         <p className="font-body font-semibold text-sm">{value}</p>
