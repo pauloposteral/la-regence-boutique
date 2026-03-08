@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Search, SlidersHorizontal, X } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
 import SEOHead from "@/components/SEOHead";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
   clara: "Clara", media: "Média", media_escura: "Média Escura", escura: "Escura",
@@ -248,6 +250,25 @@ const CafesPage = () => {
 
 function ProductCard({ produto, index }: { produto: Produto; index: number }) {
   const pixPrice = produto.preco_promocional || produto.preco * 0.9;
+  const { addItem, openCart } = useCart();
+  const lowStock = produto.estoque > 0 && produto.estoque <= 5;
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      produtoId: produto.id,
+      nome: produto.nome,
+      preco: produto.preco,
+      precoPromocional: produto.preco_promocional || undefined,
+      quantidade: 1,
+      imagemUrl: produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url,
+      slug: produto.slug,
+    });
+    toast.success(`${produto.nome} adicionado ao carrinho`, {
+      action: { label: "Ver carrinho", onClick: () => openCart() },
+    });
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
@@ -261,6 +282,12 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           {produto.sca_score && <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-[10px] font-body font-semibold px-2.5 py-1 rounded flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
           {produto.destaque && <div className="absolute top-3 left-3 bg-accent text-accent-foreground text-[10px] font-body font-semibold px-2.5 py-1 rounded">Destaque</div>}
           {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {lowStock && (
+            <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" />
+              Últimas {produto.estoque} un.
+            </div>
+          )}
         </div>
         <div className="p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
@@ -271,7 +298,6 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
-          {produto.estoque > 0 && produto.estoque <= 5 && <p className="text-[10px] text-destructive font-body font-medium mt-2">⚠️ Últimas {produto.estoque} unidades!</p>}
           <div className="mt-4 flex items-end justify-between">
             <div>
               {produto.preco_promocional ? (
@@ -282,6 +308,15 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
             <span className="text-[10px] text-accent font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
           </div>
+          <Button
+            variant="default"
+            size="sm"
+            className="w-full mt-3 font-body text-xs"
+            onClick={handleQuickAdd}
+          >
+            <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
+            Adicionar ao carrinho
+          </Button>
         </div>
       </Link>
     </motion.div>
