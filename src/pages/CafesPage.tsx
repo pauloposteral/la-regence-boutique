@@ -273,7 +273,6 @@ function CompareBar() {
     </motion.div>
   );
 }
-};
 
 function ProductCard({ produto, index }: { produto: Produto; index: number }) {
   const pixPrice = produto.preco_promocional || produto.preco * 0.9;
