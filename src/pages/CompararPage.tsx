@@ -85,7 +85,7 @@ const CompararPage = () => {
       label: "Perfil Sensorial",
       render: (p) => (
         <div className="flex justify-center">
-          <FlavorWheel corpo={p.corpo} acidez={p.acidez} docura={p.docura} retrogosto={p.retrogosto} size={100} />
+          <FlavorWheel corpo={p.corpo} acidez={p.acidez} docura={p.docura} retrogosto={p.retrogosto} />
         </div>
       ),
     },
