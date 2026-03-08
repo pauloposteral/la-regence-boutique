@@ -11,18 +11,19 @@ const methods = [
 
 const BrewMethods = () => {
   return (
-    <section className="py-20 lg:py-28 bg-background">
+    <section className="py-24 lg:py-32 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-14"
+          className="text-center mb-16"
         >
-          <span className="text-accent text-xs font-body tracking-[0.3em] uppercase">Como Preparar</span>
-          <h2 className="font-display text-4xl lg:text-5xl font-light mt-3">
-            Métodos de <span className="italic font-medium">Preparo</span>
+          <span className="text-[11px] font-body tracking-[0.3em] uppercase text-gold">Como Preparar</span>
+          <h2 className="font-display text-4xl lg:text-5xl font-bold mt-3 text-foreground">
+            Métodos de <span className="italic font-light">Preparo</span>
           </h2>
+          <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-6" />
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -35,13 +36,13 @@ const BrewMethods = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="group text-center p-6 rounded-lg bg-card border border-border hover:border-gold/40 hover:shadow-[0_4px_20px_-8px_hsl(var(--gold)/0.25)] transition-all cursor-pointer"
+                className="group text-center p-8 rounded-lg bg-card border border-border hover:border-gold/30 transition-all duration-500 cursor-pointer"
               >
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-gold/15 group-hover:scale-110 transition-all">
-                  <Icon className="w-5 h-5 text-accent" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/5 border border-gold/10 flex items-center justify-center group-hover:bg-gold/10 group-hover:border-gold/25 group-hover:scale-110 transition-all duration-500">
+                  <Icon className="w-6 h-6 text-gold/70 group-hover:text-gold transition-colors" />
                 </div>
-                <h3 className="font-display text-lg font-semibold">{method.name}</h3>
-                <p className="text-xs text-muted-foreground font-body mt-1">{method.description}</p>
+                <h3 className="font-display text-lg font-semibold text-foreground">{method.name}</h3>
+                <p className="text-[11px] text-muted-foreground font-body mt-1">{method.description}</p>
               </motion.div>
             );
           })}
