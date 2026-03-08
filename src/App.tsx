@@ -47,7 +47,16 @@ const LazyTrocas = lazy(() => import("./pages/InstitucionalPages").then(m => ({ 
 const LazyContato = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.ContatoPage })));
 const LazyRastreamento = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.RastreamentoPage })));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes cache
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const Loading = () => (
   <div className="min-h-screen flex items-center justify-center flex-col gap-4">
