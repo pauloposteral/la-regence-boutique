@@ -142,7 +142,7 @@ const CafesPage = () => {
           <div className="flex gap-2">
             <Button variant="outline" className="font-body relative" onClick={() => setShowFilters(!showFilters)}>
               <SlidersHorizontal className="w-4 h-4 mr-2" /> Filtros
-              {activeFilterCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{activeFilterCount}</span>}
+              {activeFilterCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{activeFilterCount}</span>}
             </Button>
             <Select value={sort} onValueChange={setSort}>
               <SelectTrigger className="w-[160px] font-body"><SelectValue /></SelectTrigger>
