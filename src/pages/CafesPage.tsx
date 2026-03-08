@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle, GitCompareArrows } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import SEOHead from "@/components/SEOHead";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from "@/contexts/CartContext";
+import { useCompare } from "@/contexts/CompareContext";
 import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
@@ -243,14 +244,42 @@ const CafesPage = () => {
             )}
           </>
         )}
+
+        {/* Floating Compare Bar */}
+        <CompareBar />
       </div>
     </Layout>
   );
 };
 
+function CompareBar() {
+  const { compareIds, clearCompare, goToCompare } = useCompare();
+  if (compareIds.length === 0) return null;
+  return (
+    <motion.div
+      initial={{ y: 80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 80, opacity: 0 }}
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground rounded-full px-6 py-3 shadow-xl flex items-center gap-4"
+    >
+      <GitCompareArrows className="w-4 h-4" />
+      <span className="font-body text-sm font-medium">{compareIds.length} café{compareIds.length > 1 ? "s" : ""} selecionado{compareIds.length > 1 ? "s" : ""}</span>
+      <Button size="sm" variant="secondary" className="font-body text-xs h-7" onClick={goToCompare} disabled={compareIds.length < 2}>
+        Comparar
+      </Button>
+      <button onClick={clearCompare} className="text-primary-foreground/60 hover:text-primary-foreground transition-colors">
+        <X className="w-4 h-4" />
+      </button>
+    </motion.div>
+  );
+}
+};
+
 function ProductCard({ produto, index }: { produto: Produto; index: number }) {
   const pixPrice = produto.preco_promocional || produto.preco * 0.9;
   const { addItem, openCart } = useCart();
+  const { toggleCompare, isComparing } = useCompare();
+  const comparing = isComparing(produto.id);
   const lowStock = produto.estoque > 0 && produto.estoque <= 5;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
