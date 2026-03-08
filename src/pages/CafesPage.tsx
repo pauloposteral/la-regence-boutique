@@ -109,17 +109,19 @@ const CafesPage = () => {
     <Layout>
       <SEOHead title="Nossos Cafés Especiais" description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito." />
       
-      <section className="bg-gradient-espresso text-primary-foreground py-16 lg:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      <section className="bg-background border-b border-border py-20 lg:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A96E' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <h1 className="font-display text-4xl lg:text-5xl font-light mb-3">
-            Nossos <span className="italic font-medium text-gold">Cafés</span>
+          <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-4">Coleção Completa</p>
+          <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-foreground">
+            Nossos <span className="italic font-light text-gradient-gold">Cafés</span>
           </h1>
-          <p className="font-body text-primary-foreground/60 max-w-md mx-auto">
+          <p className="font-body text-muted-foreground max-w-md mx-auto text-sm">
             Cafés especiais torrados artesanalmente, com rastreabilidade do grão à xícara.
           </p>
+          <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-5" />
         </div>
       </section>
 
@@ -260,14 +262,14 @@ function CompareBar() {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 80, opacity: 0 }}
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-primary-foreground rounded-full px-6 py-3 shadow-xl flex items-center gap-4"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-card border border-gold/30 text-foreground rounded-full px-6 py-3 shadow-xl shadow-gold/10 flex items-center gap-4"
     >
-      <GitCompareArrows className="w-4 h-4" />
+      <GitCompareArrows className="w-4 h-4 text-gold" />
       <span className="font-body text-sm font-medium">{compareIds.length} café{compareIds.length > 1 ? "s" : ""} selecionado{compareIds.length > 1 ? "s" : ""}</span>
-      <Button size="sm" variant="secondary" className="font-body text-xs h-7" onClick={goToCompare} disabled={compareIds.length < 2}>
+      <Button size="sm" className="font-body text-xs h-7 bg-gold text-primary-foreground hover:bg-gold-light rounded-full" onClick={goToCompare} disabled={compareIds.length < 2}>
         Comparar
       </Button>
-      <button onClick={clearCompare} className="text-primary-foreground/60 hover:text-primary-foreground transition-colors">
+      <button onClick={clearCompare} className="text-muted-foreground hover:text-foreground transition-colors">
         <X className="w-4 h-4" />
       </button>
     </motion.div>
@@ -300,15 +302,15 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
-      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-accent/30 hover:shadow-lg transition-all duration-300">
+      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
         <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
             <img src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
-          {produto.sca_score && <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-[10px] font-body font-semibold px-2.5 py-1 rounded flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
-          {produto.destaque && <div className="absolute top-3 left-3 bg-accent text-accent-foreground text-[10px] font-body font-semibold px-2.5 py-1 rounded">Destaque</div>}
+          {produto.sca_score && <div className="absolute top-3 right-3 bg-gold text-primary-foreground text-[10px] font-mono font-semibold px-2.5 py-1 rounded-sm flex items-center gap-1"><Star className="w-3 h-3 fill-current" />SCA {produto.sca_score}</div>}
+          {produto.destaque && <div className="absolute top-3 left-3 bg-gold/20 text-gold text-[10px] font-body font-semibold px-2.5 py-1 rounded-sm border border-gold/30">Destaque</div>}
           {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {lowStock && (
             <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
@@ -319,28 +321,27 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
         </div>
         <div className="p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
-          <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-accent transition-colors">{produto.nome}</h3>
+          <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
           {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{nota}</span>)}
+              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-gold/70 border border-gold/20 px-2 py-0.5 rounded-sm bg-gold/5">{nota}</span>)}
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
           <div className="mt-4 flex items-end justify-between">
             <div>
               {produto.preco_promocional ? (
-                <><span className="text-xs text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-body font-bold text-lg text-foreground">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                <><span className="text-xs text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-foreground">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
               ) : (
-                <span className="font-body font-bold text-lg text-foreground">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                <span className="font-mono font-bold text-lg text-foreground">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
               )}
             </div>
-            <span className="text-[10px] text-accent font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
+            <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
           </div>
           <div className="flex gap-2 mt-3">
             <Button
-              variant="default"
               size="sm"
-              className="flex-1 font-body text-xs"
+              className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wide uppercase transition-all duration-300"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
@@ -349,7 +350,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             <Button
               variant={comparing ? "secondary" : "outline"}
               size="sm"
-              className="font-body text-xs px-2.5"
+              className="font-body text-xs px-2.5 border-border hover:border-gold/30"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(produto.id); }}
               title="Comparar"
             >
