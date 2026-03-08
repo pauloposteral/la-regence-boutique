@@ -12,6 +12,7 @@ import ProductReviews from "@/components/product/ProductReviews";
 import FavoriteButton from "@/components/product/FavoriteButton";
 import ShareButtons from "@/components/product/ShareButtons";
 import PromotionCountdown from "@/components/product/PromotionCountdown";
+import StickyAddToCart from "@/components/product/StickyAddToCart";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -310,6 +311,15 @@ const ProdutoPage = () => {
           </section>
         )}
       </div>
+
+      {/* Sticky add-to-cart mobile (32) */}
+      <StickyAddToCart
+        productName={produto.nome}
+        price={currentPrice}
+        pixPrice={pixPrice}
+        onAddToCart={handleAddToCart}
+        disabled={produto.estoque === 0}
+      />
     </Layout>
   );
 };

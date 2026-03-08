@@ -46,6 +46,8 @@
     --espresso-light: 25 30% 22%;
     --mocha: 20 35% 30%;
     --latte: 35 30% 80%;
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 100%;
 
     --sidebar-background: 25 45% 12%;
     --sidebar-foreground: 40 30% 95%;
@@ -94,6 +96,8 @@
     --espresso-light: 25 25% 15%;
     --mocha: 20 25% 25%;
     --latte: 35 20% 35%;
+    --success: 142 55% 35%;
+    --success-foreground: 0 0% 100%;
 
     --sidebar-background: 25 30% 6%;
     --sidebar-foreground: 40 30% 92%;
@@ -117,6 +121,41 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+  }
+
+  /* Responsive typography (33) */
+  h1 { font-size: clamp(1.75rem, 4vw, 3.5rem); }
+  h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+  h3 { font-size: clamp(1.125rem, 2vw, 1.75rem); }
+
+  /* Skip to content (34) */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:bg-accent focus:text-accent-foreground focus:px-4 focus:py-2 focus:rounded-md focus:font-body focus:text-sm;
+  }
+
+  /* Focus rings for accessibility (34) */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  /* Custom scrollbar (40) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--gold) / 0.3);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--gold) / 0.5);
+  }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--gold) / 0.3) hsl(var(--muted));
   }
 }
 
@@ -158,5 +197,62 @@
 
   .animate-marquee {
     animation: marquee 25s linear infinite;
+  }
+
+  /* Micro-animations on buttons (22) */
+  .btn-hover {
+    @apply transition-all duration-200;
+  }
+  .btn-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(var(--gold) / 0.15);
+  }
+  .btn-hover:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* 3D hover tilt effect for cards (39) */
+  .card-tilt {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  .card-tilt:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+    box-shadow: 0 12px 40px -12px hsl(var(--gold) / 0.2);
+  }
+
+  /* Parallax background (38) */
+  .parallax-bg {
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+  }
+  @media (max-width: 768px) {
+    .parallax-bg {
+      background-attachment: scroll;
+    }
+  }
+
+  /* Safe area for bottom nav on mobile */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+  }
+
+  /* Bottom nav spacer */
+  .mb-bottom-nav {
+    margin-bottom: 4.5rem;
+  }
+  @media (min-width: 1024px) {
+    .mb-bottom-nav {
+      margin-bottom: 0;
+    }
+  }
+}
+
+@layer components {
+  /* Loading spinner for buttons (36) */
+  .btn-spinner {
+    @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
   }
 }
