@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle } from "lucide-react";
+import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,6 +88,50 @@ const ContaPage = () => {
     enabled: !!user,
   });
 
+  const { data: pontosData } = useQuery({
+    queryKey: ["pontos", user?.id],
+    queryFn: async () => {
+      const [{ data: historico }, { data: totalData }] = await Promise.all([
+        supabase.from("pontos_fidelidade").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
+        supabase.rpc("get_user_points", { _user_id: user!.id }),
+      ]);
+      return { historico: historico || [], total: (totalData as number) || 0 };
+    },
+    enabled: !!user,
+  });
+
+  const [redeeming, setRedeeming] = useState(false);
+
+  const redeemPoints = async (pontos: number, desconto: number) => {
+    if (!user || (pontosData?.total || 0) < pontos) {
+      toast.error("Pontos insuficientes");
+      return;
+    }
+    setRedeeming(true);
+    // Create coupon and deduct points
+    const codigo = `FIDELIDADE${Date.now().toString(36).toUpperCase()}`;
+    const { error: cupomError } = await supabase.from("cupons").insert({
+      codigo,
+      desconto_valor: desconto,
+      ativo: true,
+      usos_restantes: 1,
+      valido_ate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    if (cupomError) { toast.error("Erro ao criar cupom"); setRedeeming(false); return; }
+
+    const { error: pontosError } = await supabase.from("pontos_fidelidade").insert({
+      user_id: user.id,
+      pontos: -pontos,
+      tipo: "resgate",
+      descricao: `Resgate: cupom ${codigo} (R$ ${desconto})`,
+    });
+    if (pontosError) { toast.error("Erro ao registrar resgate"); setRedeeming(false); return; }
+
+    queryClient.invalidateQueries({ queryKey: ["pontos"] });
+    setRedeeming(false);
+    toast.success(`Cupom ${codigo} criado! R$ ${desconto} de desconto, válido por 30 dias.`, { duration: 8000 });
+  };
+
   const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
@@ -162,6 +206,7 @@ const ContaPage = () => {
           <TabsList className="bg-secondary/50 w-full justify-start overflow-x-auto">
             <TabsTrigger value="perfil" className="font-body text-xs gap-1.5"><User className="w-3.5 h-3.5" /> Perfil</TabsTrigger>
             <TabsTrigger value="pedidos" className="font-body text-xs gap-1.5"><ShoppingBag className="w-3.5 h-3.5" /> Pedidos</TabsTrigger>
+            <TabsTrigger value="pontos" className="font-body text-xs gap-1.5"><Award className="w-3.5 h-3.5" /> Pontos</TabsTrigger>
             <TabsTrigger value="enderecos" className="font-body text-xs gap-1.5"><MapPin className="w-3.5 h-3.5" /> Endereços</TabsTrigger>
             <TabsTrigger value="favoritos" className="font-body text-xs gap-1.5"><Heart className="w-3.5 h-3.5" /> Favoritos</TabsTrigger>
           </TabsList>
