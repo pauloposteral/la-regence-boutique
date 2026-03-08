@@ -6,6 +6,7 @@ import SEOHead from "@/components/SEOHead";
 import LazySection from "@/components/home/LazySection";
 import { lazy, Suspense } from "react";
 
+const CollectionsSection = lazy(() => import("@/components/home/CollectionsSection"));
 const SensoryNotesBanner = lazy(() => import("@/components/home/SensoryNotesBanner"));
 const SubscriptionBanner = lazy(() => import("@/components/home/SubscriptionBanner"));
 const StatsSection = lazy(() => import("@/components/home/StatsSection"));
@@ -28,6 +29,11 @@ const Index = () => {
       <HeroSection />
       <DynamicBanners />
       <CoffeeCarousel />
+      <LazySection>
+        <Suspense fallback={<div className="min-h-[200px]" />}>
+          <CollectionsSection />
+        </Suspense>
+      </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[60px]" />}>
           <SensoryNotesBanner />
