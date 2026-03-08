@@ -1,0 +1,22 @@
+-- Performance indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_pedidos_user_id ON public.pedidos(user_id);
+CREATE INDEX IF NOT EXISTS idx_pedidos_created_at ON public.pedidos(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_pedidos_status ON public.pedidos(status);
+CREATE INDEX IF NOT EXISTS idx_produtos_slug ON public.produtos(slug);
+CREATE INDEX IF NOT EXISTS idx_produtos_ativo ON public.produtos(ativo) WHERE ativo = true;
+CREATE INDEX IF NOT EXISTS idx_produtos_destaque ON public.produtos(destaque) WHERE destaque = true;
+CREATE INDEX IF NOT EXISTS idx_produtos_categoria_id ON public.produtos(categoria_id);
+CREATE INDEX IF NOT EXISTS idx_favoritos_user_id ON public.favoritos(user_id);
+CREATE INDEX IF NOT EXISTS idx_favoritos_produto_id ON public.favoritos(produto_id);
+CREATE INDEX IF NOT EXISTS idx_itens_pedido_pedido_id ON public.itens_pedido(pedido_id);
+CREATE INDEX IF NOT EXISTS idx_itens_pedido_produto_id ON public.itens_pedido(produto_id);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_produto_id ON public.avaliacoes(produto_id);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_aprovado ON public.avaliacoes(aprovado) WHERE aprovado = true;
+CREATE INDEX IF NOT EXISTS idx_produto_imagens_produto_id ON public.produto_imagens(produto_id);
+CREATE INDEX IF NOT EXISTS idx_variantes_produto_id ON public.variantes(produto_id);
+CREATE INDEX IF NOT EXISTS idx_enderecos_user_id ON public.enderecos(user_id);
+CREATE INDEX IF NOT EXISTS idx_assinaturas_user_id ON public.assinaturas(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON public.blog_posts(slug);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_publicado ON public.blog_posts(publicado) WHERE publicado = true;
+CREATE INDEX IF NOT EXISTS idx_banners_ativo ON public.banners(ativo) WHERE ativo = true;
