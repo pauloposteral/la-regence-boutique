@@ -6,9 +6,9 @@ import { Link } from "react-router-dom";
 const HeroSection = () => {
   return (
     <section className="relative min-h-[80vh] lg:min-h-[85vh] flex items-center overflow-hidden">
-      {/* Background image */}
+      {/* Parallax background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
         style={{ backgroundImage: `url('/images/torrefacao.jpeg')` }}
       />
       {/* Dark overlay gradient */}
