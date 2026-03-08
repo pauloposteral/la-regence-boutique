@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        display: ['"Playfair Display"', '"Cormorant Garamond"', 'Georgia', 'serif'],
         body: ['"Outfit"', 'system-ui', 'sans-serif'],
+        accent: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -54,6 +56,7 @@ export default {
         gold: {
           DEFAULT: "hsl(var(--gold))",
           light: "hsl(var(--gold-light))",
+          dark: "hsl(var(--gold-dark))",
         },
         cream: {
           DEFAULT: "hsl(var(--cream))",
@@ -98,12 +101,17 @@ export default {
           from: { opacity: "0", transform: "translateX(40px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        "pulse-gold": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--gold) / 0.4)" },
+          "50%": { boxShadow: "0 0 0 8px hsl(var(--gold) / 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.6s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
+        "pulse-gold": "pulse-gold 2s ease-in-out infinite",
       },
     },
   },
