@@ -23,6 +23,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><Link to="/assinatura" className="link-underline-hover hover:text-gold transition-colors duration-300">Assinatura e kits</Link></li>
               <li><Link to="/rastreamento" className="link-underline-hover hover:text-gold transition-colors duration-300">Rastrear pedido</Link></li>
+              <li><Link to="/faq" className="link-underline-hover hover:text-gold transition-colors duration-300">Perguntas frequentes</Link></li>
               <li><a href="mailto:contato@laregence.com.br" className="link-underline-hover hover:text-gold transition-colors duration-300">Contato e suporte</a></li>
             </ul>
           </div>
