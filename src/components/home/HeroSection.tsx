@@ -81,7 +81,7 @@ const HeroSection = () => {
               asChild
               variant="outline"
               size="lg"
-              className="font-body text-base tracking-[0.08em] uppercase px-8 border-white/50 text-white hover:bg-white/10 hover:border-white/70 transition-all duration-300"
+              className="bg-transparent font-body text-base tracking-[0.08em] uppercase px-8 border-white/50 text-white hover:bg-white/10 hover:border-white/70 transition-all duration-300"
             >
               <Link to="/assinatura">Clube de Assinatura</Link>
             </Button>
