@@ -1,62 +1,30 @@
 
-# Auditoria End-to-End — La Régence E-commerce
 
-## Avaliação: Fase 2 Concluída ✅
+## Plano: Scroll-to-top automático + Mobile-first responsivo
 
----
+### 1. Scroll-to-top em troca de rota
+O Layout já tem `useLocation` mas não faz scroll ao trocar de página. Adicionar `window.scrollTo(0, 0)` no `useEffect` que já observa `location.pathname`.
 
-## Todas as Correções Implementadas
+**Arquivo:** `src/components/layout/Layout.tsx`
+- No `useEffect` existente (linha 43-45), adicionar `window.scrollTo(0, 0)` antes do `trackPageView`.
 
-### Plano Original (25 itens) ✅
-1-25. Estoque, upload, Pix, máscaras, forwardRef, edge functions, empresa, fundação, favicon, dark mode, CSV, email, rate limiting, focus visible, SEO, fidelidade, admin, timeline, avaliações, assinaturas, blog, newsletter, comparador, quiz, PWA
+### 2. Remover `App.css` legado do Vite
+O `App.css` tem estilos do template Vite (`#root { max-width: 1280px; padding: 2rem }`) que limitam a largura e adicionam padding indesejado. Este arquivo não é importado no `App.tsx` atual, mas se estiver importado em algum lugar, remove o import. Se não estiver importado, deletar o conteúdo.
 
-### Auditoria 50 Melhorias — Fase 1 (10 itens) ✅
-1. Validação de estoque no carrinho
-2. SEO dinâmico no Blog
-3. Produto inexistente → 404
-4. Busca sanitizada no Header
-5. Fix useMemo → useEffect
-6. ThemeProvider removido (next-themes)
-7. Banner LGPD/Cookies
-8. Blog com paginação
-9. Blog com breadcrumbs + SEO
-10. Sitemap no robots.txt
+**Arquivo:** `src/App.css` — esvaziar o conteúdo (remover `#root max-width`, `padding`, `text-align`).
 
-### Auditoria 50 Melhorias — Fase 2 (10 itens) ✅
-11. Cross-sell inteligente — baseado em categoria e notas sensoriais
-12. Footer links corrigidos — substituídos placeholders por links reais + FAQ
-13. Breadcrumbs em FavoritosPage
-14. Breadcrumbs em AssinaturaPage + SEOHead
-15. Breadcrumbs em QuizPage + SEOHead
-16. BlogPostPage com SEOHead dinâmico
-17. Página FAQ completa — 5 seções, 19 perguntas
-18. Idempotency key no checkout — Stripe session com proteção anti-duplicata
-19. Proteção double-submit reforçada no checkout
-20. Rota /faq adicionada ao App.tsx e Footer
+### 3. Garantir responsividade mobile-first
+Verificar e ajustar:
+- `index.html`: confirmar `<meta name="viewport" content="width=device-width, initial-scale=1.0">` presente
+- `BottomNav.tsx`: garantir touch targets 44×44 (já tem `min-w-[44px] min-h-[44px]`)
+- `Header.tsx`: verificar menu mobile funcional (já tem hamburger)
 
----
+Nenhuma mudança grande necessária — o projeto já usa Tailwind mobile-first. A principal correção é o `App.css` legado e o scroll-to-top.
 
-## Itens Pendentes (20 restantes)
+### Alterações
 
-### Críticos
-- Validação de cupom server-side (edge function)
-- Expiração de preço no carrinho
-- Checkout salvar endereço no perfil
+| Arquivo | O que muda |
+|---|---|
+| `src/components/layout/Layout.tsx` | Adicionar `window.scrollTo(0, 0)` no useEffect de route change |
+| `src/App.css` | Esvaziar — remover estilos legados do template Vite |
 
-### Performance
-- WebP/AVIF para imagens
-- Reduzir framer-motion imports desnecessários
-- Service worker real
-- localStorage com try/catch universal
-
-### Design
-- Logo no email transacional
-- BottomNav indicador animado
-- STATUS_COLORS unificado em um único arquivo
-- Skeleton loading em Homepage/ProdutoPage
-
-### Analytics & Marketing
-- GA4 / Plausible analytics
-- Facebook Pixel
-- UTM tracking
-- Newsletter double opt-in
