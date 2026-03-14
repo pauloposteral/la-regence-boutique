@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const SubscriptionBanner = () => {
   return (
-    <section className="py-24 lg:py-32 bg-secondary/30">
+    <section className="py-24 lg:py-32 bg-cream-100">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div

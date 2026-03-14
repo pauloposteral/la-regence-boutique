@@ -126,7 +126,7 @@ const CoffeeCarousel = () => {
                       {coffee.notas_sensoriais && coffee.notas_sensoriais.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {coffee.notas_sensoriais.slice(0, 3).map((nota) => (
-                            <span key={nota} className="text-[10px] font-body text-muted-foreground border border-cream-400 rounded-full px-2 py-0.5 hover:border-gold hover:text-gold transition-colors">
+                            <span key={nota} className="text-[10px] font-body text-muted-foreground border border-cream-300 rounded-full px-2 py-0.5 hover:border-gold hover:text-gold transition-colors">
                               {nota}
                             </span>
                           ))}

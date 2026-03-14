@@ -49,7 +49,7 @@ const StorySection = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-border">
+            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-cream-300">
               {[
                 { number: "18+", label: "Anos de experiência" },
                 { number: "80+", label: "Pontuação SCA mínima" },

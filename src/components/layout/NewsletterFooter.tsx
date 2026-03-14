@@ -36,7 +36,7 @@ const NewsletterFooter = () => {
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-white border-cream-400 text-brown-dark placeholder:text-muted-foreground font-body text-sm rounded-full"
+            className="bg-white border-cream-300 text-foreground placeholder:text-muted-foreground font-body text-sm rounded-full"
             onKeyDown={(e) => e.key === "Enter" && subscribe()}
           />
           <Button

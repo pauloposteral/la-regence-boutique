@@ -67,7 +67,7 @@ const NewsletterPopup = () => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-[90vw] max-w-md bg-card rounded-2xl shadow-2xl border border-cream-400 overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-[90vw] max-w-md bg-card rounded-2xl shadow-2xl border border-cream-300 overflow-hidden"
           >
             {/* Gold accent bar */}
             <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />

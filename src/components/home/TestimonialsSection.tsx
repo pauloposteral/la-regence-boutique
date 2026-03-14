@@ -43,7 +43,7 @@ const TestimonialsSection = () => {
               <p className="font-body text-muted-foreground italic leading-relaxed mb-6 text-sm">
                 "{t.text}"
               </p>
-              <div className="border-t border-border pt-4 flex items-center gap-3">
+              <div className="border-t border-cream-300 pt-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-body font-bold text-gold">
                   {t.name.split(" ").map(n => n[0]).join("")}
                 </div>

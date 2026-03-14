@@ -83,7 +83,7 @@ const Header = () => {
   return (
     <>
       {/* Top announcement bar */}
-      <div className="bg-cream-200 text-brown text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2 border-b border-cream-400">
+      <div className="bg-cream-100 text-foreground/70 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2 border-b border-cream-300">
         <Truck className="w-3.5 h-3.5 text-gold" />
         Frete grátis acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
