@@ -47,7 +47,7 @@ const CoffeeCarousel = () => {
           <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-6" />
         </motion.div>
 
-        {isLoading ? (
+        {isLoading || items.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-card rounded-2xl border border-cream-400 overflow-hidden">
