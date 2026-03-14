@@ -115,7 +115,7 @@ const CafesPage = () => {
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
           <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-4">Coleção Completa</p>
-          <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-foreground">
+          <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-brown-dark">
             Nossos <span className="italic font-light text-gradient-gold">Cafés</span>
           </h1>
           <p className="font-body text-muted-foreground max-w-md mx-auto text-sm">
