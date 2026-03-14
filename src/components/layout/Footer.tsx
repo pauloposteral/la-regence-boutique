@@ -19,8 +19,8 @@ const Footer = () => {
 
           {/* Atendimento */}
           <div>
-            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-muted-foreground mb-5">Atendimento</h4>
-            <ul className="space-y-3 text-sm font-body text-brown">
+            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Atendimento</h4>
+            <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><Link to="/assinatura" className="link-underline-hover hover:text-gold transition-colors duration-300">Assinatura e kits</Link></li>
               <li><Link to="/rastreamento" className="link-underline-hover hover:text-gold transition-colors duration-300">Rastrear pedido</Link></li>
               <li><a href="mailto:contato@laregence.com.br" className="link-underline-hover hover:text-gold transition-colors duration-300">Contato e suporte</a></li>
