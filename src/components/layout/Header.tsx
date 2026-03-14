@@ -83,8 +83,8 @@ const Header = () => {
   return (
     <>
       {/* Top announcement bar */}
-      <div className="bg-brown-deep text-cream-200 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2">
-        <Truck className="w-3.5 h-3.5 text-gold-light/70" />
+      <div className="bg-cream-200 text-brown text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2 border-b border-cream-400">
+        <Truck className="w-3.5 h-3.5 text-gold" />
         Frete grátis acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
 
@@ -93,8 +93,7 @@ const Header = () => {
           ? "bg-cream-50/95 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.12)]"
           : "bg-cream-100/90 backdrop-blur-md"
       }`}>
-        {/* Gold line accent */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
+        {/* Subtle separator */}
 
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-3 items-center h-16 lg:h-20">

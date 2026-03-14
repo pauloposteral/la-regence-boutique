@@ -1,90 +1,64 @@
 
 
-# Remover Partes Escuras e Tornar o Design Clean e Minimalista
+## Plano: Replicar o Design de Referência
 
-## Resumo
+Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
 
-Eliminar todos os blocos escuros (`bg-brown-deep`, `bg-brown-dark`, gradientes pesados) do design, substituindo por fundos claros e neutros. Simplificar botões, reduzir ruído visual, e criar uma estética arejada e minimalista mantendo o dourado como acento sutil.
+### Mudanças Necessárias
 
-## Mudanças por arquivo
+**1. Header — Layout Centralizado**
+- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
+- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
+- Manter ícones (busca, conta, carrinho) à DIREITA
+- Arquivo: `Header.tsx`
 
-### 1. Announcement Bar — `Header.tsx` (linha 86)
-- **Antes:** `bg-brown-deep text-cream-200` (barra preta no topo)
-- **Depois:** `bg-cream-200 text-brown` — barra clara e discreta
+**2. CoffeeCarousel — Cards de Produto Redesenhados**
+- Grid de 4 colunas (não 5)
+- Adicionar estrelas de avaliação abaixo do nome
+- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
+- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
+- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
+- Botão "Escolher moagem" nos cards que têm variantes
+- Arquivo: `CoffeeCarousel.tsx`
 
-### 2. Hero Section — `HeroSection.tsx`
-- **Antes:** Overlays escuros pesados (`from-brown-deep/92 via-brown-deep/85`)
-- **Depois:** Reduzir drasticamente a opacidade dos overlays para `from-brown-deep/60 via-brown-deep/40 to-transparent` — deixar a imagem mais visível e leve. Remover o segundo gradient layer. Texto continua claro sobre a imagem.
+**3. NOVO — Banner de Notas Sensoriais (Marquee)**
+- Faixa horizontal animada entre os cafés e a seção de assinatura
+- Fundo escuro (espresso) com texto dourado
+- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
+- Scroll infinito horizontal (marquee CSS)
+- Criar: `src/components/home/SensoryNotesBanner.tsx`
 
-### 3. Sensory Notes Banner — `SensoryNotesBanner.tsx`
-- **Antes:** `bg-brown-deep` (faixa escura com texto gold)
-- **Depois:** `bg-cream-200 border-y border-cream-400` — fundo claro, texto em `text-brown`
+**4. SubscriptionBanner — Redesign com Imagem**
+- Layout 2 colunas: texto à esquerda, imagem de café à direita
+- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
+- Título: "Nunca fique sem o seu café preferido."
+- Botão CTA dourado: "Quero fazer parte →"
+- Imagem: usar `/images/torrefacao.jpeg` como placeholder
+- Arquivo: `SubscriptionBanner.tsx`
 
-### 4. Footer — `Footer.tsx`
-- **Antes:** `bg-brown-deep` com texto `text-cream-600`
-- **Depois:** `bg-cream-200 border-t border-cream-400` — footer claro. Texto em `text-brown`. Títulos em `text-muted-foreground`. Social icons com `border-cream-500`. Brand emblem com `text-brown-dark`. Payment badges com `bg-cream-300`.
+**5. NOVO — Seção de Estatísticas**
+- 4 colunas com números grandes e descrições
+- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
+- Ícones decorativos (grão de café, etc.)
+- Fundo claro (cream)
+- Criar: `src/components/home/StatsSection.tsx`
 
-### 5. Newsletter Footer — `NewsletterFooter.tsx`
-- **Antes:** Input `bg-cream-50/10` e texto `text-cream-200` (sobre fundo escuro)
-- **Depois:** Input `bg-white border-cream-400` e texto `text-brown-dark` (sobre fundo claro)
+**6. Footer — Logo Dourada no Fundo**
+- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
+- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
+- Arquivo: `Footer.tsx`
 
-### 6. Dynamic Banners — `DynamicBanners.tsx` (linha 61)
-- **Antes:** `from-brown-deep/70` gradient overlay nos cards
-- **Depois:** `from-brown-deep/50` — mais leve, ou substituir por `from-black/40`
+**7. Index.tsx — Reordenar Seções**
+- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
+- Arquivo: `Index.tsx`
 
-### 7. Subscription Banner — `SubscriptionBanner.tsx` (linha 57)
-- **Antes:** `from-brown-deep/40` gradient na imagem
-- **Depois:** `from-black/20` — mais sutil
-
-### 8. Stats Section — `StatsSection.tsx`
-- Já está em `bg-cream-200` — OK, sem mudanças
-
-### 9. Story Section — `StorySection.tsx`
-- Já está em `bg-cream-200` — OK, sem mudanças
-
-### 10. CSS Variables — `index.css`
-- Sidebar variables (usadas no admin): manter `brown-deep` apenas lá
-- Remover `bg-gradient-espresso` utility (não será mais usada)
-
-### 11. Simplificações minimalistas adicionais
-
-**Botões** — `button.tsx`:
-- Remover `active:scale-[0.97]` (micro-interação desnecessária para visual clean)
-- Manter rounded-full mas reduzir shadow no hover para algo mais sutil
-
-**Cards** — menos ornamentação:
-- Remover `glow-gold` class usage no `SubscriptionBanner.tsx`
-- Cards do `TestimonialsSection.tsx`: remover `hover:shadow-lg` — manter apenas `hover:border-gold/20` sutil
-
-**Brew Methods** — `BrewMethods.tsx`:
-- Simplificar hover nos cards: remover `hover:shadow-lg hover:shadow-gold/5`, manter apenas border change
-
-**CoffeeCarousel** — `CoffeeCarousel.tsx`:
-- Skeleton cards: manter clean sem ornamentação extra
-
-**Cafes Page hero** — `CafesPage.tsx` (linha 112-126):
-- Já está em `bg-cream-200` — OK
-
-**Gold decorative lines** — remover as `h-px bg-gradient-to-r from-transparent via-gold/...` lines no Header e Footer (excesso decorativo para um visual minimalista)
-
-## Arquivos impactados (~10 arquivos)
-
-| Arquivo | Tipo de mudança |
-|---------|----------------|
-| `Header.tsx` | Announcement bar: escuro → claro |
-| `HeroSection.tsx` | Overlays: pesados → leves |
-| `SensoryNotesBanner.tsx` | Fundo: escuro → claro |
-| `Footer.tsx` | Fundo: escuro → claro |
-| `NewsletterFooter.tsx` | Cores adaptadas para fundo claro |
-| `DynamicBanners.tsx` | Gradient overlay mais leve |
-| `SubscriptionBanner.tsx` | Gradient overlay mais leve, remover glow |
-| `TestimonialsSection.tsx` | Reduzir hover effects |
-| `BrewMethods.tsx` | Simplificar hover |
-| `button.tsx` | Remover active:scale |
-
-## Regras
-- Fontes, layout e conteúdo inalterados
-- Dourado permanece como cor de acento, mas usado com mais parcimônia
-- Nenhum fundo `brown-deep` visível ao usuário (exceto admin sidebar)
-- Resultado: visual arejado, claro, minimalista
+### Arquivos Afetados
+- `src/components/layout/Header.tsx` — layout centralizado
+- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
+- `src/components/home/SensoryNotesBanner.tsx` — NOVO
+- `src/components/home/SubscriptionBanner.tsx` — redesign
+- `src/components/home/StatsSection.tsx` — NOVO
+- `src/components/layout/Footer.tsx` — logo badge
+- `src/pages/Index.tsx` — reordenação
+- `src/index.css` — animação marquee
 

@@ -11,9 +11,8 @@ const HeroSection = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg scale-105"
         style={{ backgroundImage: `url('/images/torrefacao.jpeg')` }}
       />
-      {/* Dark overlay — cinematic gradient (refined opacity) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/92 via-brown-deep/85 to-brown-deep/35" />
-      <div className="absolute inset-0 bg-gradient-to-t from-brown-deep via-transparent to-brown-deep/25" />
+      {/* Light cinematic overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/60 via-brown-deep/40 to-transparent" />
 
       {/* Subtle gold vignette */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />

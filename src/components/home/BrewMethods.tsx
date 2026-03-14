@@ -36,7 +36,7 @@ const BrewMethods = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="group text-center p-8 rounded-2xl bg-card border border-cream-400 hover:border-gold/30 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500 cursor-pointer"
+                className="group text-center p-8 rounded-2xl bg-card border border-cream-400 hover:border-gold/20 transition-all duration-300 cursor-pointer"
               >
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/10 border border-gold/15 flex items-center justify-center group-hover:bg-gold/15 group-hover:border-gold/30 group-hover:scale-110 transition-all duration-500">
                   <Icon className="w-6 h-6 text-gold/70 group-hover:text-gold transition-colors" />
