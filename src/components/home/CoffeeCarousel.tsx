@@ -80,7 +80,7 @@ const CoffeeCarousel = () => {
                     to={`/cafe/${coffee.slug}`}
                     className="group block bg-card rounded-2xl overflow-hidden border border-cream-300 hover:border-gold/30 card-tilt transition-all duration-500"
                   >
-                    <div className="aspect-square bg-cream-200/30 flex items-center justify-center relative overflow-hidden p-6">
+                    <div className="aspect-square bg-cream-100 flex items-center justify-center relative overflow-hidden p-6">
                       {coffee.imagens && coffee.imagens.length > 0 ? (
                         <img
                           src={coffee.imagens.find((i) => i.principal)?.url || coffee.imagens[0]?.url}
