@@ -24,7 +24,7 @@ const NewsletterFooter = () => {
   };
 
   return (
-    <div className="mt-10 pt-10 border-t border-cream-400">
+    <div className="mt-10 pt-10 border-t border-cream-300">
       <div className="max-w-md mx-auto text-center">
         <h4 className="font-display text-lg font-semibold text-brown-dark mb-2">Receba novidades</h4>
         <p className="text-[11px] text-muted-foreground font-body mb-4 tracking-wide">
