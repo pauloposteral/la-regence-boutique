@@ -51,8 +51,8 @@ const Footer = () => {
                 src="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501834638.png"
                 alt="Grãos de café torrados La Régence"
                 className="w-full h-full object-cover opacity-60 hover:opacity-80 transition-opacity duration-500"
-                loading="lazy"
-              />
+                loading="lazy" />
+              
             </div>
           </div>
         </div>
@@ -80,13 +80,13 @@ const Footer = () => {
         </div>
 
         {/* Brand emblem */}
-        <div className="flex justify-center mt-12 mb-6">
-          <div className="w-24 h-24 rounded-full border border-cream-300 flex items-center justify-center bg-white">
-            <span className="font-display text-sm font-semibold text-center leading-tight text-foreground">
-              La<br /><span className="italic text-base text-gold">Régence</span>
-            </span>
-          </div>
-        </div>
+        
+
+
+
+
+
+        
 
         {/* Separator */}
         <div className="h-px bg-cream-300" />
@@ -109,8 +109,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
 
 export default Footer;
