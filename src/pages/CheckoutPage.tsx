@@ -228,11 +228,23 @@ const CheckoutPage = () => {
                       </div>
                       <div>
                         <Label className="font-body text-xs text-muted-foreground">Telefone</Label>
-                        <Input value={form.telefone} onChange={(e) => updateField("telefone", e.target.value)} className="font-body mt-1" placeholder="(00) 00000-0000" />
+                        <Input value={form.telefone} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+                          else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+                          else if (v.length > 0) v = `(${v}`;
+                          updateField("telefone", v);
+                        }} className="font-body mt-1" placeholder="(00) 00000-0000" />
                       </div>
                       <div>
                         <Label className="font-body text-xs text-muted-foreground">CPF</Label>
-                        <Input value={form.cpf} onChange={(e) => updateField("cpf", e.target.value)} className="font-body mt-1" placeholder="000.000.000-00" />
+                        <Input value={form.cpf} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          if (v.length > 9) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6,9)}-${v.slice(9)}`;
+                          else if (v.length > 6) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6)}`;
+                          else if (v.length > 3) v = `${v.slice(0,3)}.${v.slice(3)}`;
+                          updateField("cpf", v);
+                        }} className="font-body mt-1" placeholder="000.000.000-00" />
                       </div>
                     </div>
                   </div>
@@ -248,7 +260,11 @@ const CheckoutPage = () => {
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <Label className="font-body text-xs text-muted-foreground">CEP *</Label>
-                        <Input value={form.cep} onChange={(e) => updateField("cep", e.target.value)} placeholder="00000-000" className={`font-body mt-1 ${errors.cep ? "border-destructive" : ""}`} />
+                        <Input value={form.cep} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 8);
+                          if (v.length > 5) v = `${v.slice(0,5)}-${v.slice(5)}`;
+                          updateField("cep", v);
+                        }} placeholder="00000-000" className={`font-body mt-1 ${errors.cep ? "border-destructive" : ""}`} />
                         {errors.cep && <p className="text-[10px] text-destructive mt-1">{errors.cep}</p>}
                       </div>
                       <Button variant="outline" className="self-end font-body text-xs h-10 border-gold/30 text-gold hover:bg-gold/10" onClick={buscarCep} disabled={cepLoading}>
@@ -347,7 +363,7 @@ const CheckoutPage = () => {
                     <div className="space-y-3">
                       {[
                         { value: "card", label: "Cartão de Crédito", desc: "Parcelamento em até 3x sem juros", icon: "💳" },
-                        { value: "pix", label: "Pix", desc: "10% de desconto · Aprovação imediata", icon: "⚡", badge: "-10%" },
+                        { value: "pix", label: "Pix (desconto no cartão)", desc: "10% de desconto aplicado ao pagamento", icon: "⚡", badge: "-10%" },
                       ].map((opt) => (
                         <label
                           key={opt.value}
