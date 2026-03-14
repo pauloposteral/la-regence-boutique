@@ -118,7 +118,7 @@ const CafesPage = () => {
           <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-brown-dark">
             Nossos <span className="italic font-light text-gradient-gold">Cafés</span>
           </h1>
-          <p className="font-body text-muted-foreground max-w-md mx-auto text-sm">
+          <p className="font-body text-brown max-w-md mx-auto text-sm">
             Cafés especiais torrados artesanalmente, com rastreabilidade do grão à xícara.
           </p>
           <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-5" />

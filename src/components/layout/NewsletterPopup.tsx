@@ -72,7 +72,6 @@ const NewsletterPopup = () => {
             {/* Gold accent bar */}
             <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
             
-            button
             <button
               onClick={dismiss}
               className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-cream-200 transition-colors"
