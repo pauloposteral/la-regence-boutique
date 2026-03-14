@@ -228,6 +228,21 @@ const AdminProdutos = () => {
   const set = (key: string, value: any) => setForm((f) => ({ ...f, [key]: value }));
 
   const stockPct = (p: any) => p.estoque_minimo > 0 ? Math.min(100, (p.estoque / (p.estoque_minimo * 3)) * 100) : 100;
+
+  const exportCSV = () => {
+    const headers = ["Nome", "SKU", "Preço", "Preço Promo", "Estoque", "Estoque Mín.", "Torra", "Ativo", "Destaque", "Origem"];
+    const rows = filtered.map((p: any) => [
+      `"${p.nome}"`, p.sku || "", Number(p.preco).toFixed(2), p.preco_promocional ? Number(p.preco_promocional).toFixed(2) : "",
+      p.estoque, p.estoque_minimo, TORRA_LABELS[p.tipo_torra] || "", p.ativo ? "Sim" : "Não", p.destaque ? "Sim" : "Não", `"${p.origem || ""}"`
+    ].join(","));
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `produtos-laregence-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} produtos exportados`);
+  };
   const stockColor = (p: any) => {
     if (p.estoque <= p.estoque_minimo * 0.5) return "bg-destructive";
     if (p.estoque <= p.estoque_minimo) return "bg-yellow-500";
