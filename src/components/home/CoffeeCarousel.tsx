@@ -50,12 +50,12 @@ const CoffeeCarousel = () => {
         {isLoading || items.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl border border-cream-400 overflow-hidden">
-                <div className="aspect-square bg-cream-200 shimmer-gold" />
+              <div key={i} className="bg-card rounded-2xl border border-cream-300 overflow-hidden">
+                <div className="aspect-square bg-cream-100 shimmer-gold" />
                 <div className="p-5 space-y-3">
-                  <div className="h-4 bg-cream-300 rounded w-3/4 shimmer-gold" />
-                  <div className="h-3 bg-cream-300 rounded w-1/2 shimmer-gold" />
-                  <div className="h-5 bg-cream-300 rounded w-1/3 shimmer-gold" />
+                  <div className="h-4 bg-cream-200 rounded w-3/4 shimmer-gold" />
+                  <div className="h-3 bg-cream-200 rounded w-1/2 shimmer-gold" />
+                  <div className="h-5 bg-cream-200 rounded w-1/3 shimmer-gold" />
                 </div>
               </div>
             ))}
