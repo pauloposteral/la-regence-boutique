@@ -309,9 +309,9 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
-          {produto.sca_score && <div className="absolute top-3 right-3 bg-gold text-primary-foreground text-[10px] font-mono font-semibold px-2.5 py-1 rounded-sm flex items-center gap-1"><Star className="w-3 h-3 fill-current" />SCA {produto.sca_score}</div>}
-          {produto.destaque && <div className="absolute top-3 left-3 bg-gold/20 text-gold text-[10px] font-body font-semibold px-2.5 py-1 rounded-sm border border-gold/30">Destaque</div>}
-          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
+          {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
+          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {lowStock && (
             <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" />
