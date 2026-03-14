@@ -187,7 +187,7 @@ serve(async (req) => {
       sessionConfig.customer_email = form.email;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const session = await stripe.checkout.sessions.create(sessionConfig, idempotencyKey ? { idempotencyKey } : undefined);
 
     // Save stripe session id to order
     await supabaseAdmin
