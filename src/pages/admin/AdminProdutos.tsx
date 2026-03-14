@@ -254,6 +254,9 @@ const AdminProdutos = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-2xl font-semibold">Produtos</h1>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
+            <Download className="w-3.5 h-3.5" /> Exportar CSV
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5 font-body text-xs" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="w-3.5 h-3.5" /> Filtros
           </Button>
