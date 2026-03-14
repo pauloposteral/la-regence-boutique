@@ -89,7 +89,7 @@ const Footer = () => {
         </div>
 
         {/* Separator */}
-        <div className="h-px bg-cream-400" />
+        <div className="h-px bg-cream-300" />
 
         {/* Bottom bar */}
         <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
