@@ -275,7 +275,7 @@ const AssinaturaPage = () => {
               </div>
 
               {/* Preferences */}
-              <div className="bg-card border border-border rounded-lg p-6 space-y-6 mb-8">
+              <div className="bg-cream-50 border border-cream-400 rounded-xl p-6 space-y-6 mb-8">
                 <h3 className="font-display text-lg font-semibold">Personalize sua experiência</h3>
 
                 {/* Coffee type */}
