@@ -58,7 +58,7 @@ const ContaPage = () => {
   });
 
   useEffect(() => {
-    if (profileData) setProfile({ full_name: profileData.full_name || "", phone: profileData.phone || "", cpf: profileData.cpf || "" });
+    if (profileData) setProfile({ full_name: profileData.full_name || "", phone: profileData.phone || "", cpf: profileData.cpf || "", preferred_roast: profileData.preferred_roast || "", preferred_grind: profileData.preferred_grind || "" });
   }, [profileData]);
 
   const { data: pedidos = [], isLoading: pedidosLoading } = useQuery({
