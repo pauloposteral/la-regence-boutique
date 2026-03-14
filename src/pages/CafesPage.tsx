@@ -152,7 +152,7 @@ const CafesPage = () => {
         </div>
 
         {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-border rounded-lg overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-cream-400 rounded-xl overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-semibold">Filtrar por</h3>
               {activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-xs">Limpar filtros</Button>}
