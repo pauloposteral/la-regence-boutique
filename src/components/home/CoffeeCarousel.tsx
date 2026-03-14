@@ -92,7 +92,7 @@ const CoffeeCarousel = () => {
                         <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                       )}
                       {coffee.sca_score && (
-                        <div className="absolute top-3 right-3 bg-card/90 text-brown font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
+                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
                           <Star className="w-3 h-3 fill-gold text-gold" />
                           SCA {coffee.sca_score}
                         </div>
