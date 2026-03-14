@@ -41,6 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     trackPageView(location.pathname, document.title);
   }, [location.pathname]);
   
