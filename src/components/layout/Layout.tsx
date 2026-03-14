@@ -35,6 +35,7 @@ const Layout = ({ children }: LayoutProps) => {
       <WhatsAppButton />
       <ScrollToTop />
       <CartDrawer />
+      <AbandonedCartBanner />
       <BottomNav />
       <NewsletterPopup />
       <PWAInstallPrompt />
