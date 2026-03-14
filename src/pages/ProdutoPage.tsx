@@ -253,6 +253,9 @@ const ProdutoPage = () => {
 
             {/* Share */}
             <ShareButtons url={`/cafe/${produto.slug}`} title={produto.nome} />
+
+            {/* Shipping calculator */}
+            <ShippingCalculator />
           </motion.div>
         </div>
 
