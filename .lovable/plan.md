@@ -1,54 +1,64 @@
 
 
-# Gerar Imagens via Gemini 3 + Ajustar Cores Claras em Todo o Site
+## Plano: Replicar o Design de Referência
 
-## Imagens a Gerar
+Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
 
-Há 3 imagens estáticas usadas no site que precisam ser substituídas por imagens geradas via Gemini 3:
+### Mudanças Necessárias
 
-| Local | Arquivo atual | Prompt para geração |
-|-------|---------------|-------------------|
-| **StorySection** | `/images/torrefacao.jpeg` | "Bright airy photo of an artisanal coffee roastery interior, natural light streaming through windows, copper roaster, burlap sacks of green coffee beans, warm cream and white tones, editorial lifestyle photography, 4:5 portrait" |
-| **SubscriptionBanner** | `/images/torrefacao.jpeg` | "Elegant flat lay of specialty coffee subscription box, kraft paper packaging, whole roasted beans scattered artistically, a white porcelain cup with latte art, soft natural daylight, cream background, luxury brand aesthetic, 4:3 landscape" |
-| **Footer** | `/images/torrefacao.jpeg` | "Minimalist close-up of roasted specialty coffee beans on a light cream marble surface, soft natural light, shallow depth of field, warm golden tones, 4:3 landscape" |
+**1. Header — Layout Centralizado**
+- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
+- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
+- Manter ícones (busca, conta, carrinho) à DIREITA
+- Arquivo: `Header.tsx`
 
-O Hero já tem uma imagem gerada — mantê-la.
+**2. CoffeeCarousel — Cards de Produto Redesenhados**
+- Grid de 4 colunas (não 5)
+- Adicionar estrelas de avaliação abaixo do nome
+- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
+- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
+- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
+- Botão "Escolher moagem" nos cards que têm variantes
+- Arquivo: `CoffeeCarousel.tsx`
 
-## Implementação
+**3. NOVO — Banner de Notas Sensoriais (Marquee)**
+- Faixa horizontal animada entre os cafés e a seção de assinatura
+- Fundo escuro (espresso) com texto dourado
+- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
+- Scroll infinito horizontal (marquee CSS)
+- Criar: `src/components/home/SensoryNotesBanner.tsx`
 
-### 1. Atualizar edge function `generate-hero-image` → renomear para `generate-image`
-- Aceitar `prompt` e `fileName` no body do request
-- Reutilizar a mesma lógica de geração + upload ao bucket `public-assets`
-- Adicionar ao `config.toml`: `[functions.generate-image] verify_jwt = false`
+**4. SubscriptionBanner — Redesign com Imagem**
+- Layout 2 colunas: texto à esquerda, imagem de café à direita
+- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
+- Título: "Nunca fique sem o seu café preferido."
+- Botão CTA dourado: "Quero fazer parte →"
+- Imagem: usar `/images/torrefacao.jpeg` como placeholder
+- Arquivo: `SubscriptionBanner.tsx`
 
-### 2. Gerar as 3 imagens via `lov-exec` (chamar a edge function 3x)
-- Cada chamada usa um prompt diferente e um `fileName` diferente
-- Salvar os URLs retornados
+**5. NOVO — Seção de Estatísticas**
+- 4 colunas com números grandes e descrições
+- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
+- Ícones decorativos (grão de café, etc.)
+- Fundo claro (cream)
+- Criar: `src/components/home/StatsSection.tsx`
 
-### 3. Atualizar componentes com as novas URLs
-- `StorySection.tsx` — trocar `src="/images/torrefacao.jpeg"` pela URL do Storage
-- `SubscriptionBanner.tsx` — trocar `src="/images/torrefacao.jpeg"` pela URL do Storage
-- `Footer.tsx` — trocar `src="/images/torrefacao.jpeg"` pela URL do Storage
+**6. Footer — Logo Dourada no Fundo**
+- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
+- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
+- Arquivo: `Footer.tsx`
 
-### 4. Ajuste de cores claras em todo o site
-Revisar e garantir que **nenhum elemento escuro** permanece no tema claro:
+**7. Index.tsx — Reordenar Seções**
+- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
+- Arquivo: `Index.tsx`
 
-| Arquivo | Ajuste |
-|---------|--------|
-| `HeroSection.tsx` | Bottom fade `from-white` → manter (já está correto) |
-| `StorySection.tsx` | `bg-secondary/30` → já OK (creme sutil) |
-| `SubscriptionBanner.tsx` | Remover overlay `from-black/20` da imagem |
-| `Footer.tsx` | Já `bg-secondary/30` — OK |
-| `Header.tsx` | Announcement bar `bg-cream-200` — OK |
-| `index.css` | Verificar se `--background`, `--card`, `--secondary` estão em tons claros — já ajustados |
-
-## Arquivos a criar/modificar
-
-| Arquivo | Ação |
-|---------|------|
-| `supabase/functions/generate-hero-image/index.ts` | Refatorar para aceitar prompt customizado |
-| `supabase/config.toml` | Adicionar config para nova function |
-| `src/components/home/StorySection.tsx` | Nova URL de imagem |
-| `src/components/home/SubscriptionBanner.tsx` | Nova URL de imagem, remover overlay escuro |
-| `src/components/layout/Footer.tsx` | Nova URL de imagem |
+### Arquivos Afetados
+- `src/components/layout/Header.tsx` — layout centralizado
+- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
+- `src/components/home/SensoryNotesBanner.tsx` — NOVO
+- `src/components/home/SubscriptionBanner.tsx` — redesign
+- `src/components/home/StatsSection.tsx` — NOVO
+- `src/components/layout/Footer.tsx` — logo badge
+- `src/pages/Index.tsx` — reordenação
+- `src/index.css` — animação marquee
 

@@ -48,8 +48,8 @@ const Footer = () => {
             </ul>
             <div className="mt-5 rounded-xl overflow-hidden aspect-[4/3] border border-cream-400">
               <img
-                src="/images/torrefacao.jpeg"
-                alt="Torrefação"
+                src="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501834638.png"
+                alt="Grãos de café torrados La Régence"
                 className="w-full h-full object-cover opacity-60 hover:opacity-80 transition-opacity duration-500"
                 loading="lazy"
               />
