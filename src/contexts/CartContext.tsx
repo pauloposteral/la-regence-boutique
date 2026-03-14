@@ -59,6 +59,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((item: CartItem) => {
+    // Optimistic: update state immediately, no async
     setItems((prev) => {
       const key = getKey(item.produtoId, item.varianteId);
       const existing = prev.find((i) => getKey(i.produtoId, i.varianteId) === key);
