@@ -13,7 +13,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><Link to="/sobre" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossa história</Link></li>
               <li><Link to="/cafes" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossos cafés</Link></li>
-              <li><Link to="/blog" className="link-underline-hover hover:text-gold transition-colors duration-300">Responsabilidade</Link></li>
+              <li><Link to="/faq" className="link-underline-hover hover:text-gold transition-colors duration-300">Perguntas frequentes</Link></li>
             </ul>
           </div>
 

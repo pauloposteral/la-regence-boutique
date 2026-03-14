@@ -1,10 +1,10 @@
 import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Coffee, Search, Home, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 
 const NotFound = () => {
   const location = useLocation();
@@ -24,7 +24,15 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
+      <SEOHead title="Página não encontrada" noIndex />
       <div className="text-center px-4 max-w-md">
+        {/* Logo */}
+        <img
+          src="/images/logo-laregence.png"
+          alt="La Régence"
+          className="h-16 w-auto mx-auto mb-8 object-contain"
+        />
+
         <div className="w-20 h-20 mx-auto mb-6 rounded-full border border-gold/25 flex items-center justify-center bg-gold/[0.03]">
           <Coffee className="w-8 h-8 text-gold" />
         </div>
@@ -42,17 +50,17 @@ const NotFound = () => {
               placeholder="Buscar cafés…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 font-body"
+              className="pl-10 font-body rounded-lg"
             />
           </div>
-          <Button type="submit" size="default" className="font-body text-sm">Buscar</Button>
+          <Button type="submit" size="default" className="font-body text-sm rounded-full bg-gold text-primary-foreground hover:bg-gold-light">Buscar</Button>
         </form>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="default" className="font-body text-sm gap-2">
+          <Button asChild className="font-body text-sm gap-2 rounded-full bg-gold text-primary-foreground hover:bg-gold-light">
             <Link to="/"><Home className="w-4 h-4" /> Voltar ao Início</Link>
           </Button>
-          <Button asChild variant="outline" className="font-body text-sm gap-2">
+          <Button asChild variant="outline" className="font-body text-sm gap-2 rounded-full border-gold text-gold hover:bg-gold hover:text-primary-foreground">
             <Link to="/cafes">Explorar Cafés <ArrowRight className="w-4 h-4" /></Link>
           </Button>
         </div>
@@ -66,7 +74,7 @@ const NotFound = () => {
               { label: "Assinatura", to: "/assinatura" },
               { label: "Sobre", to: "/sobre" },
               { label: "Blog", to: "/blog" },
-              { label: "Contato", to: "/contato" },
+              { label: "FAQ", to: "/faq" },
             ].map((link) => (
               <Button asChild key={link.to} variant="ghost" size="sm" className="font-body text-xs">
                 <Link to={link.to}>{link.label}</Link>

@@ -1,9 +1,13 @@
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const InstitucionalPage = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const InstitucionalPage = ({ title, seoTitle, seoDesc, children }: { title: string; seoTitle?: string; seoDesc?: string; children: React.ReactNode }) => (
   <Layout>
+    {(seoTitle || seoDesc) && <SEOHead title={seoTitle || title} description={seoDesc} />}
     <section className="py-12 lg:py-20 bg-background">
       <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
         <h1 className="font-display text-3xl font-semibold mb-8">{title}</h1>
@@ -16,7 +20,7 @@ const InstitucionalPage = ({ title, children }: { title: string; children: React
 );
 
 export const PoliticaPrivacidadePage = () => (
-  <InstitucionalPage title="Política de Privacidade">
+  <InstitucionalPage title="Política de Privacidade" seoTitle="Política de Privacidade" seoDesc="Saiba como a La Régence protege seus dados pessoais conforme a LGPD.">
     <p>A Cafe La Regence Limitada ("La Régence"), inscrita no CNPJ sob o nº 07.717.979/0001-62, com sede na Avenida Guanabara, 2919 — Stella Maris, Andradina-SP, é responsável pelo tratamento dos dados pessoais coletados neste site.</p>
     <h2 className="font-display text-xl font-semibold mt-6">1. Dados coletados</h2>
     <p>Coletamos dados pessoais que você nos fornece diretamente, como nome, e-mail, telefone, CPF e endereço de entrega ao criar sua conta ou realizar uma compra.</p>
@@ -33,7 +37,7 @@ export const PoliticaPrivacidadePage = () => (
 );
 
 export const TermosPage = () => (
-  <InstitucionalPage title="Termos de Uso">
+  <InstitucionalPage title="Termos de Uso" seoTitle="Termos de Uso" seoDesc="Termos e condições gerais de uso da loja La Régence Cafés Especiais.">
     <p>Ao utilizar o site laregence.com.br, você concorda com estes termos de uso.</p>
     <h2 className="font-display text-xl font-semibold mt-6">1. Produtos</h2>
     <p>Os cafés disponíveis em nosso site são de produção artesanal e podem ter variações naturais. As imagens são ilustrativas e as descrições sensoriais são baseadas em degustação profissional.</p>
@@ -48,7 +52,7 @@ export const TermosPage = () => (
 );
 
 export const FretePage = () => (
-  <InstitucionalPage title="Política de Frete">
+  <InstitucionalPage title="Política de Frete" seoTitle="Frete e Entregas" seoDesc="Informações sobre frete, prazos de entrega e rastreamento de pedidos da La Régence.">
     <h2 className="font-display text-xl font-semibold">Frete grátis</h2>
     <p>Oferecemos frete grátis para pedidos acima de <strong>R$ 150,00</strong> para todo o Brasil.</p>
     <h2 className="font-display text-xl font-semibold mt-6">Prazo de entrega</h2>
@@ -66,7 +70,7 @@ export const FretePage = () => (
 );
 
 export const TrocasPage = () => (
-  <InstitucionalPage title="Trocas e Devoluções">
+  <InstitucionalPage title="Trocas e Devoluções" seoTitle="Trocas e Devoluções" seoDesc="Política de trocas, devoluções e reembolso da La Régence Cafés Especiais.">
     <h2 className="font-display text-xl font-semibold">Direito de arrependimento</h2>
     <p>Conforme o Código de Defesa do Consumidor, você pode desistir da compra em até <strong>7 dias corridos</strong> após o recebimento, desde que o produto esteja lacrado e em sua embalagem original.</p>
     <h2 className="font-display text-xl font-semibold mt-6">Produtos com defeito</h2>
@@ -85,47 +89,61 @@ export const TrocasPage = () => (
 
 export const ContatoPage = () => {
   const [honeypot, setHoneypot] = useState("");
-  const [formData, setFormData] = useState({ nome: "", email: "", mensagem: "" });
+  const [formData, setFormData] = useState({ nome: "", email: "", assunto: "", mensagem: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (honeypot) return; // Bot detected
+    if (honeypot) return;
     if (!formData.nome || !formData.email || !formData.mensagem) return;
+
+    setSending(true);
+    const { error } = await supabase.from("contact_messages" as any).insert({
+      nome: formData.nome.trim().slice(0, 100),
+      email: formData.email.trim().slice(0, 255),
+      assunto: formData.assunto.trim().slice(0, 200) || null,
+      mensagem: formData.mensagem.trim().slice(0, 2000),
+    });
+    setSending(false);
+
+    if (error) {
+      toast.error("Erro ao enviar mensagem. Tente novamente.");
+      return;
+    }
     setSubmitted(true);
   };
 
   return (
-    <InstitucionalPage title="Fale Conosco">
+    <InstitucionalPage title="Fale Conosco" seoTitle="Contato" seoDesc="Entre em contato com a La Régence por WhatsApp, e-mail ou formulário. Atendimento de Seg a Sáb, 8h às 18h.">
       <p>Estamos à disposição para ajudá-lo! Entre em contato por um dos canais abaixo:</p>
       <div className="grid sm:grid-cols-2 gap-4 mt-6 not-prose">
-        <div className="border border-border rounded-lg p-5">
+        <div className="border border-border rounded-xl p-5">
           <h3 className="font-display text-base font-semibold mb-2">📱 WhatsApp</h3>
           <p className="font-body text-sm text-muted-foreground mb-3">Atendimento rápido de Seg a Sáb, 8h às 18h</p>
-          <a href="https://wa.me/5518996540883?text=Olá! Gostaria de mais informações sobre os cafés La Régence." target="_blank" rel="noopener noreferrer" className="font-body text-sm text-accent hover:underline font-medium">(18) 99654-0883</a>
+          <a href="https://wa.me/5518996540883?text=Olá! Gostaria de mais informações sobre os cafés La Régence." target="_blank" rel="noopener noreferrer" className="font-body text-sm text-gold hover:underline font-medium">(18) 99654-0883</a>
         </div>
-        <div className="border border-border rounded-lg p-5">
+        <div className="border border-border rounded-xl p-5">
           <h3 className="font-display text-base font-semibold mb-2">✉️ E-mail</h3>
           <p className="font-body text-sm text-muted-foreground mb-3">Respondemos em até 24h úteis</p>
           <a href="mailto:contato@laregence.com.br" className="font-body text-sm text-gold hover:underline font-medium">contato@laregence.com.br</a>
         </div>
       </div>
-      <div className="border border-border rounded-lg p-5 mt-4 not-prose">
+      <div className="border border-border rounded-xl p-5 mt-4 not-prose">
         <h3 className="font-display text-base font-semibold mb-2">📍 Endereço</h3>
         <p className="font-body text-sm text-muted-foreground">
-          Andradina-SP, Brasil<br />
+          Av. Guanabara, 2919 — Stella Maris, Andradina-SP<br />
           Seg a Sáb, 8h às 18h
         </p>
       </div>
 
-      {/* Contact Form with honeypot */}
-      <div className="border border-border rounded-lg p-5 mt-4 not-prose">
+      {/* Contact Form */}
+      <div className="border border-border rounded-xl p-5 mt-4 not-prose">
         <h3 className="font-display text-base font-semibold mb-4">Envie uma mensagem</h3>
         {submitted ? (
           <p className="font-body text-sm text-gold font-medium">✅ Mensagem enviada com sucesso! Retornaremos em breve.</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Honeypot — hidden from users, visible to bots */}
             <input
               type="text"
               name="website"
@@ -136,10 +154,20 @@ export const ContatoPage = () => {
               autoComplete="off"
               aria-hidden="true"
             />
-            <input className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu nome" value={formData.nome} onChange={(e) => setFormData(f => ({ ...f, nome: e.target.value }))} required />
-            <input type="email" className="w-full border border-border rounded px-3 py-2 font-body text-sm" placeholder="Seu e-mail" value={formData.email} onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))} required />
-            <textarea className="w-full border border-border rounded px-3 py-2 font-body text-sm min-h-[100px]" placeholder="Sua mensagem" value={formData.mensagem} onChange={(e) => setFormData(f => ({ ...f, mensagem: e.target.value }))} required />
-            <button type="submit" className="bg-gold text-primary-foreground px-6 py-2 rounded-none font-body text-sm font-medium tracking-wider uppercase hover:bg-gold-light transition-colors">Enviar</button>
+            <input className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors" placeholder="Seu nome" value={formData.nome} onChange={(e) => setFormData(f => ({ ...f, nome: e.target.value }))} required maxLength={100} />
+            <input type="email" className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors" placeholder="Seu e-mail" value={formData.email} onChange={(e) => setFormData(f => ({ ...f, email: e.target.value }))} required maxLength={255} />
+            <select className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors" value={formData.assunto} onChange={(e) => setFormData(f => ({ ...f, assunto: e.target.value }))}>
+              <option value="">Selecione o assunto</option>
+              <option value="Dúvida">Dúvida</option>
+              <option value="Sugestão">Sugestão</option>
+              <option value="Reclamação">Reclamação</option>
+              <option value="Parceria">Parceria</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <textarea className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm min-h-[100px] focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors" placeholder="Sua mensagem" value={formData.mensagem} onChange={(e) => setFormData(f => ({ ...f, mensagem: e.target.value }))} required maxLength={2000} />
+            <button type="submit" disabled={sending} className="bg-gold text-primary-foreground px-6 py-2 rounded-full font-body text-sm font-medium tracking-wider uppercase hover:bg-gold-light transition-colors disabled:opacity-50">
+              {sending ? "Enviando..." : "Enviar"}
+            </button>
           </form>
         )}
       </div>
@@ -149,7 +177,7 @@ export const ContatoPage = () => {
 
 export const RastreamentoPage = () => {
   return (
-    <InstitucionalPage title="Rastrear Pedido">
+    <InstitucionalPage title="Rastrear Pedido" seoTitle="Rastrear Pedido" seoDesc="Acompanhe o status do seu pedido La Régence em tempo real.">
       <p>Para rastrear seu pedido, acesse sua <Link to="/conta" className="text-gold hover:underline font-medium">área do cliente</Link> e veja o status e código de rastreamento na aba "Pedidos".</p>
       <p>Se você comprou como visitante, entre em contato pelo <a href="https://wa.me/5518996540883" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">WhatsApp</a> informando o e-mail usado na compra e ajudaremos a localizar seu pedido.</p>
     </InstitucionalPage>

@@ -45,7 +45,7 @@ const ContaPage = () => {
   const { addItem } = useCart();
   const queryClient = useQueryClient();
 
-  const [profile, setProfile] = useState({ full_name: "", phone: "", cpf: "" });
+  const [profile, setProfile] = useState({ full_name: "", phone: "", cpf: "", preferred_roast: "", preferred_grind: "" });
   const [saving, setSaving] = useState(false);
 
   const { data: profileData, isLoading: profileLoading } = useQuery({

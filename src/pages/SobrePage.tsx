@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
-import { Coffee, Award, Heart, MapPin, Users, Leaf } from "lucide-react";
+import { Coffee, Award, Heart, MapPin, Users, Leaf, Search, Flame, Package, Truck, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 
 const TIMELINE = [
   { year: "2005", title: "O começo", desc: "A família Posteral, apaixonada por cafés, funda a Cafe La Regence na Av. Guanabara, 2919 — Stella Maris, Andradina-SP." },
@@ -18,9 +21,28 @@ const VALUES = [
   { icon: Users, title: "Comércio justo", desc: "Valorizamos produtores locais de Campestre-MG e Carmo de Minas, promovendo a cultura do café especial." },
 ];
 
+const PROCESS_STEPS = [
+  { icon: Search, title: "Seleção", desc: "Grãos selecionados de fazendas parceiras com score SCA acima de 80 pontos." },
+  { icon: Flame, title: "Torra", desc: "Torrefação artesanal sob demanda — seu café é torrado após o pedido para máximo frescor." },
+  { icon: Package, title: "Empacotamento", desc: "Embalagem a vácuo com válvula degasificadora, preservando aroma e sabor." },
+  { icon: Truck, title: "Entrega", desc: "Enviado em até 48h após a torra. Café fresco direto para a sua casa." },
+];
+
+const PRODUCERS = [
+  { name: "Fazenda Santuário Sul", region: "Carmo de Minas, MG", country: "Brasil", image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop", specialty: "Bourbon Amarelo, SCA 87" },
+  { name: "Finca El Paraíso", region: "Huila", country: "Colômbia", image: "https://images.unsplash.com/photo-1524350876685-274059332603?w=400&h=300&fit=crop", specialty: "Geisha, SCA 89" },
+  { name: "Fazenda Cachoeira", region: "Campestre, MG", country: "Brasil", image: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=400&h=300&fit=crop", specialty: "Catuaí Vermelho, SCA 84" },
+];
+
 const SobrePage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Nossa História"
+        description="Conheça a La Régence: cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP. Qualidade SCA, frescor e paixão em cada xícara."
+        url="https://lojalaregence.lovable.app/sobre"
+      />
+
       {/* Hero */}
       <section className="bg-background border-b border-border py-20 lg:py-28 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
@@ -84,6 +106,38 @@ const SobrePage = () => {
         </div>
       </section>
 
+      {/* Process Timeline */}
+      <section className="py-16 lg:py-20 bg-gold/5 border-y border-gold/10">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Do grão à xícara</span>
+            <h2 className="font-display text-2xl lg:text-3xl mt-2">Nosso processo</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {PROCESS_STEPS.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="text-center relative"
+              >
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-background border-2 border-gold/30 flex items-center justify-center">
+                  <step.icon className="w-7 h-7 text-gold" />
+                </div>
+                {i < PROCESS_STEPS.length - 1 && (
+                  <div className="hidden lg:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gold/20" />
+                )}
+                <span className="font-body text-[10px] tracking-[0.2em] uppercase text-gold mb-1 block">Etapa {i + 1}</span>
+                <h3 className="font-display text-base font-semibold mb-1">{step.title}</h3>
+                <p className="font-body text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Timeline */}
       <section className="py-16 lg:py-20 bg-secondary/30">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
@@ -119,8 +173,47 @@ const SobrePage = () => {
         </div>
       </section>
 
-      {/* Location */}
+      {/* Partner Producers */}
       <section className="py-16 lg:py-20 bg-background">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Origem rastreável</span>
+            <h2 className="font-display text-2xl lg:text-3xl mt-2">Produtores parceiros</h2>
+            <p className="font-body text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
+              Trabalhamos diretamente com produtores que compartilham nossa paixão por cafés excepcionais.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {PRODUCERS.map((p, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-card border border-border rounded-xl overflow-hidden group"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="font-display text-base font-semibold">{p.name}</h3>
+                  <p className="font-body text-xs text-muted-foreground mt-1">{p.region} · {p.country}</p>
+                  <p className="font-body text-xs text-gold mt-2">{p.specialty}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Location */}
+      <section className="py-16 lg:py-20 bg-secondary/30">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
           <MapPin className="w-8 h-8 text-gold mx-auto mb-4" />
           <h2 className="font-display text-2xl font-semibold mb-3">Visite-nos</h2>
@@ -134,6 +227,24 @@ const SobrePage = () => {
             <strong className="text-foreground">Telefone:</strong>{" "}
             <a href="tel:+5518996540883" className="text-gold hover:underline">(18) 99654-0883</a>
           </p>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-20 lg:py-28 bg-brown-deep text-cream-100 text-center">
+        <div className="container mx-auto px-4 lg:px-8 max-w-xl">
+          <Coffee className="w-10 h-10 text-gold mx-auto mb-4" />
+          <h2 className="font-display text-3xl lg:text-4xl font-light mb-4">
+            Experimente a <span className="italic font-medium text-gold">diferença</span>
+          </h2>
+          <p className="font-body text-sm text-cream-400 mb-8 leading-relaxed">
+            Descubra cafés especiais torrados sob demanda com frescor garantido. Do grão à sua xícara em até 48 horas.
+          </p>
+          <Button asChild className="bg-gold text-primary-foreground hover:bg-gold-light rounded-full font-body text-sm tracking-[0.15em] uppercase px-8">
+            <Link to="/cafes">
+              Explorar Cafés <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
         </div>
       </section>
     </Layout>
