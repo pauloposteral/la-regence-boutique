@@ -42,7 +42,7 @@ const StorySection = () => {
             </h2>
             <div className="w-16 h-px bg-gradient-to-r from-gold to-gold-light" />
             <p className="font-body text-brown leading-relaxed">
-              Desde 2006, a La Régence seleciona os melhores grãos de cafés especiais do Brasil.
+              Desde 2005, a La Régence seleciona os melhores grãos de cafés especiais do Brasil.
               Nossa torrefação artesanal em Andradina-SP transforma cada lote em uma experiência
               sensorial única, respeitando o perfil de cada origem.
             </p>
