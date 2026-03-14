@@ -32,7 +32,7 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white p-8 rounded-2xl border border-border relative hover:border-gold/20 transition-all duration-300 group"
+              className="bg-white p-8 rounded-2xl border border-cream-300 relative hover:border-gold/20 transition-all duration-300 group"
             >
               <Quote className="w-8 h-8 text-gold/10 absolute top-4 right-4 group-hover:text-gold/20 transition-colors" />
               <div className="flex gap-0.5 mb-4">
