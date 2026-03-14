@@ -9,8 +9,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           {/* Institucional */}
           <div>
-            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-muted-foreground mb-5">Institucional</h4>
-            <ul className="space-y-3 text-sm font-body text-brown">
+            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Institucional</h4>
+            <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><Link to="/sobre" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossa história</Link></li>
               <li><Link to="/cafes" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossos cafés</Link></li>
               <li><Link to="/blog" className="link-underline-hover hover:text-gold transition-colors duration-300">Responsabilidade</Link></li>
