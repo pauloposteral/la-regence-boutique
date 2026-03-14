@@ -61,6 +61,8 @@ const PWAInstallPrompt = forwardRef<HTMLDivElement>((_, ref) => {
       )}
     </AnimatePresence>
   );
-};
+});
+
+PWAInstallPrompt.displayName = "PWAInstallPrompt";
 
 export default PWAInstallPrompt;
