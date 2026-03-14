@@ -1,64 +1,67 @@
 
+# Correção de Cores: Cards, Textos e Backgrounds — Tema Claro
 
-## Plano: Replicar o Design de Referência
+## Problemas Identificados nos Screenshots
 
-Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
+1. **Footer escuro**: `bg-secondary/30` resulta em fundo quase transparente, mas a renderizacao mostra escuro. Precisa de cor explícita clara.
+2. **Seções com `bg-secondary/30`** (StorySection, TestimonialsSection, Footer): inconsistentes — trocar por cores claras explícitas.
+3. **Newsletter popup**: fundo modal com `bg-brown-deep/50` — muito escuro para tema claro.
+4. **Skeleton cards**: `bg-cream-200` / `bg-cream-300` ficam acinzentados. Precisam de tons mais claros.
+5. **Textos `text-brown`** no Footer ficam escuros demais em fundo claro, ou invisíveis em fundo que parece escuro — padronizar.
 
-### Mudanças Necessárias
+## Plano de Correções
 
-**1. Header — Layout Centralizado**
-- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
-- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
-- Manter ícones (busca, conta, carrinho) à DIREITA
-- Arquivo: `Header.tsx`
+### 1. Padronizar backgrounds de seções alternadas com cores explícitas
 
-**2. CoffeeCarousel — Cards de Produto Redesenhados**
-- Grid de 4 colunas (não 5)
-- Adicionar estrelas de avaliação abaixo do nome
-- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
-- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
-- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
-- Botão "Escolher moagem" nos cards que têm variantes
-- Arquivo: `CoffeeCarousel.tsx`
+| Componente | Atual | Novo |
+|------------|-------|------|
+| `HeroSection` | OK (image + overlay) | Manter |
+| `SensoryNotesBanner` | `bg-white` | Manter |
+| `CoffeeCarousel` | `bg-white` | Manter |
+| `StorySection` | `bg-secondary/30` | `bg-cream-100` |
+| `BrewMethods` | `bg-white` | Manter |
+| `SubscriptionBanner` | `bg-secondary/30` | `bg-cream-100` |
+| `StatsSection` | `bg-white` | Manter |
+| `TestimonialsSection` | `bg-secondary/30` | `bg-cream-100` |
+| `Footer` | `bg-secondary/30` | `bg-cream-100 border-t border-cream-300` |
 
-**3. NOVO — Banner de Notas Sensoriais (Marquee)**
-- Faixa horizontal animada entre os cafés e a seção de assinatura
-- Fundo escuro (espresso) com texto dourado
-- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
-- Scroll infinito horizontal (marquee CSS)
-- Criar: `src/components/home/SensoryNotesBanner.tsx`
+### 2. Footer — textos e elementos para tema claro explícito
+- Links: `text-foreground/70` com hover `text-gold`
+- Headings: `text-foreground`
+- Contact info: `text-muted-foreground`
+- Social icons: `border-cream-300 text-foreground/60`
+- Brand emblem: `border-cream-300 text-foreground`
+- Bottom bar separators: `bg-cream-300`
+- Badges Stripe/Pix: `bg-cream-200 border-cream-300 text-foreground/70`
 
-**4. SubscriptionBanner — Redesign com Imagem**
-- Layout 2 colunas: texto à esquerda, imagem de café à direita
-- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
-- Título: "Nunca fique sem o seu café preferido."
-- Botão CTA dourado: "Quero fazer parte →"
-- Imagem: usar `/images/torrefacao.jpeg` como placeholder
-- Arquivo: `SubscriptionBanner.tsx`
+### 3. Newsletter popup — overlay mais claro
+- Overlay: `bg-black/30 backdrop-blur-sm` (era `bg-brown-deep/50`)
+- Card: Manter `bg-card` (branco)
 
-**5. NOVO — Seção de Estatísticas**
-- 4 colunas com números grandes e descrições
-- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
-- Ícones decorativos (grão de café, etc.)
-- Fundo claro (cream)
-- Criar: `src/components/home/StatsSection.tsx`
+### 4. Cards de produto (CoffeeCarousel) — mais clean
+- Card border: `border-cream-300` (era `border-cream-400`)
+- Image area: `bg-cream-100` (era `bg-cream-200/30`)
+- SCA badge: `bg-white/90` com `text-foreground`
+- Skeletons: `bg-cream-100` para container, `bg-cream-200` para shimmer bars (era `bg-cream-300`)
 
-**6. Footer — Logo Dourada no Fundo**
-- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
-- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
-- Arquivo: `Footer.tsx`
+### 5. Testimonials cards — mais leves
+- Card bg: `bg-white` (já ok)
+- Card border: `border-cream-300` (era `border-border`)
 
-**7. Index.tsx — Reordenar Seções**
-- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
-- Arquivo: `Index.tsx`
+### 6. NewsletterFooter — garantir cores claras
+- Input: `bg-white border-cream-300` (era `border-cream-400`)
+- Heading: `text-foreground` (era `text-brown-dark`)
 
-### Arquivos Afetados
-- `src/components/layout/Header.tsx` — layout centralizado
-- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
-- `src/components/home/SensoryNotesBanner.tsx` — NOVO
-- `src/components/home/SubscriptionBanner.tsx` — redesign
-- `src/components/home/StatsSection.tsx` — NOVO
-- `src/components/layout/Footer.tsx` — logo badge
-- `src/pages/Index.tsx` — reordenação
-- `src/index.css` — animação marquee
+## Arquivos a modificar (9)
 
+| Arquivo | Mudança |
+|---------|---------|
+| `StorySection.tsx` | `bg-secondary/30` → `bg-cream-100` |
+| `SubscriptionBanner.tsx` | `bg-secondary/30` → `bg-cream-100` |
+| `TestimonialsSection.tsx` | `bg-secondary/30` → `bg-cream-100`, card borders |
+| `StatsSection.tsx` | OK, only minor text adjustments |
+| `CoffeeCarousel.tsx` | Lighter skeleton/card colors |
+| `Footer.tsx` | `bg-cream-100`, all text/border colors explicit light |
+| `NewsletterFooter.tsx` | Text colors for light bg |
+| `NewsletterPopup.tsx` | Lighter overlay |
+| `Header.tsx` | Minor — announcement bar `bg-cream-100` (era `bg-cream-200`) |
