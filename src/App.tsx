@@ -29,6 +29,7 @@ const QuizPage = lazy(() => import("./pages/QuizPage"));
 const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
 const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
 const CompararPage = lazy(() => import("./pages/CompararPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
