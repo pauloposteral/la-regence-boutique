@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Download, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-const PWAInstallPrompt = () => {
+const PWAInstallPrompt = forwardRef<HTMLDivElement>((_, ref) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [visible, setVisible] = useState(false);
 
