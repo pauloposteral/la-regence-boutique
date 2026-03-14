@@ -328,15 +328,20 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              {produto.preco_promocional ? (
-                <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
-              ) : (
-                <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-              )}
+          <div className="mt-4 space-y-1">
+            <div className="flex items-end justify-between">
+              <div>
+                {produto.preco_promocional ? (
+                  <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                ) : (
+                  <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                )}
+              </div>
+              <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
             </div>
-            <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
+            <p className="text-[10px] text-muted-foreground font-body">
+              ou 12x de R$ {((produto.preco_promocional || produto.preco) / 12).toFixed(2).replace(".", ",")} sem juros
+            </p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button

@@ -211,8 +211,18 @@ const Header = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-sm font-medium truncate text-brown-dark">{r.nome}</p>
+                          {r.categoria && <p className="font-body text-[10px] text-muted-foreground">{r.categoria}</p>}
                         </div>
-                        <span className="font-mono text-sm font-semibold text-gold shrink-0">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                        <div className="text-right shrink-0">
+                          {r.preco_promocional ? (
+                            <>
+                              <span className="font-mono text-[10px] text-cream-700 line-through block">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                              <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                            </>
+                          ) : (
+                            <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                          )}
+                        </div>
                       </Link>
                     ))}
                     <Link
