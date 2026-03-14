@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
@@ -25,6 +26,7 @@ const BlogPostPage = () => {
 
   return (
     <Layout>
+      {post && <SEOHead title={post.titulo} description={post.resumo || `${post.titulo} — Blog La Régence`} image={post.imagem_url || undefined} type="article" />}
       <section className="py-12 lg:py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
           <Breadcrumb className="mb-6">

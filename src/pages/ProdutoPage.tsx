@@ -51,8 +51,8 @@ const ProdutoPage = () => {
     return Array.from(set).sort((a, b) => a - b) as number[];
   }, [produto, selectedMoagem]);
 
-  useMemo(() => { if (moagens.length > 0 && !selectedMoagem) setSelectedMoagem(moagens[0]); }, [moagens]);
-  useMemo(() => { if (pesos.length > 0 && !selectedPeso) setSelectedPeso(pesos[0]); }, [pesos]);
+  useEffect(() => { if (moagens.length > 0 && !selectedMoagem) setSelectedMoagem(moagens[0]); }, [moagens]);
+  useEffect(() => { if (pesos.length > 0 && !selectedPeso) setSelectedPeso(pesos[0]); }, [pesos]);
 
   const selectedVariant = useMemo(() => {
     if (!produto?.variantes || !selectedMoagem || !selectedPeso) return null;
@@ -110,6 +110,12 @@ const ProdutoPage = () => {
   };
 
   const handleAddToCart = () => {
+    // Validação de estoque antes de adicionar
+    const estoqueDisponivel = selectedVariant?.estoque ?? produto.estoque;
+    if (quantidade > estoqueDisponivel) {
+      toast.error(`Estoque insuficiente. Disponível: ${estoqueDisponivel} unidades.`);
+      return;
+    }
     addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
     toast.success(
       <div className="flex items-center gap-3">
@@ -242,7 +248,7 @@ const ProdutoPage = () => {
               <div className="flex items-center border border-border rounded">
                 <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2.5 hover:bg-muted transition-colors"><Minus className="w-4 h-4" /></button>
                 <span className="w-10 text-center font-body text-sm">{quantidade}</span>
-                <button onClick={() => setQuantidade(quantidade + 1)} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => { const max = selectedVariant?.estoque ?? produto.estoque; setQuantidade(Math.min(quantidade + 1, max)); }} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
                 <Button className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-light rounded-none transition-all duration-300" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>

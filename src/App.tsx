@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { CompareProvider } from "@/contexts/CompareContext";
-import { ThemeProvider } from "next-themes";
+
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -71,7 +71,6 @@ const Loading = () => (
 );
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <CompareProvider>
@@ -124,7 +123,6 @@ const App = () => (
         </CompareProvider>
       </CartProvider>
     </QueryClientProvider>
-  </ThemeProvider>
 );
 
 export default App;
