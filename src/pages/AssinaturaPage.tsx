@@ -294,8 +294,8 @@ const AssinaturaPage = () => {
                     </button>
                     <button
                       onClick={() => setCafeSurpresa(false)}
-                      className={`rounded-lg border-2 p-4 text-left transition-all ${
-                        !cafeSurpresa ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                      className={`rounded-xl border-2 p-4 text-left transition-all ${
+                        !cafeSurpresa ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                       }`}
                     >
                       <Coffee className="w-5 h-5 text-gold mb-2" />
