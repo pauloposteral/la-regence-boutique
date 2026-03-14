@@ -29,8 +29,8 @@ const Footer = () => {
 
           {/* Políticas */}
           <div>
-            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-muted-foreground mb-5">Políticas</h4>
-            <ul className="space-y-3 text-sm font-body text-brown">
+            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Políticas</h4>
+            <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><Link to="/politica-privacidade" className="link-underline-hover hover:text-gold transition-colors duration-300">Política de privacidade</Link></li>
               <li><Link to="/termos" className="link-underline-hover hover:text-gold transition-colors duration-300">Condições gerais</Link></li>
               <li><Link to="/trocas" className="link-underline-hover hover:text-gold transition-colors duration-300">Trocas e devoluções</Link></li>
