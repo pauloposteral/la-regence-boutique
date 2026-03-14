@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Download, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
   pendente: "bg-yellow-100 text-yellow-700", confirmado: "bg-blue-100 text-blue-700",
@@ -18,6 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 const AdminClientes = () => {
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [filterType, setFilterType] = useState<string>("all");
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["admin-clientes"],
@@ -30,16 +33,35 @@ const AdminClientes = () => {
   const { data: allPedidos = [] } = useQuery({
     queryKey: ["admin-all-pedidos-clientes"],
     queryFn: async () => {
-      const { data } = await supabase.from("pedidos").select("id, user_id, total, status, created_at").order("created_at", { ascending: false });
+      const { data } = await supabase.from("pedidos").select("id, user_id, total, status, created_at, email_visitante, order_number").order("created_at", { ascending: false });
       return data || [];
     },
   });
 
-  const filtered = profiles.filter((p: any) =>
-    (p.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (p.cpf || "").includes(search) ||
-    (p.phone || "").includes(search)
-  );
+  const { data: allPoints = [] } = useQuery({
+    queryKey: ["admin-all-points"],
+    queryFn: async () => {
+      const { data } = await supabase.from("pontos_fidelidade").select("user_id, pontos");
+      return data || [];
+    },
+  });
+
+  const getPoints = (userId: string) => {
+    return allPoints.filter((p: any) => p.user_id === userId).reduce((a: number, p: any) => a + p.pontos, 0);
+  };
+
+  const getOrderCount = (userId: string) => allPedidos.filter((o: any) => o.user_id === userId).length;
+
+  const filtered = useMemo(() => {
+    let result = profiles.filter((p: any) =>
+      (p.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.cpf || "").includes(search) ||
+      (p.phone || "").includes(search)
+    );
+    if (filterType === "with_orders") result = result.filter((p: any) => getOrderCount(p.user_id) > 0);
+    if (filterType === "without_orders") result = result.filter((p: any) => getOrderCount(p.user_id) === 0);
+    return result;
+  }, [profiles, search, filterType, allPedidos]);
 
   const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
@@ -48,35 +70,78 @@ const AdminClientes = () => {
     : [];
 
   const clientTotal = clientOrders.reduce((a: number, o: any) => a + Number(o.total), 0);
+  const clientPoints = selectedClient ? getPoints(selectedClient.user_id) : 0;
+
+  const exportCSV = () => {
+    const rows = filtered.map((p: any) => ({
+      nome: p.full_name || "—",
+      telefone: p.phone || "—",
+      cpf: p.cpf || "—",
+      pedidos: getOrderCount(p.user_id),
+      pontos: getPoints(p.user_id),
+      cadastro: new Date(p.created_at).toLocaleDateString("pt-BR"),
+    }));
+    const headers = Object.keys(rows[0] || {}).join(",");
+    const csv = [headers, ...rows.map((r: any) => Object.values(r).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `clientes_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success("CSV exportado!");
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <h1 className="font-display text-2xl font-semibold">Clientes</h1>
-        <span className="font-body text-xs text-muted-foreground">({profiles.length})</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h1 className="font-display text-2xl font-semibold">Clientes</h1>
+          <span className="font-body text-xs text-muted-foreground">({profiles.length})</span>
+        </div>
+        <Button variant="outline" size="sm" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
+          <Download className="w-3.5 h-3.5" /> Exportar CSV
+        </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome, CPF, telefone…" className="pl-9 font-body text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar por nome, CPF, telefone…" className="pl-9 font-body text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-44 font-body text-sm"><SelectValue placeholder="Filtrar" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="with_orders">Com pedidos</SelectItem>
+            <SelectItem value="without_orders">Sem pedidos</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="border border-border rounded-lg overflow-hidden bg-card">
         <table className="w-full">
           <thead><tr className="border-b border-border bg-muted/50">
-            {["Nome", "Telefone", "CPF", "Pedidos", "Cadastro", ""].map((h) => (
+            {["Nome", "Telefone", "CPF", "Pedidos", "Pontos", "Cadastro", ""].map((h) => (
               <th key={h} className="text-left px-4 py-3 font-body text-xs font-medium text-muted-foreground">{h}</th>
             ))}
           </tr></thead>
           <tbody>
             {paginated.map((p: any) => {
-              const orders = allPedidos.filter((o: any) => o.user_id === p.user_id);
+              const orders = getOrderCount(p.user_id);
+              const points = getPoints(p.user_id);
               return (
                 <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3 font-body text-sm font-medium">{p.full_name || "—"}</td>
                   <td className="px-4 py-3 font-body text-sm">{p.phone || "—"}</td>
                   <td className="px-4 py-3 font-body text-sm">{p.cpf || "—"}</td>
-                  <td className="px-4 py-3 font-body text-sm">{orders.length}</td>
+                  <td className="px-4 py-3 font-body text-sm">{orders}</td>
+                  <td className="px-4 py-3">
+                    {points > 0 ? (
+                      <div className="flex items-center gap-1 font-body text-sm text-gold">
+                        <Star className="w-3 h-3 fill-gold" /> {points}
+                      </div>
+                    ) : <span className="font-body text-sm text-muted-foreground">0</span>}
+                  </td>
                   <td className="px-4 py-3 font-body text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("pt-BR")}</td>
                   <td className="px-4 py-3">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedClient(p)}><Eye className="w-3.5 h-3.5" /></Button>
@@ -102,6 +167,7 @@ const AdminClientes = () => {
                 <div><p className="text-xs text-muted-foreground">CPF</p><p>{selectedClient.cpf || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total de pedidos</p><p className="font-semibold">{clientOrders.length}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total gasto</p><p className="font-semibold text-gold">R$ {clientTotal.toFixed(2).replace(".", ",")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Pontos de fidelidade</p><p className="font-semibold text-gold flex items-center gap-1"><Star className="w-3 h-3 fill-gold" /> {clientPoints}</p></div>
               </div>
               {clientOrders.length > 0 && (
                 <div>
@@ -110,7 +176,7 @@ const AdminClientes = () => {
                     {clientOrders.map((o: any) => (
                       <div key={o.id} className="flex items-center justify-between bg-muted/30 rounded px-3 py-2">
                         <div>
-                          <span className="font-mono text-xs">#{o.id.slice(0, 8)}</span>
+                          <span className="font-mono text-xs">{o.order_number ? `#${o.order_number}` : `#${o.id.slice(0, 8)}`}</span>
                           <span className="text-xs text-muted-foreground ml-2">{new Date(o.created_at).toLocaleDateString("pt-BR")}</span>
                         </div>
                         <div className="flex items-center gap-2">

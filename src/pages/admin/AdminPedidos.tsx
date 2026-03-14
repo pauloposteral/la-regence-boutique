@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, Package, Download, Bell, Clock } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, Eye, Package, Download, Bell, Clock, Printer, TrendingUp, ShoppingCart, Award } from "lucide-react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -17,12 +19,12 @@ import type { Database } from "@/integrations/supabase/types";
 type StatusPedido = Database["public"]["Enums"]["status_pedido"];
 
 const STATUS_COLORS: Record<StatusPedido, string> = {
-  pendente: "bg-yellow-900/30 text-yellow-400 border border-yellow-700/40",
-  confirmado: "bg-blue-900/30 text-blue-400 border border-blue-700/40",
-  preparando: "bg-orange-900/30 text-orange-400 border border-orange-700/40",
-  enviado: "bg-purple-900/30 text-purple-400 border border-purple-700/40",
-  entregue: "bg-green-900/30 text-green-400 border border-green-700/40",
-  cancelado: "bg-red-900/30 text-red-400 border border-red-700/40",
+  pendente: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+  confirmado: "bg-blue-100 text-blue-800 border border-blue-200",
+  preparando: "bg-orange-100 text-orange-800 border border-orange-200",
+  enviado: "bg-purple-100 text-purple-800 border border-purple-200",
+  entregue: "bg-green-100 text-green-800 border border-green-200",
+  cancelado: "bg-red-100 text-red-800 border border-red-200",
 };
 
 const STATUS_OPTIONS: StatusPedido[] = ["pendente", "confirmado", "preparando", "enviado", "entregue", "cancelado"];
@@ -31,8 +33,11 @@ const AdminPedidos = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [detailOrder, setDetailOrder] = useState<any>(null);
   const [statusHistory, setStatusHistory] = useState<any[]>([]);
+  const [nota, setNota] = useState("");
 
   const { data: pedidos = [] } = useQuery({
     queryKey: ["admin-pedidos"],
@@ -65,21 +70,32 @@ const AdminPedidos = () => {
 
   const openDetail = async (p: any) => {
     setDetailOrder(p);
+    setNota("");
     await loadStatusHistory(p.id);
   };
 
-  const filtered = pedidos.filter((p: any) => {
-    const orderNum = p.order_number ? `#${p.order_number}` : "";
-    const matchSearch = p.id.includes(search) || (p.email_visitante || "").includes(search) || orderNum.includes(search);
-    const matchStatus = filterStatus === "all" || p.status === filterStatus;
-    return matchSearch && matchStatus;
-  });
+  const filtered = useMemo(() => {
+    return pedidos.filter((p: any) => {
+      const orderNum = p.order_number ? `#${p.order_number}` : "";
+      const matchSearch = p.id.includes(search) || (p.email_visitante || "").includes(search) || orderNum.includes(search);
+      const matchStatus = filterStatus === "all" || p.status === filterStatus;
+      let matchDate = true;
+      if (dateFrom) matchDate = matchDate && new Date(p.created_at) >= new Date(dateFrom);
+      if (dateTo) matchDate = matchDate && new Date(p.created_at) <= new Date(dateTo + "T23:59:59");
+      return matchSearch && matchStatus && matchDate;
+    });
+  }, [pedidos, search, filterStatus, dateFrom, dateTo]);
+
+  // Summary stats
+  const summaryRevenue = filtered.reduce((a: number, p: any) => a + Number(p.total), 0);
+  const summaryTicket = filtered.length > 0 ? summaryRevenue / filtered.length : 0;
 
   const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
   const updateStatus = async (id: string, status: StatusPedido) => {
     await supabase.from("pedidos").update({ status }).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
     toast.success("Status atualizado");
     if (detailOrder?.id === id) loadStatusHistory(id);
   };
@@ -91,6 +107,15 @@ const AdminPedidos = () => {
   };
 
   const formatOrderId = (p: any) => p.order_number ? `#${p.order_number}` : `#${p.id.slice(0, 8)}`;
+
+  const printOrder = (p: any) => {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const items = (p.itens_pedido || []).map((i: any) => `<tr><td>${i.produtos?.nome || "Produto"}</td><td>${i.quantidade}</td><td>R$ ${Number(i.subtotal).toFixed(2)}</td></tr>`).join("");
+    w.document.write(`<html><head><title>Pedido ${formatOrderId(p)}</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}</style></head><body><h2>Pedido ${formatOrderId(p)}</h2><p>Data: ${new Date(p.created_at).toLocaleString("pt-BR")}</p><p>Status: ${p.status}</p><table><tr><th>Produto</th><th>Qtd</th><th>Subtotal</th></tr>${items}</table><p><strong>Total: R$ ${Number(p.total).toFixed(2)}</strong></p></body></html>`);
+    w.document.close();
+    w.print();
+  };
 
   const exportCSV = () => {
     const rows = filtered.map((p: any) => ({
@@ -107,6 +132,8 @@ const AdminPedidos = () => {
     toast.success("CSV exportado!");
   };
 
+  const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -116,6 +143,13 @@ const AdminPedidos = () => {
         <Button variant="outline" size="sm" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
           <Download className="w-3.5 h-3.5" /> Exportar CSV
         </Button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Total filtrado</p><p className="font-display text-lg font-bold flex items-center gap-1"><ShoppingCart className="w-3.5 h-3.5 text-accent" /> {filtered.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Receita filtrada</p><p className="font-display text-lg font-bold flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-green-600" /> {fmt(summaryRevenue)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Ticket médio</p><p className="font-display text-lg font-bold flex items-center gap-1"><Award className="w-3.5 h-3.5 text-blue-600" /> {fmt(summaryTicket)}</p></CardContent></Card>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -130,6 +164,8 @@ const AdminPedidos = () => {
             {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-36 font-body text-xs" placeholder="De" />
+        <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-36 font-body text-xs" placeholder="Até" />
       </div>
 
       <div className="border border-border rounded-lg overflow-hidden bg-card">
@@ -146,7 +182,7 @@ const AdminPedidos = () => {
               <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-xs font-mono text-gold">{formatOrderId(p)}</td>
                 <td className="px-4 py-3 font-body text-sm">{new Date(p.created_at).toLocaleDateString("pt-BR")}</td>
-                <td className="px-4 py-3 font-body text-sm font-medium">R$ {Number(p.total).toFixed(2).replace(".", ",")}</td>
+                <td className="px-4 py-3 font-body text-sm font-medium">{fmt(Number(p.total))}</td>
                 <td className="px-4 py-3">
                   <Select value={p.status} onValueChange={(v) => updateStatus(p.id, v as StatusPedido)}>
                     <SelectTrigger className="h-7 w-32">
@@ -156,7 +192,10 @@ const AdminPedidos = () => {
                   </Select>
                 </td>
                 <td className="px-4 py-3">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(p)}><Eye className="w-3.5 h-3.5" /></Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(p)}><Eye className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => printOrder(p)} title="Imprimir"><Printer className="w-3.5 h-3.5" /></Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -169,22 +208,22 @@ const AdminPedidos = () => {
       </div>
 
       <Dialog open={!!detailOrder} onOpenChange={() => setDetailOrder(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display">Pedido {detailOrder && formatOrderId(detailOrder)}</DialogTitle></DialogHeader>
           {detailOrder && (
             <div className="space-y-4 font-body text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div><p className="text-xs text-muted-foreground">Data</p><p>{new Date(detailOrder.created_at).toLocaleString("pt-BR")}</p></div>
                 <div><p className="text-xs text-muted-foreground">Status</p><Badge className={`${STATUS_COLORS[detailOrder.status as StatusPedido]} capitalize`}>{detailOrder.status}</Badge></div>
-                <div><p className="text-xs text-muted-foreground">Subtotal</p><p>R$ {Number(detailOrder.subtotal).toFixed(2).replace(".", ",")}</p></div>
-                <div><p className="text-xs text-muted-foreground">Total</p><p className="font-semibold">R$ {Number(detailOrder.total).toFixed(2).replace(".", ",")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Subtotal</p><p>{fmt(Number(detailOrder.subtotal))}</p></div>
+                <div><p className="text-xs text-muted-foreground">Total</p><p className="font-semibold">{fmt(Number(detailOrder.total))}</p></div>
                 {detailOrder.metodo_pagamento && <div><p className="text-xs text-muted-foreground">Pagamento</p><p className="capitalize">{detailOrder.metodo_pagamento}</p></div>}
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Itens</p>
                 <div className="space-y-1">
                   {(detailOrder.itens_pedido || []).map((item: any) => (
-                    <div key={item.id} className="flex justify-between"><span>{item.produtos?.nome || "Produto"} x{item.quantidade}</span><span>R$ {Number(item.subtotal).toFixed(2).replace(".", ",")}</span></div>
+                    <div key={item.id} className="flex justify-between"><span>{item.produtos?.nome || "Produto"} x{item.quantidade}</span><span>{fmt(Number(item.subtotal))}</span></div>
                   ))}
                 </div>
               </div>
@@ -202,6 +241,7 @@ const AdminPedidos = () => {
                           {new Date(h.created_at).toLocaleString("pt-BR")}
                           {h.status_anterior && <span> · de {h.status_anterior}</span>}
                         </p>
+                        {h.observacao && <p className="text-[10px] text-gold italic mt-0.5">{h.observacao}</p>}
                       </div>
                     ))}
                   </div>
@@ -214,6 +254,7 @@ const AdminPedidos = () => {
                   <AddressDisplay endereco={detailOrder.endereco_entrega} />
                 </div>
               )}
+
               <div>
                 <Label className="text-xs">Código de rastreamento</Label>
                 <div className="flex gap-2 mt-1">
@@ -223,6 +264,29 @@ const AdminPedidos = () => {
                     updateTracking(detailOrder.id, input.value);
                   }}><Package className="w-3 h-3" /> Salvar</Button>
                 </div>
+              </div>
+
+              {/* Internal note */}
+              <div>
+                <Label className="text-xs">Nota interna</Label>
+                <Textarea value={nota} onChange={(e) => setNota(e.target.value)} rows={2} placeholder="Adicionar observação interna…" className="text-sm mt-1" />
+                <Button size="sm" variant="outline" className="mt-2 font-body text-xs" disabled={!nota.trim()} onClick={async () => {
+                  await supabase.from("order_status_history").insert({
+                    pedido_id: detailOrder.id,
+                    status_anterior: detailOrder.status,
+                    status_novo: detailOrder.status,
+                    observacao: nota.trim(),
+                  });
+                  toast.success("Nota adicionada");
+                  setNota("");
+                  loadStatusHistory(detailOrder.id);
+                }}>Adicionar nota</Button>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" size="sm" className="font-body text-xs" onClick={() => printOrder(detailOrder)}>
+                  <Printer className="w-3 h-3 mr-1" /> Imprimir
+                </Button>
               </div>
             </div>
           )}
