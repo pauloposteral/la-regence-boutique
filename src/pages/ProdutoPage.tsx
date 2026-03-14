@@ -14,6 +14,8 @@ import ShareButtons from "@/components/product/ShareButtons";
 import PromotionCountdown from "@/components/product/PromotionCountdown";
 import StickyAddToCart from "@/components/product/StickyAddToCart";
 import RecentlyViewed from "@/components/product/RecentlyViewed";
+import ShippingCalculator from "@/components/product/ShippingCalculator";
+import BackInStockNotify from "@/components/product/BackInStockNotify";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
@@ -224,10 +226,13 @@ const ProdutoPage = () => {
               </div>
             )}
 
-            {/* Out of stock badge */}
+            {/* Out of stock badge + Back in stock notify */}
             {produto.estoque === 0 && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-center">
-                <span className="font-body text-sm font-semibold text-destructive">Fora de estoque</span>
+              <div className="space-y-3">
+                <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-center">
+                  <span className="font-body text-sm font-semibold text-destructive">Fora de estoque</span>
+                </div>
+                <BackInStockNotify produtoId={produto.id} produtoNome={produto.nome} />
               </div>
             )}
 
@@ -248,6 +253,9 @@ const ProdutoPage = () => {
 
             {/* Share */}
             <ShareButtons url={`/cafe/${produto.slug}`} title={produto.nome} />
+
+            {/* Shipping calculator */}
+            <ShippingCalculator />
           </motion.div>
         </div>
 
