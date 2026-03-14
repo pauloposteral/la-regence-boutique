@@ -82,7 +82,7 @@ serve(async (req) => {
     // Upload to Storage
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const fileName = `hero-coffee-${Date.now()}.png`;
+    const fileName = customFileName || `hero-coffee-${Date.now()}.png`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("public-assets")
       .upload(fileName, imageBytes, {
