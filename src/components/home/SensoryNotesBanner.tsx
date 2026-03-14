@@ -10,20 +10,16 @@ const notes = [
 ];
 
 const SensoryNotesBanner = () => {
-  const items = [...notes, ...notes];
+  // Duplicate items enough to ensure seamless looping
+  const items = [...notes, ...notes, ...notes];
 
   return (
     <section className="bg-brown-deep py-5 overflow-hidden">
-      <div className="flex animate-marquee whitespace-nowrap items-center">
-        <span
-          className="text-base font-display font-semibold mr-6 shrink-0 text-gold-light"
-        >
-          Notas sensoriais:
-        </span>
+      <div className="flex animate-marquee whitespace-nowrap items-center" style={{ width: 'max-content' }}>
         {items.map((note, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-2 mx-5 text-sm font-body font-medium shrink-0 text-gold-light"
+            className="inline-flex items-center gap-2 mx-6 text-sm font-body font-medium shrink-0 text-gold-light"
           >
             <span className="text-lg">{note.icon}</span>
             {note.label}

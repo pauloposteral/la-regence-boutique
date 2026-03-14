@@ -14,9 +14,9 @@ const Footer = () => {
           <div>
             <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-cream-600/50 mb-5">Institucional</h4>
             <ul className="space-y-3 text-sm font-body text-cream-600">
-              <li><Link to="/sobre" className="hover:text-gold transition-colors duration-300">Nossa história</Link></li>
-              <li><Link to="/cafes" className="hover:text-gold transition-colors duration-300">Nossos cafés</Link></li>
-              <li><Link to="/blog" className="hover:text-gold transition-colors duration-300">Responsabilidade</Link></li>
+              <li><Link to="/sobre" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossa história</Link></li>
+              <li><Link to="/cafes" className="link-underline-hover hover:text-gold transition-colors duration-300">Nossos cafés</Link></li>
+              <li><Link to="/blog" className="link-underline-hover hover:text-gold transition-colors duration-300">Responsabilidade</Link></li>
             </ul>
           </div>
 
@@ -24,9 +24,9 @@ const Footer = () => {
           <div>
             <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-cream-600/50 mb-5">Atendimento</h4>
             <ul className="space-y-3 text-sm font-body text-cream-600">
-              <li><Link to="/assinatura" className="hover:text-gold transition-colors duration-300">Assinatura e kits</Link></li>
-              <li><Link to="/rastreamento" className="hover:text-gold transition-colors duration-300">Rastrear pedido</Link></li>
-              <li><a href="mailto:contato@laregence.com.br" className="hover:text-gold transition-colors duration-300">Contato e suporte</a></li>
+              <li><Link to="/assinatura" className="link-underline-hover hover:text-gold transition-colors duration-300">Assinatura e kits</Link></li>
+              <li><Link to="/rastreamento" className="link-underline-hover hover:text-gold transition-colors duration-300">Rastrear pedido</Link></li>
+              <li><a href="mailto:contato@laregence.com.br" className="link-underline-hover hover:text-gold transition-colors duration-300">Contato e suporte</a></li>
             </ul>
           </div>
 
@@ -34,10 +34,10 @@ const Footer = () => {
           <div>
             <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-cream-600/50 mb-5">Políticas</h4>
             <ul className="space-y-3 text-sm font-body text-cream-600">
-              <li><Link to="/politica-privacidade" className="hover:text-gold transition-colors duration-300">Política de privacidade</Link></li>
-              <li><Link to="/termos" className="hover:text-gold transition-colors duration-300">Condições gerais</Link></li>
-              <li><Link to="/trocas" className="hover:text-gold transition-colors duration-300">Trocas e devoluções</Link></li>
-              <li><Link to="/frete" className="hover:text-gold transition-colors duration-300">Envio e entregas</Link></li>
+              <li><Link to="/politica-privacidade" className="link-underline-hover hover:text-gold transition-colors duration-300">Política de privacidade</Link></li>
+              <li><Link to="/termos" className="link-underline-hover hover:text-gold transition-colors duration-300">Condições gerais</Link></li>
+              <li><Link to="/trocas" className="link-underline-hover hover:text-gold transition-colors duration-300">Trocas e devoluções</Link></li>
+              <li><Link to="/frete" className="link-underline-hover hover:text-gold transition-colors duration-300">Envio e entregas</Link></li>
             </ul>
           </div>
 
@@ -50,7 +50,7 @@ const Footer = () => {
               <li><span>Consultas e insights</span></li>
             </ul>
             {/* Decorative image */}
-            <div className="mt-5 rounded-lg overflow-hidden aspect-[4/3] border border-cream-600/15">
+            <div className="mt-5 rounded-xl overflow-hidden aspect-[4/3] border border-cream-600/15">
               <img
                 src="/images/torrefacao.jpeg"
                 alt="Torrefação"
@@ -103,10 +103,10 @@ const Footer = () => {
           <div className="flex items-center gap-4">
             <span className="text-xs text-cream-600/30 font-body">Pagamentos seguros via</span>
             <div className="flex gap-2">
-              <span className="text-[10px] bg-brown-dark px-2.5 py-1.5 rounded font-body font-medium flex items-center gap-1 border border-cream-600/15 text-cream-600/30">
+              <span className="text-[10px] bg-brown-dark px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-600/15 text-cream-600/30">
                 <CreditCard className="w-3 h-3" /> Stripe
               </span>
-              <span className="text-[10px] bg-brown-dark px-2.5 py-1.5 rounded font-body font-medium flex items-center gap-1 border border-cream-600/15 text-cream-600/30">
+              <span className="text-[10px] bg-brown-dark px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-600/15 text-cream-600/30">
                 <Smartphone className="w-3 h-3" /> Pix
               </span>
             </div>

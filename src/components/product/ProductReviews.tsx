@@ -55,15 +55,15 @@ const ProductReviews = ({ produtoId }: Props) => {
   };
 
   return (
-    <div className="pt-8 border-t border-border">
+    <div className="pt-8 border-t border-cream-400">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="font-display text-xl font-semibold">Avaliações</h3>
+          <h3 className="font-display text-xl font-semibold text-brown-dark">Avaliações</h3>
           {reviews.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${i < Math.round(avgRating) ? "fill-gold text-gold" : "text-border"}`} />
+                  <Star key={i} className={`w-4 h-4 ${i < Math.round(avgRating) ? "fill-gold text-gold" : "text-cream-400"}`} />
                 ))}
               </div>
               <span className="font-body text-sm text-muted-foreground">
@@ -81,13 +81,13 @@ const ProductReviews = ({ produtoId }: Props) => {
 
       {/* Review form */}
       {showForm && (
-        <div className="bg-card border border-border rounded-lg p-5 mb-6 space-y-4">
+        <div className="bg-card border border-cream-400 rounded-2xl p-5 mb-6 space-y-4">
           <div>
             <label className="text-xs font-body font-medium text-muted-foreground mb-2 block">Nota</label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => setNota(n)}>
-                  <Star className={`w-6 h-6 transition-colors ${n <= nota ? "fill-gold text-gold" : "text-border hover:text-gold/50"}`} />
+                <button key={n} onClick={() => setNota(n)} className="min-w-[44px] min-h-[44px] flex items-center justify-center">
+                  <Star className={`w-6 h-6 transition-colors ${n <= nota ? "fill-gold text-gold" : "text-cream-400 hover:text-gold/50"}`} />
                 </button>
               ))}
             </div>
@@ -116,11 +116,11 @@ const ProductReviews = ({ produtoId }: Props) => {
       ) : (
         <div className="space-y-4">
           {reviews.map((r) => (
-            <div key={r.id} className="bg-card border border-border rounded-lg p-4">
+            <div key={r.id} className="bg-card border border-cream-400 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-3.5 h-3.5 ${i < r.nota ? "fill-gold text-gold" : "text-border"}`} />
+                    <Star key={i} className={`w-3.5 h-3.5 ${i < r.nota ? "fill-gold text-gold" : "text-cream-400"}`} />
                   ))}
                 </div>
                 <span className="text-[10px] font-body text-muted-foreground">

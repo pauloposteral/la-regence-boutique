@@ -16,7 +16,7 @@ const StorySection = () => {
             <img
               src="/images/torrefacao.jpeg"
               alt="Torrefação La Régence em Andradina-SP"
-              className="aspect-[4/5] w-full object-cover rounded-xl border border-cream-400"
+              className="aspect-[4/5] w-full object-cover rounded-2xl border border-cream-400 shadow-lg shadow-gold/5"
               loading="lazy"
             />
           </motion.div>
@@ -58,7 +58,7 @@ const StorySection = () => {
               ].map((stat) => (
                 <div key={stat.label}>
                   <span className="font-display text-3xl font-bold text-gradient-gold">{stat.number}</span>
-                  <p className="text-[11px] text-brown-light font-body mt-1">{stat.label}</p>
+                  <p className="text-[11px] text-muted-foreground font-body mt-1">{stat.label}</p>
                 </div>
               ))}
             </div>

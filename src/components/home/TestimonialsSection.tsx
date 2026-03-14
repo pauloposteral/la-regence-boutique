@@ -33,7 +33,7 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-cream-50 p-8 rounded-xl border border-cream-400 relative hover:shadow-lg hover:border-gold/30 transition-all duration-500 group"
+              className="bg-card p-8 rounded-2xl border border-cream-400 relative hover:shadow-lg hover:border-gold/30 transition-all duration-500 group"
             >
               <Quote className="w-8 h-8 text-gold/10 absolute top-4 right-4 group-hover:text-gold/20 transition-colors" />
               <div className="flex gap-0.5 mb-4">
@@ -50,7 +50,7 @@ const TestimonialsSection = () => {
                 </div>
                 <div>
                   <p className="font-body font-semibold text-sm text-brown-dark">{t.name}</p>
-                  <p className="text-[11px] text-cream-700 font-body">{t.role} · <span className="text-gold border border-gold/30 rounded-full px-1.5 py-0.5">{t.coffee}</span></p>
+                  <p className="text-[11px] text-muted-foreground font-body">{t.role} · <span className="text-gold border border-gold/30 rounded-full px-1.5 py-0.5">{t.coffee}</span></p>
                 </div>
               </div>
             </motion.div>
