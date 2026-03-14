@@ -3,7 +3,7 @@ import { Coffee, Award, Heart, MapPin, Users, Leaf } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 
 const TIMELINE = [
-  { year: "2006", title: "O começo", desc: "A família Posteral, apaixonada por cafés, funda uma cafeteria especializada em cafés especiais em Andradina-SP." },
+  { year: "2005", title: "O começo", desc: "A família Posteral, apaixonada por cafés, funda a Cafe La Regence na Av. Guanabara, 2919 — Stella Maris, Andradina-SP." },
   { year: "2010", title: "Primeira torrefação", desc: "Inauguramos nossa torrefação artesanal, controlando cada etapa do grão à xícara." },
   { year: "2014", title: "Selo SCA", desc: "Nossos cafés alcançam pontuações acima de 80 na escala SCA, consolidando a qualidade." },
   { year: "2018", title: "Expansão online", desc: "Lançamos a loja virtual para levar nossos cafés a todo o Brasil." },
@@ -32,7 +32,7 @@ const SobrePage = () => {
                 Sobre a La <span className="italic font-medium text-gradient-gold">Régence</span>
               </h1>
               <p className="text-muted-foreground font-body leading-relaxed mb-4">
-                A história do Café La Régence começou em 2006, na cidade de Andradina, interior de São Paulo, 
+                A história do Café La Régence começou em 2005, na cidade de Andradina, interior de São Paulo, 
                 quando a família <strong className="text-foreground">Posteral</strong>, apaixonada por cafés, 
                 decidiu fundar uma cafeteria especializada em cafés especiais.
               </p>

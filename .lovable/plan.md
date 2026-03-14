@@ -1,32 +1,33 @@
 
+# Auditoria End-to-End — La Régence E-commerce
 
-# Atualizar Informações da Empresa
+## Avaliação Atualizada: ~82% Completo
 
-Dados reais:
-- **Razão Social**: Cafe La Regence Limitada
-- **CNPJ**: 07.717.979/0001-62
-- **Endereço**: Avenida Guanabara, 2919 - Stella Maris, Andradina - SP
-- **Fundação**: 25/11/2005
+---
 
-## Decisão sobre o ano
+## Correções Implementadas nesta iteração
 
-A empresa foi fundada em **2005**, mas o site usa "desde 2006" em vários lugares. Vou manter **2005** como o ano correto de fundação.
+### ✅ Concluídos
+1. **Decremento automático de estoque** — Webhook Stripe agora decrementa estoque de produtos e variantes ao confirmar pedido
+2. **Upload de imagens** — Já existia em AdminProdutos (bucket product-images) e AdminBanners (bucket public-assets)
+3. **Pix no checkout** — Desconto de 10% aplicado nos preços dos itens, pagamento processado via cartão com desconto Pix embutido
+4. **Máscaras de input** — CPF (000.000.000-00), telefone ((00) 00000-0000) e CEP (00000-000) com formatação automática
+5. **forwardRef warning** — PWAInstallPrompt corrigido com forwardRef
+6. **Edge functions** — Stripe imports migrados de esm.sh para npm: (fix bundling)
 
-## Arquivos a modificar
+---
 
-| Arquivo | Mudança |
-|---------|---------|
-| `src/components/layout/Footer.tsx` | CNPJ: `XX.XXX.XXX/0001-XX` → `07.717.979/0001-62` |
-| `src/pages/InstitucionalPages.tsx` | CNPJ + razão social + endereço completo |
-| `src/components/layout/Footer.tsx` | Endereço: adicionar rua completa |
-| `index.html` | "desde 2006" → "desde 2005" nas meta tags |
-| `src/components/SEOHead.tsx` | "desde 2006" → "desde 2005" |
-| `src/components/home/HeroSection.tsx` | "Desde 2006" → "Desde 2005" |
-| `src/components/home/StorySection.tsx` | "Desde 2006" → "Desde 2005", endereço |
-| `src/components/layout/Header.tsx` | "desde 2006" → "desde 2005" |
-| `src/pages/SobrePage.tsx` | Timeline: "2006" → "2005", endereço completo |
-| `src/pages/Index.tsx` | JSON-LD: "desde 2006" → "desde 2005", endereço completo |
-| `supabase/functions/send-email/index.ts` | "desde 2006" → "desde 2005" |
+## Ainda pendente para 100%
 
-Total: 11 arquivos, substituições diretas de texto. Sem mudanças de lógica.
+### Prioridade MÉDIA
+- Google Analytics / Meta Pixel
+- E-mail de envio com rastreamento
+- Templates de e-mail transacionais completos
+- Favicon SVG transparente (atualmente JPEG)
 
+### Prioridade BAIXA
+- Testes automatizados
+- Exportar CSV/PDF nos relatórios admin
+- Rate limiting em formulários
+- Logs de auditoria admin
+- CNPJ real nas páginas institucionais

@@ -59,7 +59,7 @@ const Footer = () => {
 
         {/* Contact row */}
         <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm font-body text-muted-foreground">
-          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gold" /> Andradina-SP</span>
+          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gold" /> Av. Guanabara, 2919 — Stella Maris, Andradina-SP</span>
           <span className="hidden sm:block text-cream-400">·</span>
           <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gold" /> (18) 99654-0883</span>
           <span className="hidden sm:block text-cream-400">·</span>
@@ -94,7 +94,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground font-body">
-            © {new Date().getFullYear()} La Régence · Todos os direitos reservados · CNPJ: XX.XXX.XXX/0001-XX
+            © {new Date().getFullYear()} Cafe La Regence Ltda · CNPJ: 07.717.979/0001-62 · Todos os direitos reservados
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground font-body">Pagamentos seguros via</span>

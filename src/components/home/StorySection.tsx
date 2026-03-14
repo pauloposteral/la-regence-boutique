@@ -21,8 +21,8 @@ const StorySection = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl px-5 py-4">
-                  <p className="font-display text-3xl font-bold text-brown-dark">+18</p>
-                  <p className="font-body text-xs text-brown uppercase tracking-wider">anos de tradição</p>
+                   <p className="font-display text-3xl font-bold text-brown-dark">+20</p>
+                   <p className="font-body text-xs text-brown uppercase tracking-wider">anos de tradição</p>
                 </div>
               </div>
             </div>
@@ -42,7 +42,7 @@ const StorySection = () => {
             </h2>
             <div className="w-16 h-px bg-gradient-to-r from-gold to-gold-light" />
             <p className="font-body text-brown leading-relaxed">
-              Desde 2006, a La Régence seleciona os melhores grãos de cafés especiais do Brasil.
+              Desde 2005, a La Régence seleciona os melhores grãos de cafés especiais do Brasil.
               Nossa torrefação artesanal em Andradina-SP transforma cada lote em uma experiência
               sensorial única, respeitando o perfil de cada origem.
             </p>

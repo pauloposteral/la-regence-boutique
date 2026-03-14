@@ -25,7 +25,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-light mb-6"
           >
-            Torrefação artesanal · Desde 2006
+            Torrefação artesanal · Desde 2005
           </motion.p>
 
           <motion.h1
