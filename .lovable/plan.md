@@ -1,13 +1,13 @@
 
 # Auditoria End-to-End — La Régence E-commerce
 
-## Avaliação: 100% Completo ✅
+## Avaliação: Fase 1 Concluída ✅
 
 ---
 
-## Todas as Correções Implementadas
+## Correções Implementadas (Fase 1 — Itens Críticos + UX + Performance)
 
-### ✅ Concluídos
+### ✅ Concluídos anteriormente (1-25 do plano original)
 1. **Decremento automático de estoque** — Webhook Stripe decrementa estoque ao confirmar pedido
 2. **Upload de imagens** — AdminProdutos (bucket product-images) e AdminBanners (bucket public-assets)
 3. **Pix no checkout** — Desconto de 10% aplicado nos preços dos itens
@@ -34,16 +34,57 @@
 24. **Quiz de café** — Recomendação personalizada
 25. **PWA** — Manifest, install prompt, offline-ready
 
+### ✅ Auditoria 50 Melhorias — Implementados
+1. **Validação de estoque no carrinho** — Verifica estoque antes de adicionar; limita quantidade ao disponível
+2. **SEO: meta description dinâmica** — BlogPage e BlogPostPage agora geram og:image/og:description dinâmicos
+3. **Produto inexistente → 404** — ProdutoPage já redireciona para "Produto não encontrado" com CTA
+4. **Busca sanitizada** — Header search remove caracteres especiais (%_\) do input do usuário
+5. **Fix useMemo como useEffect** — ProdutoPage corrigido: `useMemo` → `useEffect` para setar estado
+6. **ThemeProvider removido** — `next-themes` removido (site é light-only), bundle menor
+7. **Banner LGPD/Cookies** — Banner com aceitar/rejeitar + link para política de privacidade
+8. **Blog com paginação** — Carrega 9 posts por vez com botão "Carregar mais"
+9. **Blog com breadcrumbs e SEO** — Breadcrumbs e SEOHead adicionados ao BlogPage
+10. **Sitemap no robots.txt** — Referência ao sitemap.xml adicionada
+
 ---
 
-## Infraestrutura de E-mail
+## Itens Pendentes da Auditoria (30 restantes)
 
-O `send-email` edge function possui templates HTML completos para:
-- **welcome** — Boas-vindas com código de desconto BEMVINDO10
-- **order_confirmation** — Confirmação com detalhes do pedido
-- **status_update** — Atualização com código de rastreamento
+### 🔴 Críticos pendentes
+- Validação de cupom server-side (edge function)
+- Limite de uso de cupom (usos_atuais)
+- Idempotency key no checkout
+- Expiração de preço no carrinho
+- Imagens com fallback/placeholder
 
-Para produção, integrar com serviço de envio (Resend, SendGrid) ou configurar email infrastructure via Lovable Cloud.
+### 🟡 UX pendentes
+- Breadcrumbs em Assinatura, Quiz, Favoritos, Comparar
+- Checkout: salvar endereço no perfil
+- Notificação real de pedido por email
+- Estimativa de entrega por CEP
+- FAQ page
+- Footer: links placeholder
+- Cross-sell inteligente baseado em categoria
+
+### 🟢 Performance pendentes
+- WebP/AVIF para imagens
+- Reduzir framer-motion imports
+- Service worker real
+- Lazy loading no carrossel
+- localStorage com try/catch em todos hooks
+
+### 🔵 Design pendentes
+- Logo no email transacional
+- Favicon ICO multi-resolução
+- BottomNav indicador animado
+- STATUS_COLORS unificado
+- Skeleton loading em Homepage/ProdutoPage
+
+### 📊 Analytics pendentes
+- GA4 / Plausible
+- Facebook Pixel
+- UTM tracking
+- Newsletter double opt-in
 
 ---
 
