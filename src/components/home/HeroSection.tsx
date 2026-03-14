@@ -70,7 +70,7 @@ const HeroSection = () => {
             <Button
               asChild
               size="lg"
-              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
+              className="bg-gold text-white hover:bg-gold-dark font-body text-base tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
             >
               <Link to="/cafes">
                 Explorar Cafés
