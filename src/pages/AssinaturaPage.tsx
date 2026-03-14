@@ -143,7 +143,7 @@ const AssinaturaPage = () => {
             </p>
             <Button
               size="lg"
-              className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-8 rounded-none transition-all duration-300"
+              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
               onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conhecer Planos <ArrowRight className="w-4 h-4 ml-1" />
