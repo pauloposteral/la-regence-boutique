@@ -93,8 +93,7 @@ const Header = () => {
           ? "bg-cream-50/95 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.12)]"
           : "bg-cream-100/90 backdrop-blur-md"
       }`}>
-        {/* Gold line accent */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
+        {/* Subtle separator */}
 
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-3 items-center h-16 lg:h-20">

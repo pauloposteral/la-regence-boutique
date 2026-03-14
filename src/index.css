@@ -175,9 +175,6 @@
     background-image: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-light)) 100%);
   }
 
-  .bg-gradient-espresso {
-    background-image: linear-gradient(180deg, hsl(var(--espresso)) 0%, hsl(var(--espresso-light)) 100%);
-  }
 
   .bg-gradient-cream {
     background-image: linear-gradient(180deg, hsl(var(--cream)) 0%, hsl(var(--cream-dark)) 100%);

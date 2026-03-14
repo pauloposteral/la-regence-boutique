@@ -24,10 +24,10 @@ const NewsletterFooter = () => {
   };
 
   return (
-    <div className="mt-10 pt-10 border-t border-cream-600/10">
+    <div className="mt-10 pt-10 border-t border-cream-400">
       <div className="max-w-md mx-auto text-center">
-        <h4 className="font-display text-lg font-semibold text-cream-200 mb-2">Receba novidades</h4>
-        <p className="text-[11px] text-cream-600 font-body mb-4 tracking-wide">
+        <h4 className="font-display text-lg font-semibold text-brown-dark mb-2">Receba novidades</h4>
+        <p className="text-[11px] text-muted-foreground font-body mb-4 tracking-wide">
           Dicas de preparo, lançamentos e promoções exclusivas.
         </p>
         <div className="flex gap-2">
@@ -36,7 +36,7 @@ const NewsletterFooter = () => {
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-cream-50/10 border-cream-600/20 text-cream-200 placeholder:text-cream-600 font-body text-sm rounded-full"
+            className="bg-white border-cream-400 text-brown-dark placeholder:text-muted-foreground font-body text-sm rounded-full"
             onKeyDown={(e) => e.key === "Enter" && subscribe()}
           />
           <Button
