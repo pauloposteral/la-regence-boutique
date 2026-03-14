@@ -112,6 +112,7 @@ const QuizPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Quiz de Café" description="Descubra o café ideal para o seu paladar com nosso quiz interativo." />
       <section className="bg-background border-b border-border py-16 lg:py-24">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <Coffee className="w-8 h-8 text-gold mx-auto mb-4" />

@@ -53,6 +53,13 @@ const FavoritosPage = () => {
     <Layout>
       <SEOHead title="Meus Favoritos" description="Seus cafés favoritos salvos na La Régence." />
       <div className="container mx-auto px-4 lg:px-8 py-10">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem><BreadcrumbPage>Favoritos</BreadcrumbPage></BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <h1 className="font-display text-3xl font-semibold mb-8">Meus Favoritos</h1>
 
         {isLoading ? (

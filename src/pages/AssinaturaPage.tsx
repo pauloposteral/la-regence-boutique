@@ -128,6 +128,17 @@ const AssinaturaPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Assinatura de Café" description="Receba cafés especiais selecionados em sua porta. Planos mensal, trimestral e semestral com frete grátis." />
+      {/* Breadcrumb */}
+      <div className="container mx-auto px-4 lg:px-8 pt-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem><BreadcrumbPage>Assinatura</BreadcrumbPage></BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       {/* Hero */}
       <section className="bg-background border-b border-border py-20 lg:py-28 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full border border-gold/10" />
