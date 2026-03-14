@@ -14,6 +14,8 @@ import ShareButtons from "@/components/product/ShareButtons";
 import PromotionCountdown from "@/components/product/PromotionCountdown";
 import StickyAddToCart from "@/components/product/StickyAddToCart";
 import RecentlyViewed from "@/components/product/RecentlyViewed";
+import ShippingCalculator from "@/components/product/ShippingCalculator";
+import BackInStockNotify from "@/components/product/BackInStockNotify";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
