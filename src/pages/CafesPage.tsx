@@ -35,15 +35,28 @@ const CafesPage = () => {
   const { data: categorias = [] } = useCategorias();
   const [searchParams] = useSearchParams();
 
+  const [, setSearchParams] = useSearchParams();
+
+  // Initialize state from URL params
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const debouncedSearch = useDebounce(search, 300);
-  const [sort, setSort] = useState("destaque");
-  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
-  const [selectedNotas, setSelectedNotas] = useState<string[]>([]);
-  const [selectedTorra, setSelectedTorra] = useState<string | null>(null);
-  const [scaMin, setScaMin] = useState<number | null>(null);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
-  const [priceFilterActive, setPriceFilterActive] = useState(false);
+  const [sort, setSort] = useState(searchParams.get("sort") || "destaque");
+  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(searchParams.get("cat") || null);
+  const [selectedNotas, setSelectedNotas] = useState<string[]>(() => {
+    const n = searchParams.get("notas");
+    return n ? n.split(",") : [];
+  });
+  const [selectedTorra, setSelectedTorra] = useState<string | null>(searchParams.get("torra") || null);
+  const [scaMin, setScaMin] = useState<number | null>(() => {
+    const s = searchParams.get("sca");
+    return s ? Number(s) : null;
+  });
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => {
+    const pMin = searchParams.get("pmin");
+    const pMax = searchParams.get("pmax");
+    return pMin && pMax ? [Number(pMin), Number(pMax)] : [0, 500];
+  });
+  const [priceFilterActive, setPriceFilterActive] = useState(!!searchParams.get("pmin"));
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
   const [quickViewProduct, setQuickViewProduct] = useState<Produto | null>(null);
@@ -59,10 +72,21 @@ const CafesPage = () => {
     if (!priceFilterActive) setPriceRange(actualPriceRange as [number, number]);
   }, [actualPriceRange, priceFilterActive]);
 
+  // Sync filters to URL params
   useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) setSearch(q);
-  }, [searchParams]);
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (sort !== "destaque") params.set("sort", sort);
+    if (selectedCategoria) params.set("cat", selectedCategoria);
+    if (selectedNotas.length > 0) params.set("notas", selectedNotas.join(","));
+    if (selectedTorra) params.set("torra", selectedTorra);
+    if (scaMin) params.set("sca", String(scaMin));
+    if (priceFilterActive) {
+      params.set("pmin", String(priceRange[0]));
+      params.set("pmax", String(priceRange[1]));
+    }
+    setSearchParams(params, { replace: true });
+  }, [debouncedSearch, sort, selectedCategoria, selectedNotas, selectedTorra, scaMin, priceFilterActive, priceRange, setSearchParams]);
 
   const allNotas = useMemo(() => {
     const set = new Set<string>();

@@ -10,6 +10,7 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import NewsletterPopup from "./NewsletterPopup";
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
+import SocialProofToast from "@/components/product/SocialProofToast";
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes";
 
 interface LayoutProps {
