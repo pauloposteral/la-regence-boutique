@@ -80,11 +80,14 @@ const Footer = () => {
         </div>
 
         {/* Brand emblem */}
-        
-
-
-
-
+        <div className="flex justify-center my-10">
+          <img
+            src="/images/logo-laregence-full.jpg"
+            alt="Café La Régence"
+            className="h-24 lg:h-32 w-auto object-contain"
+            loading="lazy"
+          />
+        </div>
 
         
 
