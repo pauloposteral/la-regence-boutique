@@ -30,6 +30,7 @@ const BlogPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Blog" description="Dicas de preparo, curiosidades sobre café e receitas exclusivas da La Régence." />
       {/* Hero */}
       <section className="bg-background border-b border-border py-16 lg:py-24">
         <div className="container mx-auto px-4 lg:px-8 text-center">

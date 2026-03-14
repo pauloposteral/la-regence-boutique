@@ -12,6 +12,7 @@ import NewsletterPopup from "./NewsletterPopup";
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
 import SocialProofToast from "@/components/product/SocialProofToast";
+import CookieBanner from "./CookieBanner";
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes";
 
 interface LayoutProps {
@@ -40,6 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
       <NewsletterPopup />
       <PWAInstallPrompt />
       <SocialProofToast />
+      <CookieBanner />
     </div>
   );
 };
