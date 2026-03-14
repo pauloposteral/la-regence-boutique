@@ -45,7 +45,7 @@ const Header = () => {
         .from("produtos")
         .select("nome, slug, preco, preco_promocional, notas_sensoriais, categorias(nome), produto_imagens(url, principal)")
         .eq("ativo", true)
-        .or(`nome.ilike.%${debouncedSearch}%,notas_sensoriais.cs.{${debouncedSearch}},origem.ilike.%${debouncedSearch}%`)
+        .or(`nome.ilike.%${debouncedSearch.replace(/[%_\\]/g, '')}%,origem.ilike.%${debouncedSearch.replace(/[%_\\]/g, '')}%`)
         .limit(6);
       return (data || []).map((p: any) => ({
         ...p,

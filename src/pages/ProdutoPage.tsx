@@ -248,7 +248,7 @@ const ProdutoPage = () => {
               <div className="flex items-center border border-border rounded">
                 <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2.5 hover:bg-muted transition-colors"><Minus className="w-4 h-4" /></button>
                 <span className="w-10 text-center font-body text-sm">{quantidade}</span>
-                <button onClick={() => setQuantidade(quantidade + 1)} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => { const max = selectedVariant?.estoque ?? produto.estoque; setQuantidade(Math.min(quantidade + 1, max)); }} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
                 <Button className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-light rounded-none transition-all duration-300" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>

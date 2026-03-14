@@ -123,7 +123,6 @@ const App = () => (
         </CompareProvider>
       </CartProvider>
     </QueryClientProvider>
-  </ThemeProvider>
 );
 
 export default App;
