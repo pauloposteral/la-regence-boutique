@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface CartItem {
   produtoId: string;
@@ -55,7 +57,46 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const openCart = useCallback(() => setIsOpen(true), []);
+  // Price validation on cart open
+  const lastValidation = useRef(0);
+  const validatePrices = useCallback(async (currentItems: CartItem[]) => {
+    if (currentItems.length === 0) return;
+    const now = Date.now();
+    if (now - lastValidation.current < 30000) return; // throttle 30s
+    lastValidation.current = now;
+    try {
+      const productIds = [...new Set(currentItems.map((i) => i.produtoId))];
+      const { data: produtos } = await supabase.from("produtos").select("id, preco, preco_promocional").in("id", productIds);
+      const variantIds = currentItems.map((i) => i.varianteId).filter(Boolean) as string[];
+      const { data: variantes } = variantIds.length > 0
+        ? await supabase.from("variantes").select("id, preco").in("id", variantIds)
+        : { data: [] };
+
+      const prodMap = new Map((produtos || []).map((p) => [p.id, p]));
+      const varMap = new Map((variantes || []).map((v) => [v.id, v]));
+      let updated = false;
+
+      setItems((prev) =>
+        prev.map((item) => {
+          const prod = prodMap.get(item.produtoId);
+          const variant = item.varianteId ? varMap.get(item.varianteId) : null;
+          const newPreco = variant?.preco ?? prod?.preco ?? item.preco;
+          const newPromo = prod?.preco_promocional ?? undefined;
+          if (newPreco !== item.preco || newPromo !== item.precoPromocional) {
+            updated = true;
+            return { ...item, preco: newPreco, precoPromocional: newPromo };
+          }
+          return item;
+        })
+      );
+      if (updated) toast.info("Alguns preços foram atualizados no seu carrinho.");
+    } catch { /* silent */ }
+  }, []);
+
+  const openCart = useCallback(() => {
+    setIsOpen(true);
+    validatePrices(items);
+  }, [items, validatePrices]);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((item: CartItem) => {

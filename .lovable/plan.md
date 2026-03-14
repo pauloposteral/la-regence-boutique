@@ -1,43 +1,62 @@
 
+# Auditoria End-to-End — La Régence E-commerce
 
-## Plano: Próxima rodada de melhorias — Segurança, Carrinho inteligente, Image fallbacks e Perfil
+## Avaliação: Fase 2 Concluída ✅
 
-Baseado na auditoria e no guia fornecido, vou implementar o próximo bloco de melhorias focando em itens ainda pendentes de alto impacto.
+---
 
-### O que será feito (8 melhorias)
+## Todas as Correções Implementadas
 
-1. **.gitignore — adicionar `.env`** (Sessão 1 do guia)
-   - O `.env` não está no `.gitignore`; adicionar para evitar commits acidentais
+### Plano Original (25 itens) ✅
+1-25. Estoque, upload, Pix, máscaras, forwardRef, edge functions, empresa, fundação, favicon, dark mode, CSV, email, rate limiting, focus visible, SEO, fidelidade, admin, timeline, avaliações, assinaturas, blog, newsletter, comparador, quiz, PWA
 
-2. **Cleanup de lockfiles** — remover `bun.lockb` (duplicado de `bun.lock`)
+### Auditoria 50 Melhorias — Fase 1 (10 itens) ✅
+1. Validação de estoque no carrinho
+2. SEO dinâmico no Blog
+3. Produto inexistente → 404
+4. Busca sanitizada no Header
+5. Fix useMemo → useEffect
+6. ThemeProvider removido (next-themes)
+7. Banner LGPD/Cookies
+8. Blog com paginação
+9. Blog com breadcrumbs + SEO
+10. Sitemap no robots.txt
 
-3. **Criar `.env.example`** com variáveis necessárias (sem valores reais)
+### Auditoria 50 Melhorias — Fase 2 (10 itens) ✅
+11. Cross-sell inteligente — baseado em categoria e notas sensoriais
+12. Footer links corrigidos — substituídos placeholders por links reais + FAQ
+13. Breadcrumbs em FavoritosPage
+14. Breadcrumbs em AssinaturaPage + SEOHead
+15. Breadcrumbs em QuizPage + SEOHead
+16. BlogPostPage com SEOHead dinâmico
+17. Página FAQ completa — 5 seções, 19 perguntas
+18. Idempotency key no checkout — Stripe session com proteção anti-duplicata
+19. Proteção double-submit reforçada no checkout
+20. Rota /faq adicionada ao App.tsx e Footer
 
-4. **README.md atualizado** com informações reais do projeto La Régence
+---
 
-5. **Image fallback global** — criar componente ou handler `onError` para imagens de produto que quebram, mostrando placeholder
+## Itens Pendentes (20 restantes)
 
-6. **Carrinho: validar preços atualizados** — ao abrir o cart drawer, revalidar preços dos itens contra o banco, alertando se mudaram
+### Críticos
+- Validação de cupom server-side (edge function)
+- Expiração de preço no carrinho
+- Checkout salvar endereço no perfil
 
-7. **Produto inexistente → 404** — ProdutoPage já trata `error || !produto` com uma mensagem, mas pode melhorar com `Navigate` para NotFound após um delay
+### Performance
+- WebP/AVIF para imagens
+- Reduzir framer-motion imports desnecessários
+- Service worker real
+- localStorage com try/catch universal
 
-8. **Salvar endereço do checkout no perfil** — após pedido confirmado, salvar o endereço na tabela `enderecos` se o usuário estiver logado
+### Design
+- Logo no email transacional
+- BottomNav indicador animado
+- STATUS_COLORS unificado em um único arquivo
+- Skeleton loading em Homepage/ProdutoPage
 
-### Alterações por arquivo
-
-| Arquivo | Alteração |
-|---|---|
-| `.gitignore` | Adicionar `.env` |
-| `.env.example` | Criar com variáveis template |
-| `README.md` | Reescrever com info real do projeto |
-| `bun.lockb` | Deletar (manter apenas `bun.lock`) |
-| `src/contexts/CartContext.tsx` | Adicionar validação de preço ao abrir carrinho |
-| `src/pages/CheckoutPage.tsx` | Salvar endereço na tabela `enderecos` após pedido |
-| `src/components/ui/optimized-image.tsx` | Adicionar `onError` fallback |
-
-### Detalhes técnicos
-
-- A validação de preço no carrinho fará um `select` em `produtos` + `variantes` ao abrir o drawer, comparando com os preços armazenados em localStorage. Se divergir, atualiza silenciosamente e mostra toast.
-- O fallback de imagem usará o placeholder SVG existente em `public/placeholder.svg`.
-- O salvamento de endereço no checkout fará um `upsert` na tabela `enderecos` com o `user_id` logado, marcando como principal se for o primeiro.
-
+### Analytics & Marketing
+- GA4 / Plausible analytics
+- Facebook Pixel
+- UTM tracking
+- Newsletter double opt-in
