@@ -313,7 +313,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
           {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {lowStock && (
-            <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
+            <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded-full flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" />
               Últimas {produto.estoque} un.
             </div>
