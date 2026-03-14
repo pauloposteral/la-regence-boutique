@@ -30,7 +30,7 @@ const CoffeeCarousel = () => {
   };
 
   return (
-    <section className="py-24 lg:py-32 bg-cream-100">
+    <section className="py-24 lg:py-32 bg-white">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
