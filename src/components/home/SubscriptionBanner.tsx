@@ -47,7 +47,7 @@ const SubscriptionBanner = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <div className="relative rounded-xl overflow-hidden aspect-[4/3] border border-gold/15 glow-gold">
+            <div className="relative rounded-xl overflow-hidden aspect-[4/3] border border-cream-400">
               <img
                 src="/images/torrefacao.jpeg"
                 alt="Torrefação artesanal La Régence"
