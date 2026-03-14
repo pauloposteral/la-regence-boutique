@@ -15,6 +15,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbP
 import { useCart } from "@/contexts/CartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import QuickViewModal from "@/components/product/QuickViewModal";
+import OptimizedImage from "@/components/ui/optimized-image";
 import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
@@ -308,7 +309,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
       <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
         <div className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
-            <img src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            <OptimizedImage src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="group-hover:scale-105 transition-transform duration-500" showSkeleton />
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
