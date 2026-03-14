@@ -58,7 +58,7 @@ const StorySection = () => {
               ].map((item) => (
                 <div key={item.label} className="text-center">
                   <p className="font-display text-lg font-bold text-gold">{item.value}</p>
-                  <p className="font-body text-[10px] text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                  <p className="font-body text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
                 </div>
               ))}
             </div>

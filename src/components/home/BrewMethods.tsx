@@ -41,7 +41,7 @@ const BrewMethods = () => {
                   <Icon className="w-6 h-6 text-muted-foreground group-hover:text-gold transition-colors" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground">{method.name}</h3>
-                <p className="text-[11px] text-muted-foreground font-body mt-1">{method.description}</p>
+                <p className="text-xs text-muted-foreground font-body mt-1">{method.description}</p>
               </motion.div>
             );
           })}

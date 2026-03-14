@@ -18,7 +18,7 @@ const SensoryNotesBanner = () => {
         {items.map((note, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-2 mx-6 text-sm font-body font-medium shrink-0 text-muted-foreground"
+            className="inline-flex items-center gap-2 mx-6 text-base font-body font-medium shrink-0 text-muted-foreground"
           >
             <span className="text-lg">{note.icon}</span>
             {note.label}
