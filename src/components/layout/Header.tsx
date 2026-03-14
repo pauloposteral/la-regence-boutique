@@ -120,7 +120,7 @@ const Header = () => {
             {/* CENTER — Brand */}
             <Link to="/" className="flex items-center justify-center group">
               <img
-                src="/images/logo-laregence-clean.jpg"
+                src="/images/logo-laregence.png"
                 alt="Café La Régence — Cafés Especiais"
                 className="h-10 lg:h-14 w-auto object-contain transition-opacity duration-300 group-hover:opacity-80"
               />
