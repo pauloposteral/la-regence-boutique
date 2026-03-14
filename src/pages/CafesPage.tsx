@@ -33,9 +33,7 @@ const SORT_OPTIONS = [
 const CafesPage = () => {
   const { data: produtos = [], isLoading } = useProdutos();
   const { data: categorias = [] } = useCategorias();
-  const [searchParams] = useSearchParams();
-
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Initialize state from URL params
   const [search, setSearch] = useState(searchParams.get("q") || "");
