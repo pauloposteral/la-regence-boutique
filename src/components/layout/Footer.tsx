@@ -99,10 +99,10 @@ const Footer = () => {
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground font-body">Pagamentos seguros via</span>
             <div className="flex gap-2">
-              <span className="text-[10px] bg-cream-300 px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-400 text-brown">
+              <span className="text-[10px] bg-cream-200 px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-300 text-foreground/70">
                 <CreditCard className="w-3 h-3" /> Stripe
               </span>
-              <span className="text-[10px] bg-cream-300 px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-400 text-brown">
+              <span className="text-[10px] bg-cream-200 px-2.5 py-1.5 rounded-full font-body font-medium flex items-center gap-1 border border-cream-300 text-foreground/70">
                 <Smartphone className="w-3 h-3" /> Pix
               </span>
             </div>

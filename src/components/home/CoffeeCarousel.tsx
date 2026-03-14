@@ -117,7 +117,7 @@ const CoffeeCarousel = () => {
                           {Array.from({ length: 5 }).map((_, s) => (
                             <div
                               key={s}
-                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-400"}`}
+                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-300"}`}
                             />
                           ))}
                         </div>
