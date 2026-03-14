@@ -5,21 +5,20 @@ import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[85vh] lg:min-h-[90vh] flex items-center overflow-hidden">
-      {/* Parallax background image */}
+    <section className="relative min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden">
+      {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg scale-105"
         style={{ backgroundImage: `url('/images/torrefacao.jpeg')` }}
       />
-      {/* Light cinematic overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/60 via-brown-deep/40 to-transparent" />
+      {/* Cinematic neutral overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
 
-      {/* Subtle gold vignette */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+      {/* Bottom fade to content */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <div className="flex flex-col items-start text-left max-w-2xl">
-          {/* Eyebrow */}
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -33,13 +32,13 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
-            className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] mb-6 text-cream-200"
+            className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] mb-6 text-white"
           >
             Cada xícara,{" "}
             <span className="block italic font-medium text-gold-light">
               uma experiência
             </span>
-            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-cream-200/70 mt-2">
+            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/60 mt-2">
               sensorial única
             </span>
           </motion.h1>
@@ -55,7 +54,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-cream-200/70"
+            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-white/70"
           >
             Cafés especiais acima de 80 pontos SCA, torrados 
             artesanalmente em Andradina-SP para revelar 
@@ -82,7 +81,7 @@ const HeroSection = () => {
               asChild
               variant="outline"
               size="lg"
-              className="font-body text-sm tracking-[0.08em] uppercase px-8 border-cream-200/30 text-cream-200 hover:bg-gold/10 hover:border-gold/60 transition-all duration-300"
+              className="font-body text-sm tracking-[0.08em] uppercase px-8 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300"
             >
               <Link to="/assinatura">Clube de Assinatura</Link>
             </Button>
@@ -97,7 +96,7 @@ const HeroSection = () => {
         transition={{ delay: 1.2 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
-        <span className="text-[10px] font-body tracking-[0.2em] uppercase text-cream-500">Scroll</span>
+        <span className="text-[10px] font-body tracking-[0.2em] uppercase text-white/50">Scroll</span>
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}

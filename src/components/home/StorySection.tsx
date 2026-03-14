@@ -2,21 +2,20 @@ import { motion } from "framer-motion";
 
 const StorySection = () => {
   return (
-    <section className="py-24 lg:py-32 bg-cream-200">
+    <section className="py-24 lg:py-32 bg-secondary/30">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Image with gold accent */}
+          {/* Image */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="absolute -left-3 top-8 bottom-8 w-px bg-gradient-to-b from-gold/0 via-gold/40 to-gold/0 hidden lg:block" />
             <img
               src="/images/torrefacao.jpeg"
               alt="Torrefação La Régence em Andradina-SP"
-              className="aspect-[4/5] w-full object-cover rounded-2xl border border-cream-400 shadow-lg shadow-gold/5"
+              className="aspect-[4/5] w-full object-cover rounded-3xl shadow-sm"
               loading="lazy"
             />
           </motion.div>
@@ -27,11 +26,11 @@ const StorySection = () => {
             viewport={{ once: true }}
           >
             <span className="text-[11px] font-body tracking-[0.3em] uppercase text-gold">Nossa História</span>
-            <h2 className="font-display text-4xl lg:text-5xl font-bold mt-3 mb-6 text-brown-dark">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mt-3 mb-6 text-foreground">
               A Experiência{" "}
               <span className="italic font-light text-gradient-gold">La Régence</span>
             </h2>
-            <div className="space-y-4 text-brown font-body leading-relaxed text-sm">
+            <div className="space-y-4 text-muted-foreground font-body leading-relaxed text-sm">
               <p>
                 Desde 2006, em Andradina-SP, a La Régence dedica-se à arte de 
                 torrar cafés especiais. Cada lote é cuidadosamente selecionado 
@@ -50,7 +49,7 @@ const StorySection = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-cream-400">
+            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-border">
               {[
                 { number: "18+", label: "Anos de experiência" },
                 { number: "80+", label: "Pontuação SCA mínima" },
