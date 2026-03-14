@@ -39,7 +39,7 @@ const AdminAssinaturas = () => {
   const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("assinaturas").update({ status }).eq("id", id);
+    await supabase.from("assinaturas").update({ status: status as any }).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["admin-assinaturas"] });
     toast.success(`Assinatura ${status === "ativa" ? "reativada" : status === "pausada" ? "pausada" : "cancelada"}`);
   };
