@@ -178,6 +178,8 @@ serve(async (req) => {
       },
     };
 
+    // Note: Pix discount is applied to line item prices above.
+    // Stripe Checkout handles card payments; Pix discount is a pricing incentive.
     sessionConfig.payment_method_types = ["card"];
 
     if (form.email) {

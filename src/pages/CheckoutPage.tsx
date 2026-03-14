@@ -363,7 +363,7 @@ const CheckoutPage = () => {
                     <div className="space-y-3">
                       {[
                         { value: "card", label: "Cartão de Crédito", desc: "Parcelamento em até 3x sem juros", icon: "💳" },
-                        { value: "pix", label: "Pix", desc: "10% de desconto · Aprovação imediata", icon: "⚡", badge: "-10%" },
+                        { value: "pix", label: "Pix (desconto no cartão)", desc: "10% de desconto aplicado ao pagamento", icon: "⚡", badge: "-10%" },
                       ].map((opt) => (
                         <label
                           key={opt.value}

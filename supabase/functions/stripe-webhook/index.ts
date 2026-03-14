@@ -61,6 +61,46 @@ serve(async (req) => {
 
           console.log(`✅ Pedido ${pedidoId} confirmado`);
 
+          // ==========================================
+          // AUTO STOCK DECREMENT
+          // ==========================================
+          const { data: orderItems } = await supabaseAdmin
+            .from("itens_pedido")
+            .select("produto_id, variante_id, quantidade")
+            .eq("pedido_id", pedidoId);
+
+          if (orderItems) {
+            for (const item of orderItems) {
+              if (item.variante_id) {
+                // Decrement variant stock
+                const { data: variante } = await supabaseAdmin
+                  .from("variantes")
+                  .select("estoque")
+                  .eq("id", item.variante_id)
+                  .single();
+                if (variante) {
+                  await supabaseAdmin
+                    .from("variantes")
+                    .update({ estoque: Math.max(0, variante.estoque - item.quantidade) })
+                    .eq("id", item.variante_id);
+                }
+              }
+              // Always decrement product stock
+              const { data: produto } = await supabaseAdmin
+                .from("produtos")
+                .select("estoque")
+                .eq("id", item.produto_id)
+                .single();
+              if (produto) {
+                await supabaseAdmin
+                  .from("produtos")
+                  .update({ estoque: Math.max(0, produto.estoque - item.quantidade) })
+                  .eq("id", item.produto_id);
+              }
+            }
+            console.log(`📦 Estoque decrementado para pedido ${pedidoId}`);
+          }
+
           // Send confirmation email
           const { data: pedido } = await supabaseAdmin
             .from("pedidos")
