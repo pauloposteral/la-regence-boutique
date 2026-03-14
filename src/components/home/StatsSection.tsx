@@ -24,7 +24,7 @@ const StatsSection = () => {
             >
               <stat.icon className="w-8 h-8 text-gold mx-auto mb-3" />
               <p className="font-display text-3xl lg:text-4xl font-bold text-gold-light">{stat.value}</p>
-              <p className="font-body text-xs text-cream-500 mt-1 uppercase tracking-wider">{stat.label}</p>
+              <p className="font-body text-xs text-cream-400 mt-1 uppercase tracking-wider">{stat.label}</p>
             </motion.div>
           ))}
         </div>

@@ -35,7 +35,7 @@ const StorySection = () => {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="space-y-6"
           >
-            <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold">Nossa História</p>
+            <p className="text-xs font-body tracking-[0.3em] uppercase text-gold">Nossa História</p>
             <h2 className="font-display text-3xl lg:text-4xl font-bold leading-tight text-brown-dark">
               Do grão à xícara,{" "}
               <span className="italic font-light text-gradient-gold">com paixão</span>
@@ -58,7 +58,7 @@ const StorySection = () => {
               ].map((item) => (
                 <div key={item.label} className="text-center">
                   <p className="font-display text-lg font-bold text-gold">{item.value}</p>
-                  <p className="font-body text-[10px] text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                  <p className="font-body text-xs text-muted-foreground uppercase tracking-wider">{item.label}</p>
                 </div>
               ))}
             </div>

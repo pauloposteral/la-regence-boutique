@@ -23,7 +23,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-light mb-6"
+            className="text-xs font-body tracking-[0.3em] uppercase text-gold-light mb-6"
           >
             Torrefação artesanal · Desde 2005
           </motion.p>
@@ -38,7 +38,7 @@ const HeroSection = () => {
             <span className="block italic font-medium text-gold-light">
               uma experiência
             </span>
-            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/60 mt-2">
+            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/80 mt-2">
               sensorial única
             </span>
           </motion.h1>
@@ -54,7 +54,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-white/70"
+            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-white/85"
           >
             Cafés especiais acima de 80 pontos SCA, torrados 
             artesanalmente em Andradina-SP para revelar 
@@ -70,7 +70,7 @@ const HeroSection = () => {
             <Button
               asChild
               size="lg"
-              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
+              className="bg-gold text-white hover:bg-gold-dark font-body text-base tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
             >
               <Link to="/cafes">
                 Explorar Cafés
@@ -81,7 +81,7 @@ const HeroSection = () => {
               asChild
               variant="outline"
               size="lg"
-              className="font-body text-sm tracking-[0.08em] uppercase px-8 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300"
+              className="font-body text-base tracking-[0.08em] uppercase px-8 border-white/50 text-white hover:bg-white/10 hover:border-white/70 transition-all duration-300"
             >
               <Link to="/assinatura">Clube de Assinatura</Link>
             </Button>
