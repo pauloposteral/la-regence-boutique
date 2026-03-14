@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
