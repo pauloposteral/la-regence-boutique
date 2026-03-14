@@ -94,7 +94,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground font-body">
-            © {new Date().getFullYear()} La Régence · Todos os direitos reservados · CNPJ: XX.XXX.XXX/0001-XX
+            © {new Date().getFullYear()} Cafe La Regence Ltda · CNPJ: 07.717.979/0001-62 · Todos os direitos reservados
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground font-body">Pagamentos seguros via</span>
