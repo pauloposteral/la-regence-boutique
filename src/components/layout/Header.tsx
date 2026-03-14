@@ -119,9 +119,11 @@ const Header = () => {
 
             {/* CENTER — Brand */}
             <Link to="/" className="flex items-center justify-center group">
-              <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-brown-dark whitespace-nowrap transition-all duration-300 group-hover:text-shadow-luxury">
-                La <span className="text-gradient-gold italic font-bold">Régence</span>
-              </span>
+              <img
+                src="/images/logo-laregence-clean.jpg"
+                alt="Café La Régence — Cafés Especiais"
+                className="h-10 lg:h-14 w-auto object-contain transition-opacity duration-300 group-hover:opacity-80"
+              />
             </Link>
 
             {/* RIGHT — Icons */}

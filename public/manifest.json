@@ -1,7 +1,7 @@
 {
   "name": "La Régence — Cafés Especiais",
   "short_name": "La Régence",
-  "description": "Cafeteria e torrefação artesanal de cafés especiais desde 2006",
+  "description": "Cafeteria e torrefação artesanal de cafés especiais desde 2005",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#faf5ef",
@@ -9,18 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.jpeg",
-      "sizes": "64x64",
-      "type": "image/jpeg"
-    },
-    {
-      "src": "/images/logo-laregence-original.jpeg",
+      "src": "/images/logo-laregence-mono.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/images/logo-laregence-original.jpeg",
+      "src": "/images/logo-laregence-full.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"
