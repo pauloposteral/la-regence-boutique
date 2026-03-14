@@ -1,44 +1,64 @@
 
 
-# Correções Visuais e CSS — La Régence
+## Plano: Replicar o Design de Referência
 
-## Problemas Identificados nos Screenshots
+Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
 
-### Críticos
-1. **`min-font-size: 14px`** em `index.css` linha 122 — propriedade CSS inválida (não existe). Deve ser removida.
-2. **`bg-gold/8`** em `BrewMethods.tsx` linha 41 — classe Tailwind inválida (valores de opacidade devem ser múltiplos de 5). Deve ser `bg-gold/10`.
-3. **Seção `.dark` removida** do `index.css` — a seção dark mode foi removida nas migrações anteriores mas existem referências a ela. Sem impacto já que não usamos dark mode, mas bom limpar.
-4. **Home mostra apenas Hero + Footer** — as lazy sections (CoffeeCarousel, Collections, etc.) dependem do IntersectionObserver mas podem não carregar se o viewport inicial cobre todo o conteúdo visível. O `rootMargin: "200px"` deveria resolver, mas o problema parece ser que na viewport atual (1330x908) o Hero ocupa 85-90vh, não sobrando espaço para o observer dos sections seguintes disparar. As sections DynamicBanners e CoffeeCarousel não estão dentro de LazySection e deveriam aparecer — isso sugere que o problema pode ser de dados (nenhum produto no banco) fazendo CoffeeCarousel renderizar vazio, e DynamicBanners retorna null por falta de banners.
+### Mudanças Necessárias
 
-### Visuais
-5. **Newsletter popup** — visual correto mas pode melhorar com gold border accent mais visível.
-6. **Footer newsletter section** — "Receba novidades" e "Dicas de preparo..." texto em `text-cream-200` e `text-cream-600` sobre fundo `brown-deep` — está OK nos screenshots.
-7. **Fontes** — Google Fonts carrega Playfair Display, Cormorant Garamond, Outfit e JetBrains Mono. Tailwind config referencia `font-display`, `font-body`, `font-accent`, `font-mono`. Tudo alinhado, sem erros de fonte.
-8. **WhatsApp button** — agora usa `bg-gold` (correto com a paleta), não verde.
+**1. Header — Layout Centralizado**
+- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
+- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
+- Manter ícones (busca, conta, carrinho) à DIREITA
+- Arquivo: `Header.tsx`
 
-## Plano de Correções
+**2. CoffeeCarousel — Cards de Produto Redesenhados**
+- Grid de 4 colunas (não 5)
+- Adicionar estrelas de avaliação abaixo do nome
+- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
+- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
+- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
+- Botão "Escolher moagem" nos cards que têm variantes
+- Arquivo: `CoffeeCarousel.tsx`
 
-### 1. Corrigir CSS inválido — `src/index.css`
-- Remover `min-font-size: 14px` (propriedade inexistente)
-- Substituir por `font-size: max(14px, 1em)` ou simplesmente remover
+**3. NOVO — Banner de Notas Sensoriais (Marquee)**
+- Faixa horizontal animada entre os cafés e a seção de assinatura
+- Fundo escuro (espresso) com texto dourado
+- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
+- Scroll infinito horizontal (marquee CSS)
+- Criar: `src/components/home/SensoryNotesBanner.tsx`
 
-### 2. Corrigir classe Tailwind inválida — `src/components/home/BrewMethods.tsx`
-- `bg-gold/8` → `bg-gold/10` (linha 41)
+**4. SubscriptionBanner — Redesign com Imagem**
+- Layout 2 colunas: texto à esquerda, imagem de café à direita
+- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
+- Título: "Nunca fique sem o seu café preferido."
+- Botão CTA dourado: "Quero fazer parte →"
+- Imagem: usar `/images/torrefacao.jpeg` como placeholder
+- Arquivo: `SubscriptionBanner.tsx`
 
-### 3. Garantir que seções da Home apareçam mesmo sem dados
-- **CoffeeCarousel**: quando `items.length === 0` e `isLoading === false`, mostrar estado vazio elegante em vez de nada
-- **DynamicBanners**: retorna `null` quando não há banners — OK, mas o CoffeeCarousel deveria pelo menos mostrar skeletons ou empty state
+**5. NOVO — Seção de Estatísticas**
+- 4 colunas com números grandes e descrições
+- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
+- Ícones decorativos (grão de café, etc.)
+- Fundo claro (cream)
+- Criar: `src/components/home/StatsSection.tsx`
 
-### 4. Melhorias visuais menores
-- **Card shadows**: `shadow-sm` no `card.tsx` está muito fraco — melhorar para `shadow-[0_2px_8px_-2px_hsl(var(--gold)/0.08)]`
-- **BrewMethods icon circles**: fix opacity value
-- **Body font-size**: adicionar `font-size: 14px` como base no body (propriedade válida)
+**6. Footer — Logo Dourada no Fundo**
+- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
+- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
+- Arquivo: `Footer.tsx`
 
-### Arquivos a modificar
-| Arquivo | Mudança |
-|---------|---------|
-| `src/index.css` | Remover `min-font-size`, adicionar font-size base válido |
-| `src/components/home/BrewMethods.tsx` | Fix `bg-gold/8` → `bg-gold/10` |
-| `src/components/home/CoffeeCarousel.tsx` | Adicionar empty state elegante |
-| `src/components/ui/card.tsx` | Refinar shadow |
+**7. Index.tsx — Reordenar Seções**
+- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
+- Arquivo: `Index.tsx`
+
+### Arquivos Afetados
+- `src/components/layout/Header.tsx` — layout centralizado
+- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
+- `src/components/home/SensoryNotesBanner.tsx` — NOVO
+- `src/components/home/SubscriptionBanner.tsx` — redesign
+- `src/components/home/StatsSection.tsx` — NOVO
+- `src/components/layout/Footer.tsx` — logo badge
+- `src/pages/Index.tsx` — reordenação
+- `src/index.css` — animação marquee
 
