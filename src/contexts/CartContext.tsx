@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackAddToCart } from "@/lib/analytics";
 
 export interface CartItem {
   produtoId: string;
@@ -100,7 +101,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((item: CartItem) => {
-    // Optimistic: update state immediately, no async
     setItems((prev) => {
       const key = getKey(item.produtoId, item.varianteId);
       const existing = prev.find((i) => getKey(i.produtoId, i.varianteId) === key);
@@ -113,6 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item];
     });
+    trackAddToCart({ id: item.produtoId, name: item.nome, price: item.precoPromocional || item.preco, quantity: item.quantidade });
     setIsOpen(true);
   }, []);
 
