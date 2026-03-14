@@ -25,7 +25,7 @@ const Index = () => {
 
   return (
     <Layout>
-      <SEOHead title="Cafés Especiais — Torrefação Artesanal desde 2006" description="La Régence: cafés especiais com torrefação artesanal sob demanda. Grãos selecionados, pontuação SCA 80+, frete grátis acima de R$ 150." jsonLd={jsonLd} />
+      <SEOHead title="Cafés Especiais — Torrefação Artesanal desde 2005" description="La Régence: cafés especiais com torrefação artesanal sob demanda. Grãos selecionados, pontuação SCA 80+, frete grátis acima de R$ 150." jsonLd={jsonLd} />
       <HeroSection />
       <Suspense fallback={<div className="min-h-[60px]" />}>
         <SensoryNotesBanner />

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Pencil, Trash2, Search, Upload, Copy, X, Filter, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, Copy, X, Filter, Check, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -228,6 +228,21 @@ const AdminProdutos = () => {
   const set = (key: string, value: any) => setForm((f) => ({ ...f, [key]: value }));
 
   const stockPct = (p: any) => p.estoque_minimo > 0 ? Math.min(100, (p.estoque / (p.estoque_minimo * 3)) * 100) : 100;
+
+  const exportCSV = () => {
+    const headers = ["Nome", "SKU", "Preço", "Preço Promo", "Estoque", "Estoque Mín.", "Torra", "Ativo", "Destaque", "Origem"];
+    const rows = filtered.map((p: any) => [
+      `"${p.nome}"`, p.sku || "", Number(p.preco).toFixed(2), p.preco_promocional ? Number(p.preco_promocional).toFixed(2) : "",
+      p.estoque, p.estoque_minimo, TORRA_LABELS[p.tipo_torra] || "", p.ativo ? "Sim" : "Não", p.destaque ? "Sim" : "Não", `"${p.origem || ""}"`
+    ].join(","));
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `produtos-laregence-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} produtos exportados`);
+  };
   const stockColor = (p: any) => {
     if (p.estoque <= p.estoque_minimo * 0.5) return "bg-destructive";
     if (p.estoque <= p.estoque_minimo) return "bg-yellow-500";
@@ -239,6 +254,9 @@ const AdminProdutos = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-2xl font-semibold">Produtos</h1>
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
+            <Download className="w-3.5 h-3.5" /> Exportar CSV
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5 font-body text-xs" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="w-3.5 h-3.5" /> Filtros
           </Button>
