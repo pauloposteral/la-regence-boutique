@@ -317,8 +317,8 @@ const AssinaturaPage = () => {
                           <button
                             key={cafe.id}
                             onClick={() => setSelectedCafe(cafe.id)}
-                            className={`rounded-lg border-2 p-3 text-left transition-all flex gap-3 items-center ${
-                              active ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                            className={`rounded-xl border-2 p-3 text-left transition-all flex gap-3 items-center ${
+                              active ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                             }`}
                           >
                             <div className="w-12 h-12 rounded bg-secondary flex-shrink-0 overflow-hidden">
