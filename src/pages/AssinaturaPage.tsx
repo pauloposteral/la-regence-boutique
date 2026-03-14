@@ -248,7 +248,7 @@ const AssinaturaPage = () => {
                       }`}
                     >
                       {plan.badge && (
-                        <Badge className="absolute -top-2.5 left-4 bg-gold text-accent-foreground font-body text-[10px] shadow-sm">
+                        <Badge className="absolute -top-2.5 left-4 bg-gold text-white font-body text-[10px] shadow-sm rounded-full">
                           {plan.badge}
                         </Badge>
                       )}
