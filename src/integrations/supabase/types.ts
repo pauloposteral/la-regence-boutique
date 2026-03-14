@@ -73,29 +73,50 @@ export type Database = {
       avaliacoes: {
         Row: {
           aprovado: boolean
+          aroma: number | null
           comentario: string | null
+          compra_verificada: boolean | null
           created_at: string
+          finalizacao: number | null
           id: string
           nota: number
           produto_id: string
+          resposta_admin: string | null
+          resposta_admin_at: string | null
+          sabor: number | null
+          titulo: string | null
           user_id: string
         }
         Insert: {
           aprovado?: boolean
+          aroma?: number | null
           comentario?: string | null
+          compra_verificada?: boolean | null
           created_at?: string
+          finalizacao?: number | null
           id?: string
           nota: number
           produto_id: string
+          resposta_admin?: string | null
+          resposta_admin_at?: string | null
+          sabor?: number | null
+          titulo?: string | null
           user_id: string
         }
         Update: {
           aprovado?: boolean
+          aroma?: number | null
           comentario?: string | null
+          compra_verificada?: boolean | null
           created_at?: string
+          finalizacao?: number | null
           id?: string
           nota?: number
           produto_id?: string
+          resposta_admin?: string | null
+          resposta_admin_at?: string | null
+          sabor?: number | null
+          titulo?: string | null
           user_id?: string
         }
         Relationships: [
@@ -767,7 +788,10 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          loyalty_tier: string | null
           phone: string | null
+          preferred_grind: string | null
+          preferred_roast: string | null
           updated_at: string
           user_id: string
         }
@@ -777,7 +801,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_tier?: string | null
           phone?: string | null
+          preferred_grind?: string | null
+          preferred_roast?: string | null
           updated_at?: string
           user_id: string
         }
@@ -787,7 +814,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_tier?: string | null
           phone?: string | null
+          preferred_grind?: string | null
+          preferred_roast?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -854,6 +884,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_loyalty_tier: { Args: { _user_id: string }; Returns: string }
       get_user_points: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
