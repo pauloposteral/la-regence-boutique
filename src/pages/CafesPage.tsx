@@ -356,6 +356,15 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
               Adicionar
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }}
+              title="Visualização rápida"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               variant={comparing ? "secondary" : "outline"}
               size="sm"
               className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
