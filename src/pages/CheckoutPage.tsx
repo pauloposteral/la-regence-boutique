@@ -260,7 +260,11 @@ const CheckoutPage = () => {
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <Label className="font-body text-xs text-muted-foreground">CEP *</Label>
-                        <Input value={form.cep} onChange={(e) => updateField("cep", e.target.value)} placeholder="00000-000" className={`font-body mt-1 ${errors.cep ? "border-destructive" : ""}`} />
+                        <Input value={form.cep} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 8);
+                          if (v.length > 5) v = `${v.slice(0,5)}-${v.slice(5)}`;
+                          updateField("cep", v);
+                        }} placeholder="00000-000" className={`font-body mt-1 ${errors.cep ? "border-destructive" : ""}`} />
                         {errors.cep && <p className="text-[10px] text-destructive mt-1">{errors.cep}</p>}
                       </div>
                       <Button variant="outline" className="self-end font-body text-xs h-10 border-gold/30 text-gold hover:bg-gold/10" onClick={buscarCep} disabled={cepLoading}>
