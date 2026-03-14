@@ -243,8 +243,8 @@ const AssinaturaPage = () => {
                     <button
                       key={plan.tipo}
                       onClick={() => setSelectedPlan(plan.tipo)}
-                      className={`relative text-left rounded-lg border-2 p-5 transition-all ${
-                        active ? "border-gold bg-gold/5 shadow-[0_4px_20px_-8px_hsl(var(--gold)/0.3)]" : "border-border bg-card hover:border-gold/40"
+                      className={`relative text-left rounded-xl border-2 p-5 transition-all ${
+                        active ? "border-gold bg-gold/5 shadow-[0_4px_20px_-8px_hsl(var(--gold)/0.3)]" : "border-cream-400 bg-cream-50 hover:border-gold/40"
                       }`}
                     >
                       {plan.badge && (
