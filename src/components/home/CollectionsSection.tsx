@@ -13,7 +13,6 @@ const CollectionsSection = () => {
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ["home-collections"],
     queryFn: async () => {
-      // Fetch active collections with their products
       const { data: cols } = await supabase
         .from("collections")
         .select("id, nome, slug, descricao, imagem_url")
@@ -23,7 +22,6 @@ const CollectionsSection = () => {
 
       if (!cols || cols.length === 0) return [];
 
-      // Fetch products for each collection
       const results = await Promise.all(
         cols.map(async (col) => {
           const { data: cpRows } = await supabase
@@ -42,7 +40,6 @@ const CollectionsSection = () => {
             .in("id", productIds)
             .eq("ativo", true);
 
-          // Fetch images
           const { data: imagens } = await supabase
             .from("produto_imagens")
             .select("produto_id, url, principal")
@@ -53,7 +50,6 @@ const CollectionsSection = () => {
             imagens: (imagens || []).filter((img) => img.produto_id === p.id),
           }));
 
-          // Sort by collection order
           const ordered = productIds
             .map((id) => produtosWithImages.find((p) => p.id === id))
             .filter(Boolean);
@@ -99,14 +95,14 @@ const CollectionsSection = () => {
             >
               <div>
                 <p className="text-[10px] font-body tracking-[0.3em] uppercase text-gold mb-2">Coleção</p>
-                <h2 className="font-display text-2xl lg:text-4xl font-bold text-foreground">{collection.nome}</h2>
+                <h2 className="font-display text-2xl lg:text-4xl font-bold text-brown-dark">{collection.nome}</h2>
                 {collection.descricao && (
-                  <p className="text-sm text-muted-foreground font-body mt-2 max-w-lg leading-relaxed">{collection.descricao}</p>
+                  <p className="text-sm text-brown-light font-body mt-2 max-w-lg leading-relaxed">{collection.descricao}</p>
                 )}
               </div>
               <Link
                 to="/cafes"
-                className="flex items-center gap-1.5 text-gold font-body text-xs tracking-wider uppercase hover:gap-3 transition-all duration-300 shrink-0"
+                className="flex items-center gap-1.5 text-brown font-body text-xs tracking-wider uppercase hover:text-gold hover:gap-3 transition-all duration-300 shrink-0"
               >
                 Ver todos <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -127,9 +123,9 @@ const CollectionsSection = () => {
                   >
                     <Link
                       to={`/cafe/${product.slug}`}
-                      className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/30 card-tilt transition-all duration-500"
+                      className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/30 card-tilt transition-all duration-500"
                     >
-                      <div className="aspect-square bg-secondary/50 flex items-center justify-center relative overflow-hidden p-6">
+                      <div className="aspect-square bg-cream-200/50 flex items-center justify-center relative overflow-hidden p-6">
                         {imgUrl ? (
                           <img
                             src={imgUrl}
@@ -141,21 +137,21 @@ const CollectionsSection = () => {
                           <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                         )}
                         {product.sca_score && (
-                          <div className="absolute top-3 right-3 bg-gold text-primary-foreground text-[10px] font-mono font-semibold px-2 py-1 rounded-sm flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-current" /> SCA {product.sca_score}
+                          <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-gold text-gold" /> SCA {product.sca_score}
                           </div>
                         )}
                       </div>
 
                       <div className="p-5">
-                        <h3 className="font-display text-base font-semibold group-hover:text-gold transition-colors duration-300 leading-tight min-h-[2.5rem]">
+                        <h3 className="font-display text-base font-semibold text-brown-dark group-hover:text-gold transition-colors duration-300 leading-tight min-h-[2.5rem]">
                           {product.nome}
                         </h3>
 
                         {product.notas_sensoriais && product.notas_sensoriais.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {product.notas_sensoriais.slice(0, 2).map((nota: string) => (
-                              <span key={nota} className="text-[10px] font-body text-gold/70 border border-gold/20 rounded-sm px-2 py-0.5 bg-gold/5">
+                              <span key={nota} className="text-[10px] font-body text-brown-light border border-cream-500 rounded-full px-2 py-0.5 hover:border-gold hover:text-gold transition-colors">
                                 {nota}
                               </span>
                             ))}
@@ -163,7 +159,7 @@ const CollectionsSection = () => {
                         )}
 
                         <div className="mt-3 flex items-baseline gap-2">
-                          <span className="font-mono font-bold text-lg text-foreground">
+                          <span className="font-mono font-bold text-lg text-brown-dark">
                             R$ {product.preco.toFixed(2).replace(".", ",")}
                           </span>
                         </div>
@@ -173,7 +169,7 @@ const CollectionsSection = () => {
 
                         <Button
                           size="sm"
-                          className="w-full mt-3 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark rounded-none tracking-wide uppercase"
+                          className="w-full mt-3 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase"
                           onClick={(e) => handleQuickAdd(e, product)}
                         >
                           <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />

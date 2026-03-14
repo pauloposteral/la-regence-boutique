@@ -12,8 +12,8 @@ const HeroSection = () => {
         style={{ backgroundImage: `url('/images/torrefacao.jpeg')` }}
       />
       {/* Dark overlay — cinematic gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background/98 via-background/90 to-background/40" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/98 via-brown-deep/90 to-brown-deep/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-brown-deep via-transparent to-brown-deep/30" />
 
       {/* Subtle gold vignette */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
@@ -25,7 +25,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-6"
+            className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-light mb-6"
           >
             Torrefação artesanal · Desde 2006
           </motion.p>
@@ -34,13 +34,13 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
-            className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] mb-6 text-foreground"
+            className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] mb-6 text-cream-200"
           >
             Cada xícara,{" "}
-            <span className="block italic font-medium text-gradient-gold">
+            <span className="block italic font-medium text-gold-light">
               uma experiência
             </span>
-            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-foreground/70 mt-2">
+            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-cream-200/70 mt-2">
               sensorial única
             </span>
           </motion.h1>
@@ -56,7 +56,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-muted-foreground"
+            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-cream-200/70"
           >
             Cafés especiais acima de 80 pontos SCA, torrados 
             artesanalmente em Andradina-SP para revelar 
@@ -72,7 +72,7 @@ const HeroSection = () => {
             <Button
               asChild
               size="lg"
-              className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-[0.08em] uppercase px-8 rounded-none transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
+              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
             >
               <Link to="/cafes">
                 Explorar Cafés
@@ -83,7 +83,7 @@ const HeroSection = () => {
               asChild
               variant="outline"
               size="lg"
-              className="font-body text-sm tracking-[0.08em] uppercase px-8 rounded-none border-gold/30 text-foreground hover:bg-gold/10 hover:border-gold/60 transition-all duration-300"
+              className="font-body text-sm tracking-[0.08em] uppercase px-8 border-cream-200/30 text-cream-200 hover:bg-gold/10 hover:border-gold/60 transition-all duration-300"
             >
               <Link to="/assinatura">Clube de Assinatura</Link>
             </Button>
@@ -98,7 +98,7 @@ const HeroSection = () => {
         transition={{ delay: 1.2 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
-        <span className="text-[10px] font-body tracking-[0.2em] uppercase text-muted-foreground">Scroll</span>
+        <span className="text-[10px] font-body tracking-[0.2em] uppercase text-cream-500">Scroll</span>
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}

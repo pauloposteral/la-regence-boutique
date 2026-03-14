@@ -83,14 +83,14 @@ const Header = () => {
   return (
     <>
       {/* Top announcement bar */}
-      <div className="bg-gradient-to-r from-gold-dark via-gold to-gold-dark text-primary-foreground text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase">
+      <div className="bg-brown-deep text-cream-200 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase">
         Frete grátis acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
 
       <header className={`sticky top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-background/98 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.1)]"
-          : "bg-background/90 backdrop-blur-md"
+          ? "bg-cream-50/95 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.1)]"
+          : "bg-cream-100/90 backdrop-blur-md"
       }`}>
         {/* Gold line accent */}
         <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
@@ -99,7 +99,7 @@ const Header = () => {
           <div className="grid grid-cols-3 items-center h-16 lg:h-20">
             {/* LEFT — Nav links (desktop) / Hamburger (mobile) */}
             <div className="flex items-center">
-              <button className="lg:hidden p-2 -ml-2 text-foreground/70 hover:text-foreground transition-colors" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+              <button className="lg:hidden p-2 -ml-2 text-brown hover:text-gold transition-colors" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               <nav className="hidden lg:flex items-center gap-8">
@@ -107,7 +107,7 @@ const Header = () => {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="text-[13px] font-body font-medium tracking-[0.05em] uppercase text-foreground/60 hover:text-gold transition-colors duration-300 relative group"
+                    className="text-[13px] font-body font-medium tracking-[0.05em] uppercase text-brown hover:text-gold transition-colors duration-300 relative group"
                   >
                     {link.label}
                     <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold transition-all duration-300 group-hover:w-full" />
@@ -118,7 +118,7 @@ const Header = () => {
 
             {/* CENTER — Brand */}
             <Link to="/" className="flex items-center justify-center group">
-              <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-foreground whitespace-nowrap transition-all duration-300 group-hover:text-shadow-luxury">
+              <span className="font-display text-2xl lg:text-3xl font-semibold tracking-tight text-brown-dark whitespace-nowrap transition-all duration-300 group-hover:text-shadow-luxury">
                 La <span className="text-gradient-gold italic font-bold">Régence</span>
               </span>
             </Link>
@@ -130,21 +130,21 @@ const Header = () => {
                 size="icon"
                 onClick={() => { setSearchOpen(!searchOpen); setSearchQuery(""); }}
                 aria-label="Buscar"
-                className="text-foreground/60 hover:text-gold hover:bg-gold/5 transition-all duration-300"
+                className="text-brown hover:text-gold hover:bg-gold/5 transition-all duration-300"
               >
                 <Search className="w-4 h-4" />
               </Button>
               {user && (
-                <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex text-foreground/60 hover:text-gold hover:bg-gold/5 transition-all duration-300" asChild aria-label="Favoritos">
+                <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex text-brown hover:text-gold hover:bg-gold/5 transition-all duration-300" asChild aria-label="Favoritos">
                   <Link to="/favoritos">
                     <Heart className="w-4 h-4" />
                     {favCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{favCount}</span>
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center">{favCount}</span>
                     )}
                   </Link>
                 </Button>
               )}
-              <Button variant="ghost" size="icon" asChild aria-label="Minha conta" className="text-foreground/60 hover:text-gold hover:bg-gold/5 transition-all duration-300">
+              <Button variant="ghost" size="icon" asChild aria-label="Minha conta" className="text-brown hover:text-gold hover:bg-gold/5 transition-all duration-300">
                 <Link to={user ? "/conta" : "/auth"}>
                   <User className="w-4 h-4" />
                 </Link>
@@ -152,7 +152,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative text-foreground/60 hover:text-gold hover:bg-gold/5 transition-all duration-300"
+                className="relative text-brown hover:text-gold hover:bg-gold/5 transition-all duration-300"
                 aria-label="Carrinho"
                 onClick={openCart}
               >
@@ -162,7 +162,7 @@ const Header = () => {
                     key={totalItems}
                     initial={{ scale: 0.5 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center"
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center"
                   >
                     {totalItems}
                   </motion.span>
@@ -180,7 +180,7 @@ const Header = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="border-t border-border overflow-visible relative"
+              className="border-t border-cream-400 overflow-visible relative"
             >
               <div className="container mx-auto px-4 py-3">
                 <form onSubmit={handleSearch} className="flex items-center gap-3">
@@ -196,20 +196,20 @@ const Header = () => {
                 </form>
               </div>
               {searchResults.length > 0 && (
-                <div className="absolute left-0 right-0 bg-background border-b border-border shadow-lg shadow-gold/5 z-50">
+                <div className="absolute left-0 right-0 bg-cream-50 border-b border-cream-400 shadow-lg shadow-gold/5 z-50">
                   <div className="container mx-auto px-4 py-2">
                     {searchResults.map((r: any) => (
                       <Link
                         key={r.slug}
                         to={`/cafe/${r.slug}`}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-colors"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-cream-200 transition-colors"
                         onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-secondary overflow-hidden shrink-0 border border-border">
+                        <div className="w-10 h-10 rounded-lg bg-cream-200 overflow-hidden shrink-0 border border-cream-400">
                           {r.img ? <img src={r.img} alt="" className="w-full h-full object-cover" /> : <span className="flex w-full h-full items-center justify-center text-lg">☕</span>}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-body text-sm font-medium truncate text-foreground">{r.nome}</p>
+                          <p className="font-body text-sm font-medium truncate text-brown-dark">{r.nome}</p>
                         </div>
                         <span className="font-mono text-sm font-semibold text-gold shrink-0">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
                       </Link>
@@ -235,19 +235,26 @@ const Header = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden border-t border-border overflow-hidden backdrop-blur-xl bg-background/98"
+              className="lg:hidden border-t border-cream-400 overflow-hidden backdrop-blur-xl bg-cream-50/98"
             >
               <nav className="container mx-auto px-4 py-6 flex flex-col gap-1">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="text-sm font-body font-medium tracking-wide uppercase text-foreground/60 hover:text-gold py-3 border-b border-border/30 last:border-0 transition-colors"
+                    className="text-sm font-body font-medium tracking-wide uppercase text-brown hover:text-gold py-3 border-b border-cream-400/30 last:border-0 transition-colors"
                     onClick={() => setMobileOpen(false)}
                   >
                     {link.label}
                   </Link>
                 ))}
+                <Link
+                  to="/assinatura"
+                  className="mt-4 inline-flex items-center justify-center bg-gold text-white rounded-full px-6 py-3 font-body text-sm font-medium tracking-wider uppercase border-2 border-gold hover:bg-gold-dark transition-all duration-300"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Assinar Café
+                </Link>
               </nav>
             </motion.div>
           )}

@@ -17,7 +17,7 @@ const BottomNav = () => {
   if (location.pathname.startsWith("/admin")) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/98 backdrop-blur-lg border-t border-border pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-cream-100/98 backdrop-blur-lg border-t border-cream-400 pb-safe">
       <div className="flex items-center justify-around h-14">
         {navItems.map(({ icon: Icon, label, href }) => {
           const isCart = href === "__cart__";
@@ -28,7 +28,7 @@ const BottomNav = () => {
               <button
                 key={label}
                 onClick={openCart}
-                className="flex flex-col items-center gap-0.5 relative text-muted-foreground"
+                className="flex flex-col items-center gap-0.5 relative text-brown"
               >
                 <div className="relative">
                   <Icon className="w-5 h-5" />
@@ -37,7 +37,7 @@ const BottomNav = () => {
                       key={totalItems}
                       initial={{ scale: 0.5 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-2 w-4 h-4 bg-gold text-background text-[9px] font-bold rounded-full flex items-center justify-center"
+                      className="absolute -top-1.5 -right-2 w-4 h-4 bg-gold text-white text-[9px] font-bold rounded-full flex items-center justify-center"
                     >
                       {totalItems}
                     </motion.span>
@@ -53,7 +53,7 @@ const BottomNav = () => {
               key={label}
               to={href}
               className={`flex flex-col items-center gap-0.5 transition-colors ${
-                isActive ? "text-gold" : "text-muted-foreground"
+                isActive ? "text-gold" : "text-brown"
               }`}
             >
               <Icon className="w-5 h-5" />
