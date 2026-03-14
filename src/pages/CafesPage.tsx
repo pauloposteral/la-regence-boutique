@@ -303,7 +303,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
       <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
-        <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative overflow-hidden">
+        <div className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
             <img src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
           ) : (
