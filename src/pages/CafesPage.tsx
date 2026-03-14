@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle, GitCompareArrows } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle, GitCompareArrows, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
