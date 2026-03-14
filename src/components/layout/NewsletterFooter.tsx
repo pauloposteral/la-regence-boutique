@@ -24,9 +24,9 @@ const NewsletterFooter = () => {
   };
 
   return (
-    <div className="mt-10 pt-10 border-t border-cream-400">
+    <div className="mt-10 pt-10 border-t border-cream-300">
       <div className="max-w-md mx-auto text-center">
-        <h4 className="font-display text-lg font-semibold text-brown-dark mb-2">Receba novidades</h4>
+        <h4 className="font-display text-lg font-semibold text-foreground mb-2">Receba novidades</h4>
         <p className="text-[11px] text-muted-foreground font-body mb-4 tracking-wide">
           Dicas de preparo, lançamentos e promoções exclusivas.
         </p>
@@ -36,7 +36,7 @@ const NewsletterFooter = () => {
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-white border-cream-400 text-brown-dark placeholder:text-muted-foreground font-body text-sm rounded-full"
+            className="bg-white border-cream-300 text-foreground placeholder:text-muted-foreground font-body text-sm rounded-full"
             onKeyDown={(e) => e.key === "Enter" && subscribe()}
           />
           <Button

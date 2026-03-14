@@ -10,7 +10,7 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-24 lg:py-32 bg-secondary/30">
+    <section className="py-24 lg:py-32 bg-cream-100">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -32,7 +32,7 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white p-8 rounded-2xl border border-border relative hover:border-gold/20 transition-all duration-300 group"
+              className="bg-white p-8 rounded-2xl border border-cream-300 relative hover:border-gold/20 transition-all duration-300 group"
             >
               <Quote className="w-8 h-8 text-gold/10 absolute top-4 right-4 group-hover:text-gold/20 transition-colors" />
               <div className="flex gap-0.5 mb-4">
@@ -43,7 +43,7 @@ const TestimonialsSection = () => {
               <p className="font-body text-muted-foreground italic leading-relaxed mb-6 text-sm">
                 "{t.text}"
               </p>
-              <div className="border-t border-border pt-4 flex items-center gap-3">
+              <div className="border-t border-cream-300 pt-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-body font-bold text-gold">
                   {t.name.split(" ").map(n => n[0]).join("")}
                 </div>

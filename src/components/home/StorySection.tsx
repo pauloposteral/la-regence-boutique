@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const StorySection = () => {
   return (
-    <section className="py-24 lg:py-32 bg-secondary/30">
+    <section className="py-24 lg:py-32 bg-cream-100">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Image */}
@@ -49,7 +49,7 @@ const StorySection = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-border">
+            <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-cream-300">
               {[
                 { number: "18+", label: "Anos de experiência" },
                 { number: "80+", label: "Pontuação SCA mínima" },

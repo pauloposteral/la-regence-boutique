@@ -50,12 +50,12 @@ const CoffeeCarousel = () => {
         {isLoading || items.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl border border-cream-400 overflow-hidden">
-                <div className="aspect-square bg-cream-200 shimmer-gold" />
+              <div key={i} className="bg-card rounded-2xl border border-cream-300 overflow-hidden">
+                <div className="aspect-square bg-cream-100 shimmer-gold" />
                 <div className="p-5 space-y-3">
-                  <div className="h-4 bg-cream-300 rounded w-3/4 shimmer-gold" />
-                  <div className="h-3 bg-cream-300 rounded w-1/2 shimmer-gold" />
-                  <div className="h-5 bg-cream-300 rounded w-1/3 shimmer-gold" />
+                  <div className="h-4 bg-cream-200 rounded w-3/4 shimmer-gold" />
+                  <div className="h-3 bg-cream-200 rounded w-1/2 shimmer-gold" />
+                  <div className="h-5 bg-cream-200 rounded w-1/3 shimmer-gold" />
                 </div>
               </div>
             ))}
@@ -78,9 +78,9 @@ const CoffeeCarousel = () => {
                 >
                   <Link
                     to={`/cafe/${coffee.slug}`}
-                    className="group block bg-card rounded-2xl overflow-hidden border border-cream-400 hover:border-gold/30 card-tilt transition-all duration-500"
+                    className="group block bg-card rounded-2xl overflow-hidden border border-cream-300 hover:border-gold/30 card-tilt transition-all duration-500"
                   >
-                    <div className="aspect-square bg-cream-200/30 flex items-center justify-center relative overflow-hidden p-6">
+                    <div className="aspect-square bg-cream-100 flex items-center justify-center relative overflow-hidden p-6">
                       {coffee.imagens && coffee.imagens.length > 0 ? (
                         <img
                           src={coffee.imagens.find((i) => i.principal)?.url || coffee.imagens[0]?.url}
@@ -92,7 +92,7 @@ const CoffeeCarousel = () => {
                         <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                       )}
                       {coffee.sca_score && (
-                        <div className="absolute top-3 right-3 bg-card/90 text-brown font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
+                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
                           <Star className="w-3 h-3 fill-gold text-gold" />
                           SCA {coffee.sca_score}
                         </div>
@@ -117,7 +117,7 @@ const CoffeeCarousel = () => {
                           {Array.from({ length: 5 }).map((_, s) => (
                             <div
                               key={s}
-                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-400"}`}
+                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-300"}`}
                             />
                           ))}
                         </div>
@@ -126,7 +126,7 @@ const CoffeeCarousel = () => {
                       {coffee.notas_sensoriais && coffee.notas_sensoriais.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {coffee.notas_sensoriais.slice(0, 3).map((nota) => (
-                            <span key={nota} className="text-[10px] font-body text-muted-foreground border border-cream-400 rounded-full px-2 py-0.5 hover:border-gold hover:text-gold transition-colors">
+                            <span key={nota} className="text-[10px] font-body text-muted-foreground border border-cream-300 rounded-full px-2 py-0.5 hover:border-gold hover:text-gold transition-colors">
                               {nota}
                             </span>
                           ))}
