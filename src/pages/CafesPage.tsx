@@ -279,7 +279,7 @@ function CompareBar() {
   );
 }
 
-function ProductCard({ produto, index }: { produto: Produto; index: number }) {
+function ProductCard({ produto, index, onQuickView }: { produto: Produto; index: number; onQuickView: () => void }) {
   const pixPrice = produto.preco_promocional || produto.preco * 0.9;
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
