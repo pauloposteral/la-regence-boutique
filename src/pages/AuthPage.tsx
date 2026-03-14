@@ -121,7 +121,7 @@ const AuthPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-card border border-border rounded-lg p-8 lg:p-10 w-full max-w-md"
+          className="relative bg-card border border-cream-400 rounded-xl p-8 lg:p-10 w-full max-w-md"
         >
           {/* Brand */}
           <div className="text-center mb-8">
