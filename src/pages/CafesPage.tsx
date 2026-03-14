@@ -237,7 +237,7 @@ const CafesPage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} />)}
+              {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} onQuickView={() => setQuickViewProduct(produto)} />)}
             </div>
             {visibleCount < filtered.length && (
               <div className="text-center mt-10">
