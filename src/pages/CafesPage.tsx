@@ -321,7 +321,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
         </div>
         <div className="p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
-          <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
+          <h3 className="font-display text-xl font-semibold mt-1 text-brown-dark group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
           {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-gold/70 border border-gold/20 px-2 py-0.5 rounded-sm bg-gold/5">{nota}</span>)}
