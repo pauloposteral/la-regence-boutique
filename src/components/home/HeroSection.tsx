@@ -9,7 +9,7 @@ const HeroSection = () => {
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg scale-105"
-        style={{ backgroundImage: `url('/images/torrefacao.jpeg')` }}
+        style={{ backgroundImage: `url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501394497.png')` }}
       />
       {/* Cinematic neutral overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
