@@ -135,7 +135,7 @@ const ContaPage = () => {
   const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ full_name: profile.full_name, phone: profile.phone, cpf: profile.cpf }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ full_name: profile.full_name, phone: profile.phone, cpf: profile.cpf, preferred_roast: profile.preferred_roast || null, preferred_grind: profile.preferred_grind || null }).eq("user_id", user.id);
     setSaving(false);
     if (error) toast.error("Erro ao salvar perfil");
     else { toast.success("Perfil atualizado!"); queryClient.invalidateQueries({ queryKey: ["profile"] }); }
