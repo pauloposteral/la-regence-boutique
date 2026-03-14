@@ -341,7 +341,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           <div className="flex gap-2 mt-3">
             <Button
               size="sm"
-              className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wide uppercase transition-all duration-300"
+              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
