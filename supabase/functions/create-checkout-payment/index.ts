@@ -23,6 +23,7 @@ serve(async (req) => {
       total,
       cupomId,
       metodoPagamento,
+      idempotencyKey,
     } = await req.json();
 
     if (!items?.length) {
