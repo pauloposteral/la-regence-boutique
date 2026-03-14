@@ -22,7 +22,18 @@ serve(async (req) => {
       throw new Error("Supabase environment variables not configured");
     }
 
-    console.log("Generating hero image via Gemini 3 Pro Image Preview...");
+    // Accept custom prompt and fileName from request body
+    let prompt = "Generate a professional cinematic photography of artisanal specialty coffee beans being freshly roasted in a copper drum roaster, warm golden light illuminating the scene, steam and smoke rising beautifully, shallow depth of field with bokeh, luxury coffee brand aesthetic, dark moody tones with warm amber and golden highlights, 16:9 landscape composition, ultra high quality, photorealistic, editorial style photography";
+    let customFileName = "";
+
+    try {
+      const body = await req.json();
+      if (body.prompt) prompt = body.prompt;
+      if (body.fileName) customFileName = body.fileName;
+    } catch { /* no body, use defaults */ }
+
+    console.log("Generating image via Gemini 3 Pro Image Preview...");
+    console.log("Prompt:", prompt.substring(0, 80) + "...");
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -37,8 +48,7 @@ serve(async (req) => {
           messages: [
             {
               role: "user",
-              content:
-                "Generate a professional cinematic photography of artisanal specialty coffee beans being freshly roasted in a copper drum roaster, warm golden light illuminating the scene, steam and smoke rising beautifully, shallow depth of field with bokeh, luxury coffee brand aesthetic, dark moody tones with warm amber and golden highlights, 16:9 landscape composition, ultra high quality, photorealistic, editorial style photography",
+              content: prompt,
             },
           ],
           modalities: ["image", "text"],
