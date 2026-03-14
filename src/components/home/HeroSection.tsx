@@ -38,7 +38,7 @@ const HeroSection = () => {
             <span className="block italic font-medium text-gold-light">
               uma experiência
             </span>
-            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/60 mt-2">
+            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/80 mt-2">
               sensorial única
             </span>
           </motion.h1>
