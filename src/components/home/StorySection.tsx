@@ -13,7 +13,7 @@ const StorySection = () => {
             className="relative"
           >
             <img
-              src="/images/torrefacao.jpeg"
+              src="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501794526.png"
               alt="Torrefação La Régence em Andradina-SP"
               className="aspect-[4/5] w-full object-cover rounded-3xl shadow-sm"
               loading="lazy"

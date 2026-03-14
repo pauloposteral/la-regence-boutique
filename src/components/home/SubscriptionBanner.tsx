@@ -43,12 +43,11 @@ const SubscriptionBanner = () => {
           >
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
               <img
-                src="/images/torrefacao.jpeg"
-                alt="Torrefação artesanal La Régence"
+                src="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501835619.png"
+                alt="Caixa de assinatura de café La Régence"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
           </motion.div>
         </div>
