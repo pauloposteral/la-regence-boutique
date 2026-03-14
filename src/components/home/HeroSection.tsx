@@ -54,7 +54,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-white/70"
+            className="text-sm sm:text-base font-body font-light max-w-md mb-10 leading-relaxed text-white/85"
           >
             Cafés especiais acima de 80 pontos SCA, torrados 
             artesanalmente em Andradina-SP para revelar 
