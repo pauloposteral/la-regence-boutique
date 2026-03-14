@@ -319,7 +319,7 @@ const ProdutoPage = () => {
                 <Link key={p.id} to={`/cafe/${p.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
                   <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative">
                     {p.imagens && p.imagens.length > 0 ? (
-                      <img src={p.imagens.find((i: any) => i.principal)?.url || p.imagens[0]?.url} alt={p.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      <OptimizedImage src={p.imagens.find((i: any) => i.principal)?.url || p.imagens[0]?.url} alt={p.nome} className="group-hover:scale-105 transition-transform duration-500" />
                     ) : <span className="text-4xl">☕</span>}
                     {p.sca_score && <div className="absolute top-2 right-2 bg-gold text-primary-foreground text-[9px] font-mono font-semibold px-2 py-0.5 rounded-sm flex items-center gap-1"><Star className="w-2.5 h-2.5 fill-current" />{p.sca_score}</div>}
                   </div>
