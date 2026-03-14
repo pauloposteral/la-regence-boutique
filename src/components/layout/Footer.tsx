@@ -58,7 +58,7 @@ const Footer = () => {
         </div>
 
         {/* Contact row */}
-        <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm font-body text-brown">
+        <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm font-body text-muted-foreground">
           <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gold" /> Andradina-SP</span>
           <span className="hidden sm:block text-cream-500">·</span>
           <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gold" /> (18) 99654-0883</span>
