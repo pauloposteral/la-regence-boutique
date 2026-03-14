@@ -3,6 +3,7 @@ import HeroSection from "@/components/home/HeroSection";
 import CoffeeCarousel from "@/components/home/CoffeeCarousel";
 import SEOHead from "@/components/SEOHead";
 import LazySection from "@/components/home/LazySection";
+import ScrollReveal from "@/components/ui/scroll-reveal";
 import { lazy, Suspense } from "react";
 
 const SensoryNotesBanner = lazy(() => import("@/components/home/SensoryNotesBanner"));
@@ -30,40 +31,56 @@ const Index = () => {
       <Suspense fallback={<div className="min-h-[60px]" />}>
         <SensoryNotesBanner />
       </Suspense>
-      <CoffeeCarousel />
+      <ScrollReveal>
+        <CoffeeCarousel />
+      </ScrollReveal>
       <LazySection>
         <Suspense fallback={<div className="min-h-[500px]" />}>
-          <StorySection />
+          <ScrollReveal direction="left">
+            <StorySection />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[400px]" />}>
-          <BrewMethods />
+          <ScrollReveal>
+            <BrewMethods />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[300px]" />}>
-          <SubscriptionBanner />
+          <ScrollReveal direction="right">
+            <SubscriptionBanner />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[200px]" />}>
-          <StatsSection />
+          <ScrollReveal>
+            <StatsSection />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[300px]" />}>
-          <TestimonialsSection />
+          <ScrollReveal>
+            <TestimonialsSection />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[200px]" />}>
-          <DynamicBanners />
+          <ScrollReveal>
+            <DynamicBanners />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
       <LazySection>
         <Suspense fallback={<div className="min-h-[200px]" />}>
-          <CollectionsSection />
+          <ScrollReveal>
+            <CollectionsSection />
+          </ScrollReveal>
         </Suspense>
       </LazySection>
     </Layout>
