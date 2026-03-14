@@ -40,8 +40,8 @@ const Footer = () => {
 
           {/* Imprensa */}
           <div>
-            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-muted-foreground mb-5">Imprensa</h4>
-            <ul className="space-y-3 text-sm font-body text-brown">
+            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Imprensa</h4>
+            <ul className="space-y-3 text-sm font-body text-foreground/70">
               <li><span>Press kit / café</span></li>
               <li><span>Parcerias e eventos</span></li>
               <li><span>Consultas e insights</span></li>
