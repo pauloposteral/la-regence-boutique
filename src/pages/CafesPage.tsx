@@ -14,6 +14,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from "@/contexts/CartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import QuickViewModal from "@/components/product/QuickViewModal";
 import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
