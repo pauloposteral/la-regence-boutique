@@ -1,64 +1,35 @@
 
 
-## Plano: Replicar o Design de Referência
+# Por Que o Design Escuro Volta
 
-Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
+## Causa Raiz
 
-### Mudanças Necessárias
+Em `src/App.tsx` (linha 74):
+```tsx
+<ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+```
 
-**1. Header — Layout Centralizado**
-- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
-- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
-- Manter ícones (busca, conta, carrinho) à DIREITA
-- Arquivo: `Header.tsx`
+O `defaultTheme` está configurado como `"dark"`. Isso aplica a classe `.dark` no `<html>`, que ativa todas as variáveis CSS escuras definidas em `index.css` (background marrom escuro, cards escuros, textos claros invertidos). **Não importa que os componentes usem `bg-cream-100`** — as variáveis CSS como `--foreground`, `--muted`, `--border` etc. são todas recalculadas para o tema escuro.
 
-**2. CoffeeCarousel — Cards de Produto Redesenhados**
-- Grid de 4 colunas (não 5)
-- Adicionar estrelas de avaliação abaixo do nome
-- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
-- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
-- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
-- Botão "Escolher moagem" nos cards que têm variantes
-- Arquivo: `CoffeeCarousel.tsx`
+## Correção
 
-**3. NOVO — Banner de Notas Sensoriais (Marquee)**
-- Faixa horizontal animada entre os cafés e a seção de assinatura
-- Fundo escuro (espresso) com texto dourado
-- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
-- Scroll infinito horizontal (marquee CSS)
-- Criar: `src/components/home/SensoryNotesBanner.tsx`
+### 1. Mudar `defaultTheme` para `"light"` em `App.tsx`
+```tsx
+<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+```
 
-**4. SubscriptionBanner — Redesign com Imagem**
-- Layout 2 colunas: texto à esquerda, imagem de café à direita
-- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
-- Título: "Nunca fique sem o seu café preferido."
-- Botão CTA dourado: "Quero fazer parte →"
-- Imagem: usar `/images/torrefacao.jpeg` como placeholder
-- Arquivo: `SubscriptionBanner.tsx`
+### 2. Atualizar `theme-color` no `index.html`
+Trocar `#2a1a0f` (marrom escuro) por `#FAF7F2` (creme claro) na meta tag.
 
-**5. NOVO — Seção de Estatísticas**
-- 4 colunas com números grandes e descrições
-- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
-- Ícones decorativos (grão de café, etc.)
-- Fundo claro (cream)
-- Criar: `src/components/home/StatsSection.tsx`
+### 3. (Opcional) Remover o bloco `.dark` do `index.css`
+Se o site não precisa de modo escuro, remover as variáveis `.dark` evita que o problema volte. Se quiser manter suporte a dark mode para o futuro, pode deixar — basta que o default seja `"light"`.
 
-**6. Footer — Logo Dourada no Fundo**
-- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
-- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
-- Arquivo: `Footer.tsx`
+## Arquivos a modificar
 
-**7. Index.tsx — Reordenar Seções**
-- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
-- Arquivo: `Index.tsx`
+| Arquivo | Mudança |
+|---------|---------|
+| `src/App.tsx` | `defaultTheme="dark"` → `defaultTheme="light"` |
+| `index.html` | `theme-color` de `#2a1a0f` para `#FAF7F2` |
 
-### Arquivos Afetados
-- `src/components/layout/Header.tsx` — layout centralizado
-- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
-- `src/components/home/SensoryNotesBanner.tsx` — NOVO
-- `src/components/home/SubscriptionBanner.tsx` — redesign
-- `src/components/home/StatsSection.tsx` — NOVO
-- `src/components/layout/Footer.tsx` — logo badge
-- `src/pages/Index.tsx` — reordenação
-- `src/index.css` — animação marquee
+Correção simples e direta — 2 linhas.
 
