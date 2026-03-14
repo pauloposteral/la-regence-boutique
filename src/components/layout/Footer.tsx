@@ -46,7 +46,7 @@ const Footer = () => {
               <li><span>Parcerias e eventos</span></li>
               <li><span>Consultas e insights</span></li>
             </ul>
-            <div className="mt-5 rounded-xl overflow-hidden aspect-[4/3] border border-cream-400">
+            <div className="mt-5 rounded-xl overflow-hidden aspect-[4/3] border border-cream-300">
               <img
                 src="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501834638.png"
                 alt="Grãos de café torrados La Régence"
