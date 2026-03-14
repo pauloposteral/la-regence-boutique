@@ -37,6 +37,7 @@ const Layout = ({ children }: LayoutProps) => {
       <BottomNav />
       <NewsletterPopup />
       <PWAInstallPrompt />
+      <SocialProofToast />
     </div>
   );
 };
