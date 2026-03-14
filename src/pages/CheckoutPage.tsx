@@ -96,10 +96,12 @@ const CheckoutPage = () => {
   const prevStep = () => { if (step > 0) setStep(step - 1); };
 
   const finalizarPedido = async () => {
+    if (submitting) return; // Prevent double-submit
     setSubmitting(true);
+    const idempotencyKey = crypto.randomUUID();
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-payment", {
-        body: { items, form, subtotal, desconto, custoFrete, total, cupomId: null, metodoPagamento: form.metodoPagamento },
+        body: { items, form, subtotal, desconto, custoFrete, total, cupomId: null, metodoPagamento: form.metodoPagamento, idempotencyKey },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);

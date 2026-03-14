@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Coffee, ArrowRight, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const QUESTIONS = [
   {
@@ -110,6 +112,7 @@ const QuizPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Quiz de Café" description="Descubra o café ideal para o seu paladar com nosso quiz interativo." />
       <section className="bg-background border-b border-border py-16 lg:py-24">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <Coffee className="w-8 h-8 text-gold mx-auto mb-4" />
@@ -123,6 +126,15 @@ const QuizPage = () => {
       </section>
 
       <section className="py-16 lg:py-20 bg-background">
+        <div className="container mx-auto px-4 lg:px-8 max-w-2xl mb-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>Quiz de Café</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
           <AnimatePresence mode="wait">
             {!done ? (

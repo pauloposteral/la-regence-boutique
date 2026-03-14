@@ -29,6 +29,7 @@ const QuizPage = lazy(() => import("./pages/QuizPage"));
 const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
 const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
 const CompararPage = lazy(() => import("./pages/CompararPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -95,6 +96,7 @@ const App = () => (
                   <Route path="/quiz" element={<QuizPage />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
                   <Route path="/favoritos" element={<FavoritosPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
                   <Route path="/comparar" element={<CompararPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
