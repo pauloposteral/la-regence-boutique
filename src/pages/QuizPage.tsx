@@ -126,6 +126,15 @@ const QuizPage = () => {
       </section>
 
       <section className="py-16 lg:py-20 bg-background">
+        <div className="container mx-auto px-4 lg:px-8 max-w-2xl mb-8">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink asChild><Link to="/">Início</Link></BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>Quiz de Café</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
           <AnimatePresence mode="wait">
             {!done ? (
