@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, Minus, Plus, MapPin, Mountain, Leaf, Calendar, Coffee, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
