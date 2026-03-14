@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
 
     const footer = `
       <div style="background:#f5f0eb;padding:16px;text-align:center;font-size:12px;color:#8b7355">
-        <p>La Régence — Cafés Especiais desde 2006</p>
-        <p>Andradina-SP · (18) 99654-0883</p>
+        <p>La Régence — Cafés Especiais desde 2005</p>
+        <p>Av. Guanabara, 2919 — Stella Maris, Andradina-SP · (18) 99654-0883</p>
       </div>
     `;
 

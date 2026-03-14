@@ -17,10 +17,10 @@ const CollectionsSection = lazy(() => import("@/components/home/CollectionsSecti
 const Index = () => {
   const jsonLd = {
     "@context": "https://schema.org", "@type": "CoffeeStore",
-    name: "La Régence", description: "Cafeteria e torrefação artesanal de cafés especiais desde 2006 em Andradina-SP.",
+    name: "La Régence", description: "Cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP.",
     url: "https://laregence.com.br", telephone: "+5518996540883",
-    address: { "@type": "PostalAddress", addressLocality: "Andradina", addressRegion: "SP", addressCountry: "BR" },
-    foundingDate: "2006", priceRange: "$$",
+    address: { "@type": "PostalAddress", streetAddress: "Avenida Guanabara, 2919 - Stella Maris", addressLocality: "Andradina", addressRegion: "SP", addressCountry: "BR" },
+    foundingDate: "2005", priceRange: "$$",
   };
 
   return (

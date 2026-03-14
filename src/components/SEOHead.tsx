@@ -11,7 +11,7 @@ interface SEOHeadProps {
 }
 
 const SITE_NAME = "La Régence — Cafés Especiais";
-const DEFAULT_DESC = "Cafeteria e torrefação artesanal de cafés especiais desde 2006 em Andradina-SP. Grãos selecionados, torrefação sob demanda e entrega em todo o Brasil.";
+const DEFAULT_DESC = "Cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP. Grãos selecionados, torrefação sob demanda e entrega em todo o Brasil.";
 const DEFAULT_IMAGE = "/og-image.png";
 
 const SEOHead = ({

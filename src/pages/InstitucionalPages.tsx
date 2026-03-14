@@ -17,7 +17,7 @@ const InstitucionalPage = ({ title, children }: { title: string; children: React
 
 export const PoliticaPrivacidadePage = () => (
   <InstitucionalPage title="Política de Privacidade">
-    <p>A La Régence Cafés Especiais LTDA ("La Régence"), inscrita no CNPJ sob o nº XX.XXX.XXX/0001-XX, com sede em Andradina-SP, é responsável pelo tratamento dos dados pessoais coletados neste site.</p>
+    <p>A Cafe La Regence Limitada ("La Régence"), inscrita no CNPJ sob o nº 07.717.979/0001-62, com sede na Avenida Guanabara, 2919 — Stella Maris, Andradina-SP, é responsável pelo tratamento dos dados pessoais coletados neste site.</p>
     <h2 className="font-display text-xl font-semibold mt-6">1. Dados coletados</h2>
     <p>Coletamos dados pessoais que você nos fornece diretamente, como nome, e-mail, telefone, CPF e endereço de entrega ao criar sua conta ou realizar uma compra.</p>
     <h2 className="font-display text-xl font-semibold mt-6">2. Finalidade do tratamento</h2>

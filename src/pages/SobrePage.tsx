@@ -32,7 +32,7 @@ const SobrePage = () => {
                 Sobre a La <span className="italic font-medium text-gradient-gold">Régence</span>
               </h1>
               <p className="text-muted-foreground font-body leading-relaxed mb-4">
-                A história do Café La Régence começou em 2006, na cidade de Andradina, interior de São Paulo, 
+                A história do Café La Régence começou em 2005, na cidade de Andradina, interior de São Paulo, 
                 quando a família <strong className="text-foreground">Posteral</strong>, apaixonada por cafés, 
                 decidiu fundar uma cafeteria especializada em cafés especiais.
               </p>

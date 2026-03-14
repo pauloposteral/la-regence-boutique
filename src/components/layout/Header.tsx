@@ -85,7 +85,7 @@ const Header = () => {
       {/* Top announcement bar */}
       <div className="bg-cream-100 text-foreground/70 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2 border-b border-cream-300">
         <Truck className="w-3.5 h-3.5 text-gold" />
-        Frete grátis acima de R$ 150 · Torrefação artesanal desde 2006
+        Frete grátis acima de R$ 150 · Torrefação artesanal desde 2005
       </div>
 
       <header className={`sticky top-0 z-50 transition-all duration-500 ${
