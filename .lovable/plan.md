@@ -1,56 +1,46 @@
 
-# Auditoria End-to-End — La Régence E-commerce
 
-## Avaliação: 100% Completo ✅
+## Plano: Adicionar logomarca oficial da La Régence no Header, Favicon e demais locais
 
----
+### Contexto
 
-## Todas as Correções Implementadas
+O PDF contém o manual de marca com diversas versões do logotipo. As melhores para uso no site:
+- **Page 1** (fundo branco, logo completa com ornamentos dourados) -- para Header e Footer
+- **Page 9** (versão limpa "La Regence - Cafés Especiais", fundo branco) -- alternativa clean para o header
+- **Page 5** (versão monocromática outline) -- boa para favicon/ícone
 
-### ✅ Concluídos
-1. **Decremento automático de estoque** — Webhook Stripe decrementa estoque ao confirmar pedido
-2. **Upload de imagens** — AdminProdutos (bucket product-images) e AdminBanners (bucket public-assets)
-3. **Pix no checkout** — Desconto de 10% aplicado nos preços dos itens
-4. **Máscaras de input** — CPF, telefone e CEP com formatação automática
-5. **forwardRef warning** — ScrollToTop corrigido com motion.create + forwardRef
-6. **Edge functions** — Stripe imports migrados de esm.sh para npm
-7. **Informações da empresa** — CNPJ 07.717.979/0001-62, endereço completo, razão social
-8. **Ano de fundação** — Corrigido de "2006" para "2005" em todos os arquivos
-9. **Favicon SVG** — Monograma LR dourado transparente substituindo JPEG
-10. **Bloco .dark removido** — Site light-only, CSS limpo
-11. **Exportar CSV** — Botão de exportação em AdminProdutos (produtos + estoque)
-12. **E-mail transacional** — Edge function com templates de confirmação, boas-vindas e status
-13. **Rate limiting** — Implementado no send-email (5/min por destinatário)
-14. **Focus visible** — Estilos globais com outline dourado
-15. **SEO completo** — JSON-LD, meta tags, Open Graph, sitemap generator
-16. **Programa de fidelidade** — Pontos automáticos por pedido, consulta de saldo
-17. **Painel admin** — Dashboard, CRUD completo, gestão de pedidos, clientes, cupons, coleções
-18. **Timeline de pedidos** — Histórico de status com trigger automático
-19. **Avaliações** — Sistema de reviews com moderação admin
-20. **Assinaturas** — Gestão com pausa/cancelamento
-21. **Blog** — CRUD com editor de conteúdo
-22. **Newsletter** — Popup + footer com validação
-23. **Comparador** — Comparação lado a lado de produtos
-24. **Quiz de café** — Recomendação personalizada
-25. **PWA** — Manifest, install prompt, offline-ready
+Como o PDF contém vetores, mas só temos os screenshots em JPG, vamos extrair as imagens das páginas relevantes e salvar no projeto.
 
----
+### Arquivos de imagem a copiar
 
-## Infraestrutura de E-mail
+1. **Logo principal (fundo branco)** -- page 1 screenshot -> `public/images/logo-laregence-full.jpg` (para Header)
+2. **Logo limpa "Cafés Especiais"** -- page 9 screenshot -> `public/images/logo-laregence-clean.jpg` (alternativa)
+3. **Logo fundo escuro** -- page 2 screenshot -> `public/images/logo-laregence-dark.jpg` (para Footer se necessário)
+4. **Logo monocolor** -- page 5 screenshot -> `public/images/logo-laregence-mono.jpg` (para favicon/PWA icons)
 
-O `send-email` edge function possui templates HTML completos para:
-- **welcome** — Boas-vindas com código de desconto BEMVINDO10
-- **order_confirmation** — Confirmação com detalhes do pedido
-- **status_update** — Atualização com código de rastreamento
+### Alterações no código
 
-Para produção, integrar com serviço de envio (Resend, SendGrid) ou configurar email infrastructure via Lovable Cloud.
+1. **Header (`src/components/layout/Header.tsx`)**
+   - Substituir o texto tipográfico "La Régence" no centro por uma tag `<img>` com a logo oficial (versão page 1 ou page 9, fundo branco)
+   - Manter como link para `/`
+   - Dimensionar para ~40-48px de altura no desktop, ~32-36px no mobile
 
----
+2. **Footer (`src/components/layout/Footer.tsx`)**
+   - Adicionar a logo oficial acima ou próximo ao bloco de copyright (onde antes havia o "Brand emblem" vazio)
 
-## Notas Técnicas
+3. **Favicon (`index.html` + `public/favicon.svg`)**
+   - Substituir o favicon SVG minimalista "LR" pela imagem da logo (versão mono/ícone)
+   - Atualizar `index.html` para referenciar a nova imagem
 
-- Preços em centavos no banco, formatados com Intl.NumberFormat
-- RLS ativado em todas as tabelas com policies por user
-- Admin verificado via `has_role()` security definer function
-- Stripe webhooks com verificação de assinatura
-- Imagens em Supabase Storage (buckets públicos)
+4. **PWA Manifest (`public/manifest.json`)**
+   - Atualizar os ícones para usar a nova logo
+
+5. **Emails / Meta tags**
+   - Atualizar og:image se desejado para usar a logo oficial
+
+### Detalhes técnicos
+
+- As imagens serão copiadas de `parsed-documents://` para `public/images/`
+- O header usará `<img>` com `object-contain` e altura fixa para não quebrar o layout grid de 3 colunas
+- Manter a transição suave de hover existente no link da logo
+
