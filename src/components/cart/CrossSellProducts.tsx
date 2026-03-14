@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
@@ -11,9 +12,37 @@ const CrossSellProducts = () => {
   const { data: produtos = [] } = useProdutos();
 
   const cartIds = new Set(items.map((i) => i.produtoId));
-  const suggestions = produtos
-    .filter((p) => !cartIds.has(p.id))
-    .slice(0, 3);
+
+  // Cross-sell inteligente: prioriza mesma categoria e notas sensoriais similares
+  const suggestions = useMemo(() => {
+    const available = produtos.filter((p) => !cartIds.has(p.id) && p.estoque > 0);
+    if (available.length === 0) return [];
+
+    // Coletar categorias e notas do carrinho
+    const cartCategorias = new Set<string>();
+    const cartNotas = new Set<string>();
+    items.forEach((item) => {
+      const produto = produtos.find((p) => p.id === item.produtoId);
+      if (produto?.categoria_id) cartCategorias.add(produto.categoria_id);
+      produto?.notas_sensoriais?.forEach((n) => cartNotas.add(n));
+    });
+
+    // Pontuar cada produto candidato
+    const scored = available.map((p) => {
+      let score = 0;
+      if (p.categoria_id && cartCategorias.has(p.categoria_id)) score += 3;
+      if (p.notas_sensoriais) {
+        score += p.notas_sensoriais.filter((n) => cartNotas.has(n)).length;
+      }
+      if (p.destaque) score += 1;
+      return { produto: p, score };
+    });
+
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((s) => s.produto);
+  }, [produtos, items, cartIds]);
 
   if (suggestions.length === 0) return null;
 

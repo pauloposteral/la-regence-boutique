@@ -38,13 +38,13 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Imprensa */}
+          {/* Contato */}
           <div>
-            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Imprensa</h4>
+            <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Contato</h4>
             <ul className="space-y-3 text-sm font-body text-foreground/70">
-              <li><span>Press kit / café</span></li>
-              <li><span>Parcerias e eventos</span></li>
-              <li><span>Consultas e insights</span></li>
+              <li><Link to="/contato" className="link-underline-hover hover:text-gold transition-colors duration-300">Fale conosco</Link></li>
+              <li><Link to="/frete" className="link-underline-hover hover:text-gold transition-colors duration-300">Prazos e frete</Link></li>
+              <li><a href="https://instagram.com/laregencecafe" target="_blank" rel="noopener noreferrer" className="link-underline-hover hover:text-gold transition-colors duration-300">Instagram</a></li>
             </ul>
             <div className="mt-5 rounded-xl overflow-hidden aspect-[4/3] border border-cream-300">
               <img

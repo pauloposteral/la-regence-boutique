@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const FavoritosPage = () => {
   const { user } = useAuth();
