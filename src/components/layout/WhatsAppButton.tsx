@@ -25,15 +25,15 @@ const WhatsAppButton = () => {
       <motion.span
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: hovered ? 1 : 0, x: hovered ? 0 : 10 }}
-        className="bg-card text-foreground text-xs font-body font-medium px-3 py-1.5 rounded-lg shadow-lg border border-border whitespace-nowrap pointer-events-none"
+        className="bg-card text-foreground text-xs font-body font-medium px-3 py-1.5 rounded-full shadow-lg border border-border whitespace-nowrap pointer-events-none"
       >
         Fale conosco
       </motion.span>
 
       <div className="relative">
-        {/* Pulse ring */}
-        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20" />
-        <div className="relative w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+        {/* Pulse ring — harmonized with gold */}
+        <span className="absolute inset-0 rounded-full bg-gold/40 animate-ping opacity-20" />
+        <div className="relative w-14 h-14 bg-gold text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all hover:bg-gold-dark">
           <MessageCircle className="w-6 h-6" />
         </div>
       </div>

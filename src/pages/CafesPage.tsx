@@ -109,16 +109,16 @@ const CafesPage = () => {
     <Layout>
       <SEOHead title="Nossos Cafés Especiais" description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito." />
       
-      <section className="bg-background border-b border-border py-20 lg:py-24 relative overflow-hidden">
+      <section className="bg-cream-200 border-b border-cream-400 py-20 lg:py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.02]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A96E' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
           <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-4">Coleção Completa</p>
-          <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-foreground">
+          <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-brown-dark">
             Nossos <span className="italic font-light text-gradient-gold">Cafés</span>
           </h1>
-          <p className="font-body text-muted-foreground max-w-md mx-auto text-sm">
+          <p className="font-body text-brown max-w-md mx-auto text-sm">
             Cafés especiais torrados artesanalmente, com rastreabilidade do grão à xícara.
           </p>
           <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-5" />

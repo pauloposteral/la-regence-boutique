@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Mail } from "lucide-react";
+import { X, Mail, Coffee } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,8 @@ const NewsletterPopup = () => {
 
   useEffect(() => {
     const dismissed = localStorage.getItem(STORAGE_KEY);
-    // Don't show if dismissed within last 7 days
     if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return;
 
-    // Show after delay OR on exit intent (mouse leaving viewport)
     const timer = setTimeout(() => setVisible(true), DELAY_MS);
 
     const onMouseLeave = (e: MouseEvent) => {
@@ -62,33 +60,33 @@ const NewsletterPopup = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-[60]"
+            className="fixed inset-0 bg-brown-deep/50 backdrop-blur-sm z-[60]"
             onClick={dismiss}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-[90vw] max-w-md bg-background rounded-2xl shadow-2xl border border-border overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-[90vw] max-w-md bg-card rounded-2xl shadow-2xl border border-cream-400 overflow-hidden"
           >
             {/* Gold accent bar */}
             <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
             
             <button
               onClick={dismiss}
-              className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted transition-colors"
+              className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-cream-200 transition-colors"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
 
             <div className="p-8 text-center">
-              <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-6 h-6 text-gold" />
+              <div className="w-14 h-14 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-gold/20">
+                <Coffee className="w-7 h-7 text-gold" />
               </div>
-              <h3 className="font-display text-2xl font-semibold mb-2">
-                Ganhe <span className="text-gold">10% OFF</span>
+              <h3 className="font-display text-2xl font-semibold mb-2 text-brown-dark">
+                Ganhe <span className="text-gradient-gold">10% OFF</span>
               </h3>
-              <p className="font-body text-sm text-muted-foreground mb-6">
+              <p className="font-body text-sm text-muted-foreground mb-6 leading-relaxed">
                 Inscreva-se na newsletter e receba um cupom exclusivo de desconto na sua primeira compra.
               </p>
 
@@ -99,7 +97,7 @@ const NewsletterPopup = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && subscribe()}
-                  className="font-body text-sm"
+                  className="font-body text-sm rounded-full"
                   autoFocus
                 />
                 <Button
@@ -108,7 +106,7 @@ const NewsletterPopup = () => {
                   className="font-body text-sm shrink-0"
                 >
                   {loading ? (
-                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <span className="btn-spinner" />
                   ) : (
                     "Inscrever"
                   )}

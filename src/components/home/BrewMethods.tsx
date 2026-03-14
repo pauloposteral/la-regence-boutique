@@ -36,13 +36,13 @@ const BrewMethods = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="group text-center p-8 rounded-xl bg-cream-50 border border-cream-400 hover:border-gold/30 transition-all duration-500 cursor-pointer hover:shadow-lg"
+                className="group text-center p-8 rounded-2xl bg-card border border-cream-400 hover:border-gold/30 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500 cursor-pointer"
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/5 border border-gold/10 flex items-center justify-center group-hover:bg-gold/10 group-hover:border-gold/25 group-hover:scale-110 transition-all duration-500">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/8 border border-gold/15 flex items-center justify-center group-hover:bg-gold/15 group-hover:border-gold/30 group-hover:scale-110 transition-all duration-500">
                   <Icon className="w-6 h-6 text-gold/70 group-hover:text-gold transition-colors" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-brown-dark">{method.name}</h3>
-                <p className="text-[11px] text-cream-700 font-body mt-1">{method.description}</p>
+                <p className="text-[11px] text-muted-foreground font-body mt-1">{method.description}</p>
               </motion.div>
             );
           })}

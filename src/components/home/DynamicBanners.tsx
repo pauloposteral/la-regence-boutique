@@ -47,7 +47,7 @@ const DynamicBanners = () => {
 
 function BannerCard({ banner }: { banner: any }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-cream-400 bg-card h-48 flex items-end group-hover:border-gold/30 transition-colors">
+    <div className="relative overflow-hidden rounded-2xl border border-cream-400 bg-card h-48 flex items-end group-hover:border-gold/30 group-hover:scale-[1.01] transition-all duration-500">
       {banner.imagem_url && (
         <img
           src={banner.imagem_url}

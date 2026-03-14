@@ -43,7 +43,7 @@ const ProductGallery = ({ images, productName, scaScore, promoPercent }: Props) 
       {/* Main image with mouse-follow zoom */}
       <div
         ref={containerRef}
-        className="aspect-square bg-secondary rounded-lg flex items-center justify-center relative overflow-hidden cursor-zoom-in"
+        className="aspect-square bg-cream-200/30 rounded-2xl flex items-center justify-center relative overflow-hidden cursor-zoom-in border border-cream-400"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -67,14 +67,14 @@ const ProductGallery = ({ images, productName, scaScore, promoPercent }: Props) 
         </AnimatePresence>
 
         {scaScore && (
-          <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-sm font-body font-semibold px-3 py-1.5 rounded flex items-center gap-1.5 z-10">
+          <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-sm text-brown text-sm font-body font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 z-10 border border-cream-400">
             <Star className="w-4 h-4 fill-gold text-gold" />
             SCA {scaScore}
           </div>
         )}
 
         {promoPercent && promoPercent > 0 && (
-          <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-body font-bold px-3 py-1.5 rounded z-10">
+          <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-body font-bold px-3 py-1.5 rounded-full z-10">
             {promoPercent}% OFF
           </div>
         )}
@@ -87,8 +87,8 @@ const ProductGallery = ({ images, productName, scaScore, promoPercent }: Props) 
             <button
               key={i}
               onClick={() => setSelectedIdx(i)}
-              className={`w-16 h-16 rounded border-2 overflow-hidden shrink-0 transition-all ${
-                i === selectedIdx ? "border-accent" : "border-border hover:border-accent/50"
+              className={`w-16 h-16 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
+                i === selectedIdx ? "border-gold shadow-sm" : "border-cream-400 hover:border-gold/50"
               }`}
             >
               <img src={img.url} alt={img.alt_text || productName} className="w-full h-full object-cover" loading="lazy" />

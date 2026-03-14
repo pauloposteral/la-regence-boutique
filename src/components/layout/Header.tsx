@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, X, Heart } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X, Heart, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
@@ -83,17 +83,18 @@ const Header = () => {
   return (
     <>
       {/* Top announcement bar */}
-      <div className="bg-brown-deep text-cream-200 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase">
+      <div className="bg-brown-deep text-cream-200 text-center text-[11px] py-2 font-body tracking-[0.15em] uppercase flex items-center justify-center gap-2">
+        <Truck className="w-3.5 h-3.5 text-gold-light/70" />
         Frete grátis acima de R$ 150 · Torrefação artesanal desde 2006
       </div>
 
       <header className={`sticky top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-cream-50/95 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.1)]"
+          ? "bg-cream-50/95 backdrop-blur-xl shadow-[0_1px_0_hsl(var(--gold)/0.12)]"
           : "bg-cream-100/90 backdrop-blur-md"
       }`}>
         {/* Gold line accent */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
 
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-3 items-center h-16 lg:h-20">
@@ -162,7 +163,7 @@ const Header = () => {
                     key={totalItems}
                     initial={{ scale: 0.5 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center badge-bounce"
                   >
                     {totalItems}
                   </motion.span>
@@ -202,7 +203,7 @@ const Header = () => {
                       <Link
                         key={r.slug}
                         to={`/cafe/${r.slug}`}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-cream-200 transition-colors"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-cream-200 transition-colors"
                         onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
                       >
                         <div className="w-10 h-10 rounded-lg bg-cream-200 overflow-hidden shrink-0 border border-cream-400">
@@ -260,8 +261,8 @@ const Header = () => {
           )}
         </AnimatePresence>
 
-        {/* Bottom gold line */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
+        {/* Bottom gold line — visible when scrolled */}
+        <div className={`h-px transition-opacity duration-500 bg-gradient-to-r from-transparent via-gold/15 to-transparent ${scrolled ? 'opacity-100' : 'opacity-0'}`} />
       </header>
     </>
   );
