@@ -228,11 +228,23 @@ const CheckoutPage = () => {
                       </div>
                       <div>
                         <Label className="font-body text-xs text-muted-foreground">Telefone</Label>
-                        <Input value={form.telefone} onChange={(e) => updateField("telefone", e.target.value)} className="font-body mt-1" placeholder="(00) 00000-0000" />
+                        <Input value={form.telefone} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+                          else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+                          else if (v.length > 0) v = `(${v}`;
+                          updateField("telefone", v);
+                        }} className="font-body mt-1" placeholder="(00) 00000-0000" />
                       </div>
                       <div>
                         <Label className="font-body text-xs text-muted-foreground">CPF</Label>
-                        <Input value={form.cpf} onChange={(e) => updateField("cpf", e.target.value)} className="font-body mt-1" placeholder="000.000.000-00" />
+                        <Input value={form.cpf} onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          if (v.length > 9) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6,9)}-${v.slice(9)}`;
+                          else if (v.length > 6) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6)}`;
+                          else if (v.length > 3) v = `${v.slice(0,3)}.${v.slice(3)}`;
+                          updateField("cpf", v);
+                        }} className="font-body mt-1" placeholder="000.000.000-00" />
                       </div>
                     </div>
                   </div>
