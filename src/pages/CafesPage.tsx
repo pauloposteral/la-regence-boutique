@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle, GitCompareArrows } from "lucide-react";
+import { Star, Search, SlidersHorizontal, X, ShoppingBag, AlertTriangle, GitCompareArrows, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from "@/contexts/CartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import QuickViewModal from "@/components/product/QuickViewModal";
 import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
@@ -44,6 +45,7 @@ const CafesPage = () => {
   const [priceFilterActive, setPriceFilterActive] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [quickViewProduct, setQuickViewProduct] = useState<Produto | null>(null);
 
   // Get actual price range from products
   const actualPriceRange = useMemo(() => {
@@ -235,7 +237,7 @@ const CafesPage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} />)}
+              {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} onQuickView={() => setQuickViewProduct(produto)} />)}
             </div>
             {visibleCount < filtered.length && (
               <div className="text-center mt-10">
@@ -249,6 +251,7 @@ const CafesPage = () => {
 
         {/* Floating Compare Bar */}
         <CompareBar />
+        <QuickViewModal produto={quickViewProduct} open={!!quickViewProduct} onOpenChange={(open) => !open && setQuickViewProduct(null)} />
       </div>
     </Layout>
   );
@@ -276,7 +279,7 @@ function CompareBar() {
   );
 }
 
-function ProductCard({ produto, index }: { produto: Produto; index: number }) {
+function ProductCard({ produto, index, onQuickView }: { produto: Produto; index: number; onQuickView: () => void }) {
   const pixPrice = produto.preco_promocional || produto.preco * 0.9;
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
@@ -328,15 +331,20 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              {produto.preco_promocional ? (
-                <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
-              ) : (
-                <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-              )}
+          <div className="mt-4 space-y-1">
+            <div className="flex items-end justify-between">
+              <div>
+                {produto.preco_promocional ? (
+                  <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                ) : (
+                  <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                )}
+              </div>
+              <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
             </div>
-            <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
+            <p className="text-[10px] text-muted-foreground font-body">
+              ou 12x de R$ {((produto.preco_promocional || produto.preco) / 12).toFixed(2).replace(".", ",")} sem juros
+            </p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button
@@ -346,6 +354,15 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
               Adicionar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }}
+              title="Visualização rápida"
+            >
+              <Eye className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant={comparing ? "secondary" : "outline"}

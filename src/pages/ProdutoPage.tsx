@@ -181,9 +181,13 @@ const ProdutoPage = () => {
                   <span className="font-display text-4xl font-bold text-foreground">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
                 )}
               </div>
-              <div className="mt-2 flex items-center gap-4 text-sm font-body">
-                <span className="text-gold font-semibold">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
-                <span className="text-muted-foreground">ou 3x de R$ {(currentPrice / 3).toFixed(2).replace(".", ",")}</span>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center gap-4 text-sm font-body">
+                  <span className="text-gold font-semibold">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
+                </div>
+                <p className="text-xs text-muted-foreground font-body">
+                  ou 12x de R$ {(currentPrice / 12).toFixed(2).replace(".", ",")} sem juros
+                </p>
               </div>
               {produto.preco_promocional && (
                 <div className="mt-3"><PromotionCountdown /></div>

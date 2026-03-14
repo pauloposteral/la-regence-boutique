@@ -43,13 +43,14 @@ const Header = () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
       const { data } = await supabase
         .from("produtos")
-        .select("nome, slug, preco, produto_imagens(url, principal)")
+        .select("nome, slug, preco, preco_promocional, notas_sensoriais, categorias(nome), produto_imagens(url, principal)")
         .eq("ativo", true)
-        .ilike("nome", `%${debouncedSearch}%`)
-        .limit(5);
+        .or(`nome.ilike.%${debouncedSearch}%,notas_sensoriais.cs.{${debouncedSearch}},origem.ilike.%${debouncedSearch}%`)
+        .limit(6);
       return (data || []).map((p: any) => ({
         ...p,
         img: p.produto_imagens?.find((i: any) => i.principal)?.url || p.produto_imagens?.[0]?.url,
+        categoria: p.categorias?.nome,
       }));
     },
     enabled: debouncedSearch.length >= 2,
@@ -210,8 +211,18 @@ const Header = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-sm font-medium truncate text-brown-dark">{r.nome}</p>
+                          {r.categoria && <p className="font-body text-[10px] text-muted-foreground">{r.categoria}</p>}
                         </div>
-                        <span className="font-mono text-sm font-semibold text-gold shrink-0">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                        <div className="text-right shrink-0">
+                          {r.preco_promocional ? (
+                            <>
+                              <span className="font-mono text-[10px] text-cream-700 line-through block">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                              <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                            </>
+                          ) : (
+                            <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                          )}
+                        </div>
                       </Link>
                     ))}
                     <Link
