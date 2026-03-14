@@ -224,8 +224,45 @@ const ContaPage = () => {
                     <div><Label className="font-body text-xs">E-mail</Label><Input value={user?.email || ""} disabled className="font-body bg-muted/50" /></div>
                     <div><Label className="font-body text-xs">Telefone</Label><Input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className="font-body" placeholder="(00) 00000-0000" /></div>
                     <div><Label className="font-body text-xs">CPF</Label><Input value={profile.cpf} onChange={(e) => setProfile((p) => ({ ...p, cpf: e.target.value }))} className="font-body" placeholder="000.000.000-00" /></div>
-                   </div>
-                  <Button onClick={saveProfile} disabled={saving} className="font-body text-sm bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wider">{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+                    </div>
+
+                  {/* Coffee Preferences */}
+                  <div className="border-t border-border pt-6 mt-6">
+                    <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">☕ Preferências de Café</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="font-body text-xs">Torra preferida</Label>
+                        <select
+                          value={profile.preferred_roast}
+                          onChange={(e) => setProfile((p) => ({ ...p, preferred_roast: e.target.value }))}
+                          className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm bg-background focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors"
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="clara">Clara</option>
+                          <option value="media">Média</option>
+                          <option value="media_escura">Média-Escura</option>
+                          <option value="escura">Escura</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="font-body text-xs">Moagem preferida</Label>
+                        <select
+                          value={profile.preferred_grind}
+                          onChange={(e) => setProfile((p) => ({ ...p, preferred_grind: e.target.value }))}
+                          className="w-full border border-border rounded-lg px-3 py-2 font-body text-sm bg-background focus:border-gold focus:ring-1 focus:ring-gold/30 outline-none transition-colors"
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="graos">Grão Inteiro</option>
+                          <option value="grossa">Moído Grosso (French Press)</option>
+                          <option value="media">Moído Médio (Filtro)</option>
+                          <option value="fina">Moído Fino (Espresso)</option>
+                          <option value="extra_fina">Extra Fino (Cafeteira Turca)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button onClick={saveProfile} disabled={saving} className="font-body text-sm bg-gold text-primary-foreground hover:bg-gold-light rounded-full uppercase tracking-wider">{saving ? "Salvando..." : "Salvar Alterações"}</Button>
 
                   {/* LGPD - Delete Account */}
                   <div className="border-t border-border pt-6 mt-6">
