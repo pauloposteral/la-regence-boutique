@@ -226,10 +226,13 @@ const ProdutoPage = () => {
               </div>
             )}
 
-            {/* Out of stock badge */}
+            {/* Out of stock badge + Back in stock notify */}
             {produto.estoque === 0 && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-center">
-                <span className="font-body text-sm font-semibold text-destructive">Fora de estoque</span>
+              <div className="space-y-3">
+                <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-center">
+                  <span className="font-body text-sm font-semibold text-destructive">Fora de estoque</span>
+                </div>
+                <BackInStockNotify produtoId={produto.id} produtoNome={produto.nome} />
               </div>
             )}
 
