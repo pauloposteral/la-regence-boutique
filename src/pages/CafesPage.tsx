@@ -45,6 +45,7 @@ const CafesPage = () => {
   const [priceFilterActive, setPriceFilterActive] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [quickViewProduct, setQuickViewProduct] = useState<Produto | null>(null);
 
   // Get actual price range from products
   const actualPriceRange = useMemo(() => {
