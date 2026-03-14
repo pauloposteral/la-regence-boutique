@@ -81,8 +81,8 @@ const Footer = () => {
 
         {/* Brand emblem */}
         <div className="flex justify-center mt-12 mb-6">
-          <div className="w-24 h-24 rounded-full border border-gold/25 flex items-center justify-center bg-gold/[0.03]">
-            <span className="font-display text-sm font-semibold text-center leading-tight text-brown-dark">
+          <div className="w-24 h-24 rounded-full border border-cream-300 flex items-center justify-center bg-white">
+            <span className="font-display text-sm font-semibold text-center leading-tight text-foreground">
               La<br /><span className="italic text-base text-gold">Régence</span>
             </span>
           </div>
