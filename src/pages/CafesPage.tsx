@@ -331,9 +331,9 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           <div className="mt-4 flex items-end justify-between">
             <div>
               {produto.preco_promocional ? (
-                <><span className="text-xs text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-foreground">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
               ) : (
-                <span className="font-mono font-bold text-lg text-foreground">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
               )}
             </div>
             <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
