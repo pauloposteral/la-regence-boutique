@@ -21,6 +21,7 @@ import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import OptimizedImage from "@/components/ui/optimized-image";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const MOAGEM_LABELS: Record<string, string> = { graos: "Grãos", grossa: "Grossa", media: "Média", fina: "Fina", extra_fina: "Extra Fina" };

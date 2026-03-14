@@ -15,6 +15,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbP
 import { useCart } from "@/contexts/CartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import QuickViewModal from "@/components/product/QuickViewModal";
+import OptimizedImage from "@/components/ui/optimized-image";
 import { toast } from "sonner";
 
 const TORRA_LABELS: Record<string, string> = {
