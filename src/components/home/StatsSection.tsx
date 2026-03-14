@@ -10,7 +10,7 @@ const stats = [
 
 const StatsSection = () => {
   return (
-    <section className="py-20 lg:py-28 bg-secondary/50 border-y border-border">
+    <section className="py-20 lg:py-28 bg-cream-200 border-y border-cream-400">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat, i) => (
@@ -29,7 +29,7 @@ const StatsSection = () => {
                   {stat.value}
                 </p>
               )}
-              <p className="text-sm font-body text-muted-foreground mt-2 whitespace-pre-line leading-snug">{stat.label}</p>
+              <p className="text-sm font-body text-brown-light mt-2 whitespace-pre-line leading-snug">{stat.label}</p>
             </motion.div>
           ))}
         </div>

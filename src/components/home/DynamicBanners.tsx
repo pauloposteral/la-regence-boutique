@@ -47,7 +47,7 @@ const DynamicBanners = () => {
 
 function BannerCard({ banner }: { banner: any }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-border bg-card h-48 flex items-end group-hover:border-gold/30 transition-colors">
+    <div className="relative overflow-hidden rounded-xl border border-cream-400 bg-card h-48 flex items-end group-hover:border-gold/30 transition-colors">
       {banner.imagem_url && (
         <img
           src={banner.imagem_url}
@@ -58,10 +58,10 @@ function BannerCard({ banner }: { banner: any }) {
       )}
       {/* Gold hover overlay */}
       <div className="absolute inset-0 bg-gold/0 group-hover:bg-gold/10 transition-colors duration-300" />
-      <div className="relative z-10 w-full p-5 bg-gradient-to-t from-black/70 to-transparent text-white">
+      <div className="relative z-10 w-full p-5 bg-gradient-to-t from-brown-deep/70 to-transparent text-white">
         <h3 className="font-display text-lg font-semibold">{banner.titulo}</h3>
         {banner.subtitulo && (
-          <p className="font-body text-xs text-white/80 mt-1">{banner.subtitulo}</p>
+          <p className="font-body text-xs text-cream-200/80 mt-1">{banner.subtitulo}</p>
         )}
       </div>
     </div>

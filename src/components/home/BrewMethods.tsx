@@ -20,7 +20,7 @@ const BrewMethods = () => {
           className="text-center mb-16"
         >
           <span className="text-[11px] font-body tracking-[0.3em] uppercase text-gold">Como Preparar</span>
-          <h2 className="font-display text-4xl lg:text-5xl font-bold mt-3 text-foreground">
+          <h2 className="font-display text-4xl lg:text-5xl font-bold mt-3 text-brown-dark">
             Métodos de <span className="italic font-light">Preparo</span>
           </h2>
           <div className="w-16 h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 mx-auto mt-6" />
@@ -36,13 +36,13 @@ const BrewMethods = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="group text-center p-8 rounded-lg bg-card border border-border hover:border-gold/30 transition-all duration-500 cursor-pointer"
+                className="group text-center p-8 rounded-xl bg-cream-50 border border-cream-400 hover:border-gold/30 transition-all duration-500 cursor-pointer hover:shadow-lg"
               >
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/5 border border-gold/10 flex items-center justify-center group-hover:bg-gold/10 group-hover:border-gold/25 group-hover:scale-110 transition-all duration-500">
                   <Icon className="w-6 h-6 text-gold/70 group-hover:text-gold transition-colors" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground">{method.name}</h3>
-                <p className="text-[11px] text-muted-foreground font-body mt-1">{method.description}</p>
+                <h3 className="font-display text-lg font-semibold text-brown-dark">{method.name}</h3>
+                <p className="text-[11px] text-cream-700 font-body mt-1">{method.description}</p>
               </motion.div>
             );
           })}

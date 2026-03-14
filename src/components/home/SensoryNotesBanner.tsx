@@ -13,19 +13,17 @@ const SensoryNotesBanner = () => {
   const items = [...notes, ...notes];
 
   return (
-    <section className="bg-gradient-espresso py-5 overflow-hidden">
+    <section className="bg-brown-deep py-5 overflow-hidden">
       <div className="flex animate-marquee whitespace-nowrap items-center">
         <span
-          className="text-base font-display font-semibold mr-6 shrink-0"
-          style={{ color: "hsl(var(--gold))" }}
+          className="text-base font-display font-semibold mr-6 shrink-0 text-gold-light"
         >
           Notas sensoriais:
         </span>
         {items.map((note, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-2 mx-5 text-sm font-body font-medium shrink-0"
-            style={{ color: "hsl(var(--gold))" }}
+            className="inline-flex items-center gap-2 mx-5 text-sm font-body font-medium shrink-0 text-gold-light"
           >
             <span className="text-lg">{note.icon}</span>
             {note.label}

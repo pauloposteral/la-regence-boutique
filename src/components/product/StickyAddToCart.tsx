@@ -29,18 +29,18 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
-          className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-40 lg:hidden bg-background/98 backdrop-blur-lg border-t border-border px-4 py-3"
+          className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-40 lg:hidden bg-cream-50/98 backdrop-blur-lg border-t border-cream-400 px-4 py-3"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="font-display text-sm font-semibold truncate">{productName}</p>
+              <p className="font-display text-sm font-semibold truncate text-brown-dark">{productName}</p>
               <p className="text-xs font-body text-gold font-medium">
                 R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
               </p>
             </div>
             <Button
               size="sm"
-              className="font-body text-xs shrink-0 bg-gold text-background hover:bg-gold-dark rounded-none uppercase tracking-wider"
+              className="font-body text-xs shrink-0 bg-gold text-white hover:bg-gold-dark uppercase tracking-wider"
               onClick={onAddToCart}
               disabled={disabled}
             >

@@ -1,100 +1,64 @@
 
 
-# Migração de Cores: Warm Gold + Brown
+## Plano: Replicar o Design de Referência
 
-## Resumo
+Analisei a imagem de referência e comparei com a implementação atual. Há diferenças significativas em vários componentes que precisam ser ajustados.
 
-Migrar toda a paleta do projeto de um tema dark/espresso para um tema claro e quente com fundo creme, dourado rico (#C4A265) como cor de destaque e marrom (#5C4A32) como contraste de texto. Inclui mudança de border-radius (todos os botões pill, cards rounded-lg/xl) sem alterar fontes, layout ou conteúdo.
+### Mudanças Necessárias
 
-## Arquivos a modificar
+**1. Header — Layout Centralizado**
+- Mover navegação (Cafés, Assinatura, Kits, Acessórios) para o lado ESQUERDO
+- Centralizar o nome "La Régence" (sem logo image, apenas texto elegante)
+- Manter ícones (busca, conta, carrinho) à DIREITA
+- Arquivo: `Header.tsx`
 
-### 1. Fundação de cores
+**2. CoffeeCarousel — Cards de Produto Redesenhados**
+- Grid de 4 colunas (não 5)
+- Adicionar estrelas de avaliação abaixo do nome
+- Adicionar tags de notas sensoriais com ícones coloridos (ex: 🍫 Chocolate · Citrus)
+- Mostrar preço em destaque + parcelamento ("Em até 3x de R$ 11,88 s/ juros")
+- Destaque verde para preço no Pix ("À vista R$ 53,90 no Pix")
+- Botão "Escolher moagem" nos cards que têm variantes
+- Arquivo: `CoffeeCarousel.tsx`
 
-**`src/index.css`** — Substituir todas as CSS variables em `:root` e `.dark` com a nova paleta warm:
-- Background claro: #FAF7F2 / card: #F5F0E8
-- Foreground escuro: #2C2418 / muted: #9C8E7C
-- Primary (gold): #C4A265 / accent: #C4A265
-- Border: #E8E0D4
-- Scrollbar, selection, focus-visible atualizados
-- Remover as utilities `.text-gradient-gold`, `.bg-gradient-espresso` baseadas em espresso e substituir por variantes brown-deep
-- Atualizar `.dark` para manter consistência (brown-deep como bg)
+**3. NOVO — Banner de Notas Sensoriais (Marquee)**
+- Faixa horizontal animada entre os cafés e a seção de assinatura
+- Fundo escuro (espresso) com texto dourado
+- "Notas sensoriais:" seguido de ícones + nomes: Chocolate, Frutado, Castanhas, Floral
+- Scroll infinito horizontal (marquee CSS)
+- Criar: `src/components/home/SensoryNotesBanner.tsx`
 
-**`tailwind.config.ts`** — Substituir as escalas `gold`, `cream` e adicionar `brown` com as novas sub-cores:
-- cream: 50-900 scale
-- gold: light/DEFAULT/dark
-- brown: light/DEFAULT/dark/deep
+**4. SubscriptionBanner — Redesign com Imagem**
+- Layout 2 colunas: texto à esquerda, imagem de café à direita
+- Texto: "VELARP PET ASSINATURA/CLUB" → "Clube de Assinatura"
+- Título: "Nunca fique sem o seu café preferido."
+- Botão CTA dourado: "Quero fazer parte →"
+- Imagem: usar `/images/torrefacao.jpeg` como placeholder
+- Arquivo: `SubscriptionBanner.tsx`
 
-### 2. Componentes UI globais (shadcn)
+**5. NOVO — Seção de Estatísticas**
+- 4 colunas com números grandes e descrições
+- "+7.000 dias torrando café", "+7.000 nossos clientes", "Torrefação própria", "+X mil clientes atendidos"
+- Ícones decorativos (grão de café, etc.)
+- Fundo claro (cream)
+- Criar: `src/components/home/StatsSection.tsx`
 
-**`src/components/ui/button.tsx`** — Mudar `rounded-md` para `rounded-full` no cva base. Primary: `bg-gold text-white hover:bg-gold-dark`. Outline: `border-brown text-brown hover:bg-brown hover:text-cream-100`.
+**6. Footer — Logo Dourada no Fundo**
+- Adicionar badge/selo circular dourado com logo "La Régence" centralizado na base do footer
+- Reorganizar colunas para: Institucional, Atendimento, Políticas, Imprensa
+- Arquivo: `Footer.tsx`
 
-**`src/components/ui/input.tsx`** — `bg-white border-cream-400 rounded-lg focus:border-gold focus:ring-gold/30`
+**7. Index.tsx — Reordenar Seções**
+- Ordem: Hero → Banners → CoffeeCarousel → SensoryNotesBanner → SubscriptionBanner → StatsSection → Testimonials → Footer
+- Arquivo: `Index.tsx`
 
-**`src/components/ui/card.tsx`** — `rounded-lg` → `rounded-xl`
-
-**`src/components/ui/badge.tsx`** — `rounded-full` (já é, confirmar variantes de cor)
-
-### 3. Layout components (~8 files)
-
-**`Header.tsx`** — Announcement bar: `bg-brown-deep text-cream-200`. Header bg: `bg-cream-100 border-cream-400`. Nav links: `text-brown hover:text-gold`. Logo: `text-brown-dark`. Icons: `text-brown hover:text-gold`. Mobile menu: `bg-cream-50`.
-
-**`Footer.tsx`** — `bg-brown-deep`. Links: `text-cream-600 hover:text-gold`. Section titles: `text-cream-600/50`. Social icons: `border-cream-600/30 hover:border-gold`.
-
-**`NewsletterFooter.tsx`** — Input: `bg-cream-50 border-cream-400 rounded-full`. Button: `bg-gold text-white rounded-full`.
-
-**`BottomNav.tsx`** — `bg-cream-100 border-cream-400`. Active: `text-gold`. Inactive: `text-brown`.
-
-**`FreeShippingBar.tsx`** — `bg-cream-200 border-cream-400`.
-
-**`ScrollProgress.tsx`** — Bar color: `bg-gold` (already).
-
-### 4. Home sections (~8 files)
-
-**`HeroSection.tsx`** — Background: `bg-brown-deep`. Gradients via brown-deep. Tagline/italic: `text-gold-light`. Description: `text-cream-200/70`. CTAs: rounded-full with gold/cream border.
-
-**`CoffeeCarousel.tsx`** — Cards: `rounded-xl`. Badges: `rounded-full`. Buttons: `rounded-full`. Intensity bars: `bg-brown` filled, `bg-cream-400` empty. Notes tags: `border-cream-500 text-brown-light rounded-full`.
-
-**`CollectionsSection.tsx`** — Same card pattern. Buttons: `rounded-full`.
-
-**`StorySection.tsx`** — Background: `bg-cream-200`. Text: `text-brown-dark`.
-
-**`SubscriptionBanner.tsx`** — Background: `bg-cream-200`. CTA: `rounded-full`.
-
-**`TestimonialsSection.tsx`** — Background: `bg-cream-100`. Cards: `rounded-xl border-cream-400`. Stars: `fill-gold text-gold`. Quote text: `text-brown`.
-
-**`BrewMethods.tsx`** — Cards: `rounded-xl`. Text: `text-brown-dark`.
-
-**`DynamicBanners.tsx`** — Cards: `rounded-xl`.
-
-### 5. Cart & Checkout
-
-**`CartDrawer.tsx`** — Background: `bg-cream-50`. Cards: `rounded-xl`. Buttons: `rounded-full`.
-
-**`CheckoutPage.tsx`** — Inputs: nova estilização. Buttons: `rounded-full`. Cards: `rounded-xl`.
-
-### 6. Pages (~6 files)
-
-**`CafesPage.tsx`** — Product cards: `rounded-xl`. Filters: `rounded-full` badges. Buttons: `rounded-full`.
-
-**`ProdutoPage.tsx`** — Cards: `rounded-xl`. Buttons: `rounded-full`.
-
-**`AuthPage.tsx`** — Card: `rounded-xl`. Inputs: nova estilização. Buttons: `rounded-full`.
-
-**`AssinaturaPage.tsx`** — Plan cards: `rounded-xl`. Popular card: `bg-brown-deep text-cream-100`. Buttons: `rounded-full`.
-
-**`SobrePage.tsx`** — Background sections atualizados. Cards: `rounded-xl`.
-
-**`BlogPage.tsx`**, **`QuizPage.tsx`**, **`ContaPage.tsx`** — Mesma migração de cores/radius.
-
-### 7. Outros componentes
-
-**`StickyAddToCart.tsx`**, **`ProductReviews.tsx`**, **`WhatsAppButton.tsx`**, **`PWAInstallPrompt.tsx`**, **`NewsletterPopup.tsx`** — Atualizar cores e border-radius.
-
-## Regras mantidas
-- Fontes inalteradas (Playfair Display, Cormorant Garamond, Outfit, JetBrains Mono)
-- Layout/estrutura inalterados
-- Conteúdo de texto inalterado
-
-## Estimativa
-~25-30 arquivos modificados. Todas as mudanças são cosméticas (cores + border-radius).
+### Arquivos Afetados
+- `src/components/layout/Header.tsx` — layout centralizado
+- `src/components/home/CoffeeCarousel.tsx` — cards redesenhados
+- `src/components/home/SensoryNotesBanner.tsx` — NOVO
+- `src/components/home/SubscriptionBanner.tsx` — redesign
+- `src/components/home/StatsSection.tsx` — NOVO
+- `src/components/layout/Footer.tsx` — logo badge
+- `src/pages/Index.tsx` — reordenação
+- `src/index.css` — animação marquee
 

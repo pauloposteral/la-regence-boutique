@@ -152,7 +152,7 @@ const CafesPage = () => {
         </div>
 
         {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-border rounded-lg overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-cream-400 rounded-xl overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-semibold">Filtrar por</h3>
               {activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-xs">Limpar filtros</Button>}
@@ -220,9 +220,9 @@ const CafesPage = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-lg border border-border animate-pulse">
-                <div className="aspect-[3/4] bg-muted rounded-t-lg" />
-                <div className="p-5 space-y-3"><div className="h-5 bg-muted rounded w-3/4" /><div className="h-3 bg-muted rounded w-1/2" /><div className="h-4 bg-muted rounded w-1/3" /></div>
+              <div key={i} className="bg-card rounded-xl border border-cream-400 animate-pulse">
+                <div className="aspect-[3/4] bg-cream-200 rounded-t-xl" />
+                <div className="p-5 space-y-3"><div className="h-5 bg-cream-300 rounded w-3/4" /><div className="h-3 bg-cream-300 rounded w-1/2" /><div className="h-4 bg-cream-300 rounded w-1/3" /></div>
               </div>
             ))}
           </div>
@@ -302,18 +302,18 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
-      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
-        <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative overflow-hidden">
+      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
+        <div className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
             <img src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
-          {produto.sca_score && <div className="absolute top-3 right-3 bg-gold text-primary-foreground text-[10px] font-mono font-semibold px-2.5 py-1 rounded-sm flex items-center gap-1"><Star className="w-3 h-3 fill-current" />SCA {produto.sca_score}</div>}
-          {produto.destaque && <div className="absolute top-3 left-3 bg-gold/20 text-gold text-[10px] font-body font-semibold px-2.5 py-1 rounded-sm border border-gold/30">Destaque</div>}
-          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
+          {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
+          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {lowStock && (
-            <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded flex items-center gap-1">
+            <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded-full flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" />
               Últimas {produto.estoque} un.
             </div>
@@ -321,19 +321,19 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
         </div>
         <div className="p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
-          <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
+          <h3 className="font-display text-xl font-semibold mt-1 text-brown-dark group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
           {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-gold/70 border border-gold/20 px-2 py-0.5 rounded-sm bg-gold/5">{nota}</span>)}
+              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-brown-light border border-cream-500 px-2 py-0.5 rounded-full hover:border-gold hover:text-gold transition-colors">{nota}</span>)}
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
           <div className="mt-4 flex items-end justify-between">
             <div>
               {produto.preco_promocional ? (
-                <><span className="text-xs text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-foreground">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
               ) : (
-                <span className="font-mono font-bold text-lg text-foreground">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
               )}
             </div>
             <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
@@ -341,7 +341,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
           <div className="flex gap-2 mt-3">
             <Button
               size="sm"
-              className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wide uppercase transition-all duration-300"
+              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
@@ -350,7 +350,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             <Button
               variant={comparing ? "secondary" : "outline"}
               size="sm"
-              className="font-body text-xs px-2.5 border-border hover:border-gold/30"
+              className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(produto.id); }}
               title="Comparar"
             >

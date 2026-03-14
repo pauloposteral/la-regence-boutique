@@ -143,7 +143,7 @@ const AssinaturaPage = () => {
             </p>
             <Button
               size="lg"
-              className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-8 rounded-none transition-all duration-300"
+              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
               onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conhecer Planos <ArrowRight className="w-4 h-4 ml-1" />
@@ -243,12 +243,12 @@ const AssinaturaPage = () => {
                     <button
                       key={plan.tipo}
                       onClick={() => setSelectedPlan(plan.tipo)}
-                      className={`relative text-left rounded-lg border-2 p-5 transition-all ${
-                        active ? "border-gold bg-gold/5 shadow-[0_4px_20px_-8px_hsl(var(--gold)/0.3)]" : "border-border bg-card hover:border-gold/40"
+                      className={`relative text-left rounded-xl border-2 p-5 transition-all ${
+                        active ? "border-gold bg-gold/5 shadow-[0_4px_20px_-8px_hsl(var(--gold)/0.3)]" : "border-cream-400 bg-cream-50 hover:border-gold/40"
                       }`}
                     >
                       {plan.badge && (
-                        <Badge className="absolute -top-2.5 left-4 bg-gold text-accent-foreground font-body text-[10px] shadow-sm">
+                        <Badge className="absolute -top-2.5 left-4 bg-gold text-white font-body text-[10px] shadow-sm rounded-full">
                           {plan.badge}
                         </Badge>
                       )}
@@ -275,7 +275,7 @@ const AssinaturaPage = () => {
               </div>
 
               {/* Preferences */}
-              <div className="bg-card border border-border rounded-lg p-6 space-y-6 mb-8">
+              <div className="bg-cream-50 border border-cream-400 rounded-xl p-6 space-y-6 mb-8">
                 <h3 className="font-display text-lg font-semibold">Personalize sua experiência</h3>
 
                 {/* Coffee type */}
@@ -284,8 +284,8 @@ const AssinaturaPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setCafeSurpresa(true)}
-                      className={`rounded-lg border-2 p-4 text-left transition-all ${
-                        cafeSurpresa ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                      className={`rounded-xl border-2 p-4 text-left transition-all ${
+                        cafeSurpresa ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                       }`}
                     >
                       <Gift className="w-5 h-5 text-gold mb-2" />
@@ -294,8 +294,8 @@ const AssinaturaPage = () => {
                     </button>
                     <button
                       onClick={() => setCafeSurpresa(false)}
-                      className={`rounded-lg border-2 p-4 text-left transition-all ${
-                        !cafeSurpresa ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                      className={`rounded-xl border-2 p-4 text-left transition-all ${
+                        !cafeSurpresa ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                       }`}
                     >
                       <Coffee className="w-5 h-5 text-gold mb-2" />
@@ -317,8 +317,8 @@ const AssinaturaPage = () => {
                           <button
                             key={cafe.id}
                             onClick={() => setSelectedCafe(cafe.id)}
-                            className={`rounded-lg border-2 p-3 text-left transition-all flex gap-3 items-center ${
-                              active ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                            className={`rounded-xl border-2 p-3 text-left transition-all flex gap-3 items-center ${
+                              active ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                             }`}
                           >
                             <div className="w-12 h-12 rounded bg-secondary flex-shrink-0 overflow-hidden">
@@ -362,7 +362,7 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-10 rounded-none transition-all duration-300"
+                  className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300"
                   onClick={handleSubscribe}
                   disabled={!cafeSurpresa && !selectedCafe}
                 >
