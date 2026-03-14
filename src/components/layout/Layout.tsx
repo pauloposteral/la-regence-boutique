@@ -7,6 +7,7 @@ import ScrollProgress from "./ScrollProgress";
 import FreeShippingBar from "./FreeShippingBar";
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
+import AbandonedCartBanner from "@/components/cart/AbandonedCartBanner";
 import NewsletterPopup from "./NewsletterPopup";
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
