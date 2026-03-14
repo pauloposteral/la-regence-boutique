@@ -9,7 +9,10 @@ import Layout from "@/components/layout/Layout";
 import SEOHead from "@/components/SEOHead";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
+const POSTS_PER_PAGE = 9;
+
 const BlogPage = () => {
+  const [page, setPage] = useState(1);
   const { data: posts = [] } = useQuery({
     queryKey: ["blog-posts"],
     queryFn: async () => {
@@ -21,6 +24,9 @@ const BlogPage = () => {
       return data || [];
     },
   });
+
+  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const paginatedPosts = useMemo(() => posts.slice(0, page * POSTS_PER_PAGE), [posts, page]);
 
   return (
     <Layout>
