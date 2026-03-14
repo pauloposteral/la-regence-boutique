@@ -105,8 +105,25 @@ const CheckoutPage = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      if (data?.url) { window.location.href = data.url; }
-      else { throw new Error("URL de pagamento não recebida"); }
+      if (data?.url) {
+        // Save address for logged-in users
+        if (user) {
+          const { data: existing } = await supabase.from("enderecos").select("id").eq("user_id", user.id).limit(1);
+          const isFirst = !existing || existing.length === 0;
+          await supabase.from("enderecos").insert({
+            user_id: user.id,
+            cep: form.cep.replace(/\D/g, ""),
+            logradouro: form.logradouro,
+            numero: form.numero,
+            complemento: form.complemento || null,
+            bairro: form.bairro,
+            cidade: form.cidade,
+            estado: form.estado,
+            principal: isFirst,
+          });
+        }
+        window.location.href = data.url;
+      } else { throw new Error("URL de pagamento não recebida"); }
     } catch (err: any) {
       toast.error("Erro ao processar pagamento: " + (err.message || "Tente novamente"));
     } finally {

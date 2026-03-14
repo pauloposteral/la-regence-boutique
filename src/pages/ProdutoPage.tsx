@@ -90,14 +90,7 @@ const ProdutoPage = () => {
   }
 
   if (error || !produto) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <p className="font-display text-2xl mb-4">Produto não encontrado</p>
-          <Button asChild variant="outline"><Link to="/cafes">Voltar ao catálogo</Link></Button>
-        </div>
-      </Layout>
-    );
+    return <Navigate to="/404" replace />;
   }
 
   const promoPercent = produto.preco_promocional ? Math.round((1 - produto.preco_promocional / produto.preco) * 100) : null;
