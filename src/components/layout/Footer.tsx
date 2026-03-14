@@ -71,10 +71,10 @@ const Footer = () => {
 
         {/* Social icons */}
         <div className="flex justify-center gap-3 mt-10">
-          <a href="https://instagram.com/laregencecafe" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-cream-500 flex items-center justify-center hover:bg-gold/10 hover:border-gold text-brown hover:text-gold transition-all duration-300" aria-label="Instagram">
+          <a href="https://instagram.com/laregencecafe" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-cream-300 flex items-center justify-center hover:bg-gold/10 hover:border-gold text-foreground/60 hover:text-gold transition-all duration-300" aria-label="Instagram">
             <Instagram className="w-4 h-4" />
           </a>
-          <a href="#" className="w-10 h-10 rounded-full border border-cream-500 flex items-center justify-center hover:bg-gold/10 hover:border-gold text-brown hover:text-gold transition-all duration-300" aria-label="Facebook">
+          <a href="#" className="w-10 h-10 rounded-full border border-cream-300 flex items-center justify-center hover:bg-gold/10 hover:border-gold text-foreground/60 hover:text-gold transition-all duration-300" aria-label="Facebook">
             <Facebook className="w-4 h-4" />
           </a>
         </div>
