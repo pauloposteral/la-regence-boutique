@@ -362,7 +362,7 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-sm tracking-wider uppercase px-10 rounded-none transition-all duration-300"
+                  className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300"
                   onClick={handleSubscribe}
                   disabled={!cafeSurpresa && !selectedCafe}
                 >

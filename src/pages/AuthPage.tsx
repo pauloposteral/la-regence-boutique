@@ -203,7 +203,7 @@ const AuthPage = () => {
 
             <Button
               type="submit"
-              className="w-full font-body bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wider uppercase text-sm transition-all duration-300"
+              className="w-full font-body bg-gold text-white hover:bg-gold-dark tracking-wider uppercase text-sm transition-all duration-300"
               disabled={loading}
             >
               {loading ? <span className="btn-spinner" /> : (

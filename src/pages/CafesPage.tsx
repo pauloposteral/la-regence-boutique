@@ -350,7 +350,7 @@ function ProductCard({ produto, index }: { produto: Produto; index: number }) {
             <Button
               variant={comparing ? "secondary" : "outline"}
               size="sm"
-              className="font-body text-xs px-2.5 border-border hover:border-gold/30"
+              className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(produto.id); }}
               title="Comparar"
             >
