@@ -251,6 +251,7 @@ const CafesPage = () => {
 
         {/* Floating Compare Bar */}
         <CompareBar />
+        <QuickViewModal produto={quickViewProduct} open={!!quickViewProduct} onOpenChange={(open) => !open && setQuickViewProduct(null)} />
       </div>
     </Layout>
   );
