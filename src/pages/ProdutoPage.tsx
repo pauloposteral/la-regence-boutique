@@ -110,6 +110,12 @@ const ProdutoPage = () => {
   };
 
   const handleAddToCart = () => {
+    // Validação de estoque antes de adicionar
+    const estoqueDisponivel = selectedVariant?.estoque ?? produto.estoque;
+    if (quantidade > estoqueDisponivel) {
+      toast.error(`Estoque insuficiente. Disponível: ${estoqueDisponivel} unidades.`);
+      return;
+    }
     addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
     toast.success(
       <div className="flex items-center gap-3">
