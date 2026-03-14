@@ -1,9 +1,13 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
+import SEOHead from "@/components/SEOHead";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const BlogPage = () => {
   const { data: posts = [] } = useQuery({
