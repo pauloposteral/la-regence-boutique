@@ -23,7 +23,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-light mb-6"
+            className="text-xs font-body tracking-[0.3em] uppercase text-gold-light mb-6"
           >
             Torrefação artesanal · Desde 2005
           </motion.p>
