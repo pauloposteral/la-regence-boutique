@@ -96,6 +96,7 @@ const App = () => (
                   <Route path="/quiz" element={<QuizPage />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
                   <Route path="/favoritos" element={<FavoritosPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
                   <Route path="/comparar" element={<CompararPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
