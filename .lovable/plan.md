@@ -1,62 +1,42 @@
 
-# Auditoria End-to-End — La Régence E-commerce
 
-## Avaliação: Fase 2 Concluída ✅
+## Plano: Próximo bloco de melhorias — .gitignore, Database enrichment, Analytics, Cart UX
 
----
+Baseado na análise do estado atual vs. o guia de 17 sessões, vou implementar as melhorias mais impactantes que ainda faltam.
 
-## Todas as Correções Implementadas
+### O que será feito
 
-### Plano Original (25 itens) ✅
-1-25. Estoque, upload, Pix, máscaras, forwardRef, edge functions, empresa, fundação, favicon, dark mode, CSV, email, rate limiting, focus visible, SEO, fidelidade, admin, timeline, avaliações, assinaturas, blog, newsletter, comparador, quiz, PWA
+**1. .gitignore — adicionar `.env`**
+O arquivo `.gitignore` não contém `.env`. Adicionar para evitar exposição de credenciais.
 
-### Auditoria 50 Melhorias — Fase 1 (10 itens) ✅
-1. Validação de estoque no carrinho
-2. SEO dinâmico no Blog
-3. Produto inexistente → 404
-4. Busca sanitizada no Header
-5. Fix useMemo → useEffect
-6. ThemeProvider removido (next-themes)
-7. Banner LGPD/Cookies
-8. Blog com paginação
-9. Blog com breadcrumbs + SEO
-10. Sitemap no robots.txt
+**2. Database: Enriquecer tabela `profiles`**
+Adicionar colunas: `preferred_roast` (text), `preferred_grind` (text), `loyalty_tier` (text default 'bronze'). Criar function + trigger para calcular tier automaticamente baseado em pontos.
 
-### Auditoria 50 Melhorias — Fase 2 (10 itens) ✅
-11. Cross-sell inteligente — baseado em categoria e notas sensoriais
-12. Footer links corrigidos — substituídos placeholders por links reais + FAQ
-13. Breadcrumbs em FavoritosPage
-14. Breadcrumbs em AssinaturaPage + SEOHead
-15. Breadcrumbs em QuizPage + SEOHead
-16. BlogPostPage com SEOHead dinâmico
-17. Página FAQ completa — 5 seções, 19 perguntas
-18. Idempotency key no checkout — Stripe session com proteção anti-duplicata
-19. Proteção double-submit reforçada no checkout
-20. Rota /faq adicionada ao App.tsx e Footer
+**3. Database: Enriquecer tabela `avaliacoes`**
+Adicionar colunas: `titulo` (text), `aroma` (integer), `sabor` (integer), `finalizacao` (integer), `compra_verificada` (boolean default false), `resposta_admin` (text), `resposta_admin_at` (timestamptz).
 
----
+**4. Google Analytics 4**
+Adicionar script GA4 condicional no `index.html` via env var `VITE_GA_ID`. Criar helper `src/lib/analytics.ts` com funções `trackEvent`, `trackPageView`, `trackEcommerce` para disparar eventos: `view_item`, `add_to_cart`, `begin_checkout`, `purchase`.
 
-## Itens Pendentes (20 restantes)
+**5. Cart Drawer — empty state melhorado**
+Quando carrinho vazio, mostrar CTA "Explorar Cafés" com link para `/cafes` em vez de apenas ícone.
 
-### Críticos
-- Validação de cupom server-side (edge function)
-- Expiração de preço no carrinho
-- Checkout salvar endereço no perfil
+**6. Structured Data JSON-LD**
+Adicionar Organization schema no Layout e BreadcrumbList schema nas páginas de catálogo.
 
-### Performance
-- WebP/AVIF para imagens
-- Reduzir framer-motion imports desnecessários
-- Service worker real
-- localStorage com try/catch universal
+**7. Product Reviews UI enriquecida**
+Atualizar `ProductReviews.tsx` para suportar as novas colunas (aroma, sabor, finalização) e exibir breakdown por estrela.
 
-### Design
-- Logo no email transacional
-- BottomNav indicador animado
-- STATUS_COLORS unificado em um único arquivo
-- Skeleton loading em Homepage/ProdutoPage
+### Arquivos afetados
 
-### Analytics & Marketing
-- GA4 / Plausible analytics
-- Facebook Pixel
-- UTM tracking
-- Newsletter double opt-in
+| Arquivo | Alteração |
+|---|---|
+| `.gitignore` | Adicionar `.env` |
+| Migration SQL | Colunas em `profiles` e `avaliacoes`, function loyalty_tier |
+| `index.html` | Script GA4 condicional |
+| `src/lib/analytics.ts` | Novo — helper de analytics |
+| `src/contexts/CartContext.tsx` | Dispatch `add_to_cart` event |
+| `src/components/cart/CartDrawer.tsx` | Empty state com CTA |
+| `src/components/layout/Layout.tsx` | Organization JSON-LD |
+| `src/components/product/ProductReviews.tsx` | UI para reviews detalhadas |
+
