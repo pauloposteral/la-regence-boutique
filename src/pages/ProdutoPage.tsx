@@ -51,8 +51,8 @@ const ProdutoPage = () => {
     return Array.from(set).sort((a, b) => a - b) as number[];
   }, [produto, selectedMoagem]);
 
-  useMemo(() => { if (moagens.length > 0 && !selectedMoagem) setSelectedMoagem(moagens[0]); }, [moagens]);
-  useMemo(() => { if (pesos.length > 0 && !selectedPeso) setSelectedPeso(pesos[0]); }, [pesos]);
+  useEffect(() => { if (moagens.length > 0 && !selectedMoagem) setSelectedMoagem(moagens[0]); }, [moagens]);
+  useEffect(() => { if (pesos.length > 0 && !selectedPeso) setSelectedPeso(pesos[0]); }, [pesos]);
 
   const selectedVariant = useMemo(() => {
     if (!produto?.variantes || !selectedMoagem || !selectedPeso) return null;
