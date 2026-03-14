@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import WhatsAppButton from "./WhatsAppButton";
@@ -14,13 +16,33 @@ import PageTransition from "./PageTransition";
 import SocialProofToast from "@/components/product/SocialProofToast";
 import CookieBanner from "./CookieBanner";
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes";
+import { trackPageView } from "@/lib/analytics";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+const ORGANIZATION_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "La Régence",
+  url: "https://lojalaregence.lovable.app",
+  logo: "https://lojalaregence.lovable.app/images/logo-laregence.png",
+  description: "Cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP.",
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    availableLanguage: "Portuguese",
+  },
+};
+
 const Layout = ({ children }: LayoutProps) => {
   usePrefetchRoutes();
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname, document.title);
+  }, [location.pathname]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,6 +64,12 @@ const Layout = ({ children }: LayoutProps) => {
       <PWAInstallPrompt />
       <SocialProofToast />
       <CookieBanner />
+
+      {/* Organization Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSONLD) }}
+      />
     </div>
   );
 };
