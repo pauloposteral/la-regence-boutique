@@ -26,7 +26,7 @@ const BlogPostPage = () => {
 
   return (
     <Layout>
-      <section className="py-12 lg:py-20 bg-background">
+      {post && <SEOHead title={post.titulo} description={post.resumo || `${post.titulo} — Blog La Régence`} image={post.imagem_url || undefined} type="article" />}
         <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
           <Breadcrumb className="mb-6">
             <BreadcrumbList>
