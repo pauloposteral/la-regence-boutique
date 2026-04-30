@@ -850,6 +850,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          created_at: string
+          id: string
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          id?: string
+          key: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          id?: string
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -912,6 +936,10 @@ export type Database = {
     }
     Functions: {
       calculate_loyalty_tier: { Args: { _user_id: string }; Returns: string }
+      check_rate_limit: {
+        Args: { _key: string; _max_requests: number; _window_seconds: number }
+        Returns: boolean
+      }
       get_user_points: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
