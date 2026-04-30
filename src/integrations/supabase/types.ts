@@ -50,6 +50,7 @@ export type Database = {
       assinaturas: {
         Row: {
           cafe_surpresa: boolean | null
+          cancela_em: string | null
           created_at: string
           id: string
           metodo_preparo: string | null
@@ -58,6 +59,7 @@ export type Database = {
           produto_id: string | null
           proxima_entrega: string | null
           status: Database["public"]["Enums"]["status_assinatura"]
+          stripe_price_id: string | null
           stripe_subscription_id: string | null
           tipo: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at: string
@@ -65,6 +67,7 @@ export type Database = {
         }
         Insert: {
           cafe_surpresa?: boolean | null
+          cancela_em?: string | null
           created_at?: string
           id?: string
           metodo_preparo?: string | null
@@ -73,6 +76,7 @@ export type Database = {
           produto_id?: string | null
           proxima_entrega?: string | null
           status?: Database["public"]["Enums"]["status_assinatura"]
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           tipo: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at?: string
@@ -80,6 +84,7 @@ export type Database = {
         }
         Update: {
           cafe_surpresa?: boolean | null
+          cancela_em?: string | null
           created_at?: string
           id?: string
           metodo_preparo?: string | null
@@ -88,6 +93,7 @@ export type Database = {
           produto_id?: string | null
           proxima_entrega?: string | null
           status?: Database["public"]["Enums"]["status_assinatura"]
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           tipo?: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at?: string
@@ -885,6 +891,7 @@ export type Database = {
           phone: string | null
           preferred_grind: string | null
           preferred_roast: string | null
+          stripe_customer_id: string | null
           updated_at: string
           user_id: string
         }
@@ -898,6 +905,7 @@ export type Database = {
           phone?: string | null
           preferred_grind?: string | null
           preferred_roast?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -911,6 +919,7 @@ export type Database = {
           phone?: string | null
           preferred_grind?: string | null
           preferred_roast?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
         }
