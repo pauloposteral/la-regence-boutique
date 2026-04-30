@@ -52,10 +52,81 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [cupom, setCupom] = useState<string | null>(null);
   const [desconto, setDesconto] = useState(0);
+  const userIdRef = useRef<string | null>(null);
+  const remoteLoadedRef = useRef(false);
+  const skipNextRemoteSyncRef = useRef(false);
 
   // Persist to localStorage
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
+
+  // === Cross-device sync ===
+  // Merge local + remote on login, then push every change.
+  useEffect(() => {
+    const mergeRemote = async (uid: string) => {
+      try {
+        const { data } = await supabase
+          .from("carts")
+          .select("items")
+          .eq("user_id", uid)
+          .maybeSingle();
+        const remoteItems: CartItem[] = Array.isArray(data?.items) ? (data!.items as any) : [];
+        setItems((local) => {
+          const map = new Map<string, CartItem>();
+          for (const it of remoteItems) map.set(getKey(it.produtoId, it.varianteId), it);
+          for (const it of local) {
+            const k = getKey(it.produtoId, it.varianteId);
+            const existing = map.get(k);
+            if (existing) {
+              map.set(k, { ...existing, quantidade: existing.quantidade + it.quantidade });
+            } else {
+              map.set(k, it);
+            }
+          }
+          return Array.from(map.values());
+        });
+        remoteLoadedRef.current = true;
+      } catch {
+        remoteLoadedRef.current = true;
+      }
+    };
+
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id ?? null;
+      userIdRef.current = uid;
+      if (uid) await mergeRemote(uid);
+    };
+    init();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const uid = session?.user?.id ?? null;
+      const previous = userIdRef.current;
+      userIdRef.current = uid;
+      if (uid && uid !== previous) {
+        remoteLoadedRef.current = false;
+        mergeRemote(uid);
+      }
+      if (!uid && previous) {
+        // logged out — keep local cart only, stop pushing remotely
+        remoteLoadedRef.current = false;
+      }
+    });
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Push items to remote whenever they change (debounced)
+  useEffect(() => {
+    const uid = userIdRef.current;
+    if (!uid || !remoteLoadedRef.current) return;
+    if (skipNextRemoteSyncRef.current) { skipNextRemoteSyncRef.current = false; return; }
+    const handle = setTimeout(() => {
+      supabase.from("carts").upsert({ user_id: uid, items: items as any }, { onConflict: "user_id" })
+        .then(() => { /* silent */ });
+    }, 600);
+    return () => clearTimeout(handle);
   }, [items]);
 
   // Price validation on cart open
