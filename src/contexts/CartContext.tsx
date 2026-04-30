@@ -131,10 +131,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Price validation on cart open
   const lastValidation = useRef(0);
-  const validatePrices = useCallback(async (currentItems: CartItem[]) => {
-    if (currentItems.length === 0) return;
+  const validatePricesCore = useCallback(async (currentItems: CartItem[], force = false) => {
+    if (currentItems.length === 0) return false;
     const now = Date.now();
-    if (now - lastValidation.current < 30000) return; // throttle 30s
+    if (!force && now - lastValidation.current < 30000) return false;
     lastValidation.current = now;
     try {
       const productIds = [...new Set(currentItems.map((i) => i.produtoId))];
@@ -162,8 +162,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         })
       );
       if (updated) toast.info("Alguns preços foram atualizados no seu carrinho.");
-    } catch { /* silent */ }
+      return updated;
+    } catch { return false; }
   }, []);
+
+  const validatePrices = useCallback((currentItems: CartItem[]) => validatePricesCore(currentItems, false), [validatePricesCore]);
+  const validatePricesNow = useCallback(() => validatePricesCore(items, true), [items, validatePricesCore]);
 
   const openCart = useCallback(() => {
     setIsOpen(true);
