@@ -61,7 +61,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             transition={{ delay: 0.5, duration: 0.6 }}
-            className="w-20 h-px bg-gradient-to-r from-gold to-gold-light mb-6 origin-left"
+            className="w-20 h-px bg-gradient-to-r from-gold to-gold-light mb-6 origin-left shadow-[0_0_8px_hsl(var(--gold)/0.45)]"
           />
 
           <motion.p
