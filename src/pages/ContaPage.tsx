@@ -27,17 +27,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente: "Pendente", confirmado: "Confirmado", preparando: "Preparando",
-  enviado: "Enviado", entregue: "Entregue", cancelado: "Cancelado",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  pendente: "bg-muted text-muted-foreground", confirmado: "bg-accent/10 text-accent",
-  preparando: "bg-accent/20 text-accent", enviado: "bg-primary/10 text-primary",
-  entregue: "bg-green-100 text-green-700", cancelado: "bg-destructive/10 text-destructive",
-};
+import {
+  STATUS_LABELS,
+  STATUS_COLORS_CUSTOMER as STATUS_COLORS,
+  STATUS_TIMELINE,
+  STATUS_TERMINAL,
+  type StatusPedido,
+} from "@/lib/orderStatus";
 
 const ContaPage = () => {
   const navigate = useNavigate();
