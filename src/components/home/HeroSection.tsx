@@ -6,10 +6,15 @@ import { Link } from "react-router-dom";
 const HeroSection = () => {
   return (
     <section className="relative min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden">
-      {/* Background image */}
+      {/* Background image — served via Supabase Image Transformation as WebP */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg scale-105"
-        style={{ backgroundImage: `url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/object/public/public-assets/hero-coffee-1773501394497.png')` }}
+        style={{
+          backgroundImage: `image-set(
+            url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1920&quality=78&format=webp') 1x,
+            url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=2560&quality=78&format=webp') 1.5x
+          )`,
+        }}
       />
       {/* Cinematic neutral overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />

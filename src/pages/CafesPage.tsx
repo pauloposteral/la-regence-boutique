@@ -96,10 +96,13 @@ const CafesPage = () => {
     let result = [...produtos];
 
     if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      result = result.filter(
-        (p) => p.nome.toLowerCase().includes(q) || p.notas_sensoriais?.some((n) => n.toLowerCase().includes(q)) || p.origem?.toLowerCase().includes(q)
-      );
+      // Sanitize on the client too — strip wildcard/special chars before lowercase compare
+      const q = debouncedSearch.replace(/[%_\\]/g, "").toLowerCase().trim();
+      if (q.length > 0) {
+        result = result.filter(
+          (p) => p.nome.toLowerCase().includes(q) || p.notas_sensoriais?.some((n) => n.toLowerCase().includes(q)) || p.origem?.toLowerCase().includes(q)
+        );
+      }
     }
     if (selectedCategoria) result = result.filter((p) => p.categoria_id === selectedCategoria);
     if (selectedNotas.length > 0) result = result.filter((p) => selectedNotas.some((n) => p.notas_sensoriais?.includes(n)));
