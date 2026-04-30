@@ -121,6 +121,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--gold) / 0.4)" },
           "50%": { boxShadow: "0 0 0 8px hsl(var(--gold) / 0)" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -128,6 +132,7 @@ export default {
         "fade-in": "fade-in 0.6s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
         "pulse-gold": "pulse-gold 2s ease-in-out infinite",
+        shimmer: "shimmer 1.6s ease-in-out infinite",
       },
     },
   },

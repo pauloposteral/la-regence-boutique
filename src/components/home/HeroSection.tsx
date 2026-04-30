@@ -4,20 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
+  const HERO_BASE = "https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png";
+  const heroSrc = `${HERO_BASE}?width=1440&quality=75&format=webp`;
+  const heroSrcSet = [
+    `${HERO_BASE}?width=640&quality=70&format=webp 640w`,
+    `${HERO_BASE}?width=1080&quality=72&format=webp 1080w`,
+    `${HERO_BASE}?width=1920&quality=78&format=webp 1920w`,
+  ].join(", ");
+
   return (
-    <section className="relative min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden">
-      {/* Background image — served via Supabase Image Transformation as WebP */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg scale-105"
-        style={{
-          backgroundImage: `image-set(
-            url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1920&quality=78&format=webp') 1x,
-            url('https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=2560&quality=78&format=webp') 1.5x
-          )`,
-        }}
+    <section className="relative min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden bg-brown-deep">
+      {/* LCP image — real <img> matches preload exactly (single fetch) */}
+      <img
+        src={heroSrc}
+        srcSet={heroSrcSet}
+        sizes="100vw"
+        alt="Cafés especiais La Régence — torrefação artesanal"
+        fetchPriority="high"
+        decoding="async"
+        loading="eager"
+        className="absolute inset-0 w-full h-full object-cover parallax-bg scale-105"
       />
-      {/* Cinematic neutral overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
+      {/* Warm cinematic overlay (brown-deep, on-brand) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/80 via-brown-deep/45 to-brown-deep/10" />
 
       {/* Bottom fade to content */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
@@ -52,7 +61,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             transition={{ delay: 0.5, duration: 0.6 }}
-            className="w-20 h-px bg-gradient-to-r from-gold to-gold-light mb-6 origin-left"
+            className="w-20 h-px bg-gradient-to-r from-gold to-gold-light mb-6 origin-left shadow-[0_0_8px_hsl(var(--gold)/0.45)]"
           />
 
           <motion.p

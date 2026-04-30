@@ -331,10 +331,17 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
-      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
+      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-[0_20px_40px_-15px_hsl(var(--brown-deep)/0.22)] hover:-translate-y-0.5 transition-all duration-500">
         <div className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
-            <OptimizedImage src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url} alt={produto.nome} className="group-hover:scale-105 transition-transform duration-500" showSkeleton />
+            <OptimizedImage
+              src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url}
+              alt={produto.nome}
+              className="group-hover:scale-105 transition-transform duration-500"
+              showSkeleton
+              eager={index < 2}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
