@@ -33,6 +33,16 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limit: 10 checkout attempts / minute / IP (or user when authed)
+    const rlKey = callerKey(req, "checkout");
+    const allowed = await checkRateLimit(rlKey, 10, 60);
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Muitas tentativas de pagamento. Aguarde 1 minuto e tente novamente." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await req.json();
     const {
       items,
