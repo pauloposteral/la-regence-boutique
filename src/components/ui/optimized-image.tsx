@@ -34,7 +34,7 @@ function transformSupabase(src: string, width: number, format: "webp" | "avif" |
   return `${rendered}${sep}width=${width}&quality=78${format !== "auto" ? `&format=${format}` : ""}`;
 }
 
-function buildSrcSet(src: string, widths: number[], format: "webp" | "avif" = "webp"): string {
+function buildSrcSet(src: string, widths: number[], format: "webp" = "webp"): string {
   return widths
     .map((w) => `${transformSupabase(src, w, format)} ${w}w`)
     .join(", ");
@@ -42,12 +42,13 @@ function buildSrcSet(src: string, widths: number[], format: "webp" | "avif" = "w
 
 /**
  * OptimizedImage — progressive image loading with:
- * - Native lazy loading
- * - Blur-up skeleton placeholder (CLS prevention)
- * - Intersection Observer for deferred src assignment
- * - Error fallback
+ * - Native lazy loading + IntersectionObserver
+ * - Shimmer skeleton (on-brand cream gradient) for CLS=0
+ * - WebP via Supabase Image Transformation (AVIF removed — not supported)
+ * - Cinematic scale + fade-in
  */
 const DEFAULT_WIDTHS = [320, 480, 640, 800, 1080, 1440];
+export const CARD_WIDTHS = [240, 320, 480, 640];
 
 const OptimizedImage = ({
   src,
@@ -65,12 +66,11 @@ const OptimizedImage = ({
   const [inView, setInView] = useState(eager);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const { fallbackSrc, srcSetWebp, srcSetAvif } = useMemo(() => {
+  const { fallbackSrc, srcSetWebp } = useMemo(() => {
     const isSupabase = src?.includes("/storage/v1/object/public/");
     return {
       fallbackSrc: isSupabase ? transformSupabase(src, 800, "webp") : src,
       srcSetWebp: isSupabase ? buildSrcSet(src, DEFAULT_WIDTHS, "webp") : undefined,
-      srcSetAvif: isSupabase ? buildSrcSet(src, DEFAULT_WIDTHS, "avif") : undefined,
     };
   }, [src]);
 
@@ -94,19 +94,21 @@ const OptimizedImage = ({
 
   if (error) {
     return (
-      <div className={cn("flex items-center justify-center bg-muted", aspectRatio, wrapperClassName)}>
+      <div className={cn("flex items-center justify-center bg-cream-200", aspectRatio, wrapperClassName)}>
         <span className="text-4xl">☕</span>
       </div>
     );
   }
 
   return (
-    <div className={cn("relative overflow-hidden", aspectRatio, wrapperClassName)}>
+    <div className={cn("relative overflow-hidden bg-cream-100", aspectRatio, wrapperClassName)}>
       {showSkeleton && !loaded && (
-        <div className="absolute inset-0 animate-pulse bg-muted" />
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-cream-100 via-cream-200 to-cream-100 bg-[length:200%_100%] animate-[shimmer_1.6s_ease-in-out_infinite]"
+          aria-hidden="true"
+        />
       )}
       <picture>
-        {inView && srcSetAvif && <source type="image/avif" srcSet={srcSetAvif} sizes={sizes} />}
         {inView && srcSetWebp && <source type="image/webp" srcSet={srcSetWebp} sizes={sizes} />}
         <img
           ref={imgRef}
@@ -118,8 +120,8 @@ const OptimizedImage = ({
           onLoad={() => setLoaded(true)}
           onError={() => setError(true)}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-500",
-            loaded ? "opacity-100" : "opacity-0",
+            "w-full h-full object-cover transition-[opacity,transform] duration-700 ease-out",
+            loaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]",
             className
           )}
           {...props}
