@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,16 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limit: 10 checkout attempts / minute / IP (or user when authed)
+    const rlKey = callerKey(req, "checkout");
+    const allowed = await checkRateLimit(rlKey, 10, 60);
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Muitas tentativas de pagamento. Aguarde 1 minuto e tente novamente." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await req.json();
     const {
       items,

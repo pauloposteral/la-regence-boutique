@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,15 @@ Deno.serve(async (req) => {
     });
     const { data: { user }, error: authError } = await anonClient.auth.getUser();
     if (authError || !user) throw new Error("Unauthorized");
+
+    // Rate limit: 3 account-deletion attempts / hour / user
+    const allowed = await checkRateLimit(callerKey(req, "delete-account", user.id), 3, 3600);
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Muitas tentativas. Aguarde antes de tentar novamente." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Use service role to delete user data and account
     const adminClient = createClient(supabaseUrl, serviceRoleKey);

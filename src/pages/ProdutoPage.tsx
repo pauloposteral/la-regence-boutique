@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, Minus, Plus, MapPin, Mountain, Leaf, Calendar, Coffee, AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,7 @@ import BackInStockNotify from "@/components/product/BackInStockNotify";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/ui/optimized-image";
@@ -67,6 +69,24 @@ const ProdutoPage = () => {
     return allProdutos.filter((p) => p.id !== produto.id).slice(0, 4);
   }, [allProdutos, produto]);
 
+  // Aggregate rating for SEO (Google rich snippet)
+  const { data: ratingAgg } = useQuery({
+    queryKey: ["produto-rating", produto?.id],
+    queryFn: async () => {
+      if (!produto?.id) return null;
+      const { data } = await supabase
+        .from("avaliacoes")
+        .select("nota")
+        .eq("produto_id", produto.id)
+        .eq("aprovado", true);
+      if (!data || data.length === 0) return null;
+      const total = data.reduce((s, r: any) => s + (r.nota || 0), 0);
+      return { count: data.length, avg: Math.round((total / data.length) * 10) / 10 };
+    },
+    enabled: !!produto?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const mainImg = produto?.imagens?.find((i: any) => i.principal)?.url || produto?.imagens?.[0]?.url;
 
   // Track recently viewed
@@ -95,11 +115,37 @@ const ProdutoPage = () => {
 
   const promoPercent = produto.preco_promocional ? Math.round((1 - produto.preco_promocional / produto.preco) * 100) : null;
 
-  const productJsonLd = {
-    "@context": "https://schema.org", "@type": "Product",
-    name: produto.nome, description: produto.descricao || produto.descricao_sensorial || "", image: mainImg,
+  const productJsonLd: Record<string, any> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: produto.nome,
+    description: produto.descricao || produto.descricao_sensorial || "",
+    image: produto.imagens?.length ? produto.imagens.map((i: any) => i.url) : (mainImg ? [mainImg] : undefined),
+    sku: (produto as any).sku || produto.id,
     brand: { "@type": "Brand", name: "La Régence" },
-    offers: { "@type": "Offer", price: currentPrice, priceCurrency: "BRL", availability: produto.estoque > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
+    category: produto.categoria?.nome,
+    ...(produto.origem ? { countryOfOrigin: produto.origem } : {}),
+    offers: {
+      "@type": "Offer",
+      url: `https://lojalaregence.lovable.app/cafe/${produto.slug}`,
+      price: (produto.preco_promocional ?? currentPrice).toFixed(2),
+      priceCurrency: "BRL",
+      priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+      itemCondition: "https://schema.org/NewCondition",
+      availability: produto.estoque > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "La Régence" },
+    },
+    ...(ratingAgg && ratingAgg.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: ratingAgg.avg,
+            reviewCount: ratingAgg.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
   };
 
   const handleAddToCart = () => {
