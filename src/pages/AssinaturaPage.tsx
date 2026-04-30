@@ -85,6 +85,7 @@ const AssinaturaPage = () => {
   });
 
   const [selectedCafe, setSelectedCafe] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -92,38 +93,46 @@ const AssinaturaPage = () => {
       navigate("/auth");
       return;
     }
+    if (!cafeSurpresa && !selectedCafe) {
+      toast.error("Escolha um café ou selecione 'Café surpresa'");
+      return;
+    }
 
-    const plan = PLANS.find((p) => p.tipo === selectedPlan)!;
-    const { error } = await supabase.from("assinaturas").insert({
-      user_id: user.id,
-      tipo: selectedPlan,
-      preco: plan.price,
-      moagem,
-      cafe_surpresa: cafeSurpresa,
-      produto_id: cafeSurpresa ? null : selectedCafe,
-      proxima_entrega: new Date(Date.now() + 7 * 86400000).toISOString(),
-    });
-
-    if (error) {
-      toast.error("Erro ao criar assinatura");
-    } else {
-      toast.success("Assinatura criada com sucesso! ☕");
-      queryClient.invalidateQueries({ queryKey: ["assinatura"] });
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-subscription-checkout", {
+        body: {
+          tipo: selectedPlan,
+          moagem,
+          cafeSurpresa,
+          produtoId: cafeSurpresa ? null : selectedCafe,
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data?.error || "Erro ao iniciar checkout");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao iniciar checkout");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handlePause = async () => {
-    if (!assinatura) return;
-    await supabase.from("assinaturas").update({ status: "pausada" }).eq("id", assinatura.id);
-    toast.success("Assinatura pausada");
-    queryClient.invalidateQueries({ queryKey: ["assinatura"] });
-  };
-
-  const handleCancel = async () => {
-    if (!assinatura) return;
-    await supabase.from("assinaturas").update({ status: "cancelada" }).eq("id", assinatura.id);
-    toast.success("Assinatura cancelada");
-    queryClient.invalidateQueries({ queryKey: ["assinatura"] });
+  const handleManage = async () => {
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+      else throw new Error(data?.error || "Erro ao abrir portal");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao abrir portal de gerenciamento");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
