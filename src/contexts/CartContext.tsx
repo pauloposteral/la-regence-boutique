@@ -209,6 +209,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCupom(null);
     setDesconto(0);
     localStorage.removeItem(CART_STORAGE_KEY);
+    const uid = userIdRef.current;
+    if (uid) {
+      supabase.from("carts").upsert({ user_id: uid, items: [] as any }, { onConflict: "user_id" }).then(() => {});
+    }
   }, []);
 
   const subtotal = items.reduce((acc, i) => acc + (i.precoPromocional || i.preco) * i.quantidade, 0);
