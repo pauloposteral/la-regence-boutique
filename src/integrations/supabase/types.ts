@@ -920,6 +920,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      preview_coupon: {
+        Args: { _codigo: string; _subtotal: number }
+        Returns: {
+          desconto: number
+          motivo: string
+        }[]
+      }
+      redeem_coupon: {
+        Args: { _codigo: string; _subtotal: number }
+        Returns: {
+          codigo: string
+          cupom_id: string
+          desconto: number
+          motivo: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
