@@ -9,13 +9,27 @@
     <meta name="theme-color" content="#FAF7F2" />
     <link rel="icon" type="image/png" href="/images/logo-laregence.png">
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect to image origin (saves DNS+TLS for LCP) -->
+    <link rel="preconnect" href="https://uuuaylqjllxqjjmvdybm.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload critical font used by LCP h1 (Playfair 700) -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtY.woff2"
+      crossorigin
+    />
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" as="style" />
-    <!-- Preload LCP hero image -->
+
+    <!-- Preload LCP hero image (matches <img> in HeroSection — single fetch) -->
     <link
       rel="preload"
       as="image"
-      href="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1440&quality=78&format=webp"
-      imagesrcset="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=640&quality=78&format=webp 640w, https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1080&quality=78&format=webp 1080w, https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1920&quality=78&format=webp 1920w"
+      href="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1440&quality=75&format=webp"
+      imagesrcset="https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=640&quality=70&format=webp 640w, https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1080&quality=72&format=webp 1080w, https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png?width=1920&quality=78&format=webp 1920w"
       imagesizes="100vw"
       fetchpriority="high"
     />
