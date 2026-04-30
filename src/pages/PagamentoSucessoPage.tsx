@@ -1,19 +1,47 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle, ShoppingBag, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { trackPurchase } from "@/lib/analytics";
 
 const PagamentoSucessoPage = () => {
   const { clearCart } = useCart();
   const [searchParams] = useSearchParams();
   const pedidoId = searchParams.get("pedido");
+  const trackedRef = useRef(false);
 
   useEffect(() => {
     clearCart();
   }, [clearCart]);
+
+  // Fire purchase event once per pedido (uses sessionStorage as idempotency guard)
+  useEffect(() => {
+    if (!pedidoId || trackedRef.current) return;
+    const key = `purchase_tracked_${pedidoId}`;
+    if (sessionStorage.getItem(key)) return;
+    trackedRef.current = true;
+
+    (async () => {
+      const { data: pedido } = await supabase
+        .from("pedidos")
+        .select("total, itens_pedido(produto_id, quantidade, preco_unitario, produtos(nome))")
+        .eq("id", pedidoId)
+        .maybeSingle();
+      if (!pedido) return;
+      const items = (pedido.itens_pedido || []).map((it: any) => ({
+        id: it.produto_id,
+        name: it.produtos?.nome || "Produto",
+        price: Number(it.preco_unitario),
+        quantity: it.quantidade,
+      }));
+      trackPurchase(pedidoId, Number(pedido.total), items);
+      sessionStorage.setItem(key, "1");
+    })();
+  }, [pedidoId]);
 
   return (
     <Layout>

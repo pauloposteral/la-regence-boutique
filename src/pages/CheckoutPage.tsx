@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { checkoutSchema } from "@/lib/validation";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 const STEPS = [
   { id: "identificacao", label: "Identificação", icon: User },
@@ -100,6 +101,16 @@ const CheckoutPage = () => {
     setSubmitting(true);
     const idempotencyKey = crypto.randomUUID();
     try {
+      // GA4 + Pixel: begin_checkout
+      trackBeginCheckout(
+        total,
+        items.map((i) => ({
+          id: i.produtoId,
+          name: i.nome,
+          price: i.precoPromocional || i.preco,
+          quantity: i.quantidade,
+        }))
+      );
       // Force fresh price check immediately before posting — surface any price drift
       const updated = await validatePricesNow();
       if (updated) {
