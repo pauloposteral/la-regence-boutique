@@ -22,6 +22,7 @@ import { useProdutoBySlug, useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackViewItem } from "@/lib/analytics";
 import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -89,10 +90,16 @@ const ProdutoPage = () => {
 
   const mainImg = produto?.imagens?.find((i: any) => i.principal)?.url || produto?.imagens?.[0]?.url;
 
-  // Track recently viewed
+  // Track recently viewed + GA4/Pixel view_item
   useEffect(() => {
     if (produto) {
       addProduct({ id: produto.id, nome: produto.nome, slug: produto.slug, preco: produto.preco, imagemUrl: mainImg });
+      trackViewItem({
+        id: produto.id,
+        name: produto.nome,
+        price: Number(produto.preco_promocional ?? produto.preco),
+        category: produto.categoria?.nome,
+      });
     }
   }, [produto?.id]);
 
