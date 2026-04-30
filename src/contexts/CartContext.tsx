@@ -227,7 +227,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items, isOpen, openCart, closeCart, addItem, removeItem, updateQuantity, clearCart,
-        subtotal, totalItems, cupom, desconto, setCupom, setDesconto,
+        subtotal, totalItems, cupom, desconto, setCupom, setDesconto, validatePricesNow,
       }}
     >
       {children}

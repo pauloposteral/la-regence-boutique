@@ -30,7 +30,7 @@ const TRUST_BADGES = [
 ];
 
 const CheckoutPage = () => {
-  const { items, subtotal, desconto, cupom, clearCart } = useCart();
+  const { items, subtotal, desconto, cupom, clearCart, validatePricesNow } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -100,6 +100,13 @@ const CheckoutPage = () => {
     setSubmitting(true);
     const idempotencyKey = crypto.randomUUID();
     try {
+      // Force fresh price check immediately before posting — surface any price drift
+      const updated = await validatePricesNow();
+      if (updated) {
+        toast.info("Preços do carrinho foram atualizados. Confira antes de continuar.");
+        setSubmitting(false);
+        return;
+      }
       // Server is the source of truth for prices, coupon discount, shipping and total.
       // We only send the cart items and the coupon CODE — never amounts.
       const { data, error } = await supabase.functions.invoke("create-checkout-payment", {
