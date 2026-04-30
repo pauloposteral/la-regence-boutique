@@ -30,6 +30,7 @@ const PagamentoSucessoPage = lazy(() => import("./pages/PagamentoSucessoPage"));
 const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
 const CompararPage = lazy(() => import("./pages/CompararPage"));
 const FAQPage = lazy(() => import("./pages/FAQPage"));
+const NewsletterConfirmPage = lazy(() => import("./pages/NewsletterConfirmPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -98,6 +99,7 @@ const App = () => (
                   <Route path="/favoritos" element={<FavoritosPage />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/comparar" element={<CompararPage />} />
+                  <Route path="/newsletter/confirmar" element={<NewsletterConfirmPage />} />
                   <Route path="/contato" element={<LazyContato />} />
                   <Route path="/politica-privacidade" element={<LazyPolitica />} />
                   <Route path="/termos" element={<LazyTermos />} />

@@ -204,6 +204,24 @@ export type Database = {
         }
         Relationships: []
       }
+      carts: {
+        Row: {
+          items: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          items?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          items?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categorias: {
         Row: {
           ativo: boolean
@@ -506,19 +524,31 @@ export type Database = {
       }
       newsletter_subscribers: {
         Row: {
+          confirmation_token: string
+          confirmed: boolean
+          confirmed_at: string | null
           created_at: string
           email: string
           id: string
+          unsubscribed_at: string | null
         }
         Insert: {
+          confirmation_token?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           email: string
           id?: string
+          unsubscribed_at?: string | null
         }
         Update: {
+          confirmation_token?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           email?: string
           id?: string
+          unsubscribed_at?: string | null
         }
         Relationships: []
       }
@@ -559,6 +589,7 @@ export type Database = {
       }
       pedidos: {
         Row: {
+          abandoned_email_sent_at: string | null
           codigo_rastreamento: string | null
           created_at: string
           cupom_id: string | null
@@ -580,6 +611,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          abandoned_email_sent_at?: string | null
           codigo_rastreamento?: string | null
           created_at?: string
           cupom_id?: string | null
@@ -601,6 +633,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          abandoned_email_sent_at?: string | null
           codigo_rastreamento?: string | null
           created_at?: string
           cupom_id?: string | null

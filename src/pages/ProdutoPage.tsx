@@ -99,10 +99,37 @@ const ProdutoPage = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 animate-pulse">
-            <div className="aspect-square bg-muted rounded-lg" />
-            <div className="space-y-4"><div className="h-8 bg-muted rounded w-3/4" /><div className="h-4 bg-muted rounded w-1/2" /><div className="h-6 bg-muted rounded w-1/3 mt-6" /></div>
+        <div className="container mx-auto px-4 lg:px-8 py-8">
+          {/* Breadcrumb skeleton */}
+          <div className="h-4 w-64 bg-muted rounded mb-8 animate-pulse" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+            {/* Gallery skeleton */}
+            <div className="space-y-3">
+              <div className="aspect-square bg-muted rounded-lg animate-pulse" />
+              <div className="grid grid-cols-4 gap-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="aspect-square bg-muted rounded animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                ))}
+              </div>
+            </div>
+            {/* Details skeleton */}
+            <div className="space-y-5">
+              <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+              <div className="h-9 w-3/4 bg-muted rounded animate-pulse" />
+              <div className="flex gap-2">
+                {[0, 1, 2].map((i) => <div key={i} className="h-6 w-20 bg-muted rounded-full animate-pulse" />)}
+              </div>
+              <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+                <div className="h-10 w-40 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-56 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-44 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+                <div className="flex gap-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-9 w-16 bg-muted rounded animate-pulse" />)}</div>
+              </div>
+              <div className="h-12 w-full bg-muted rounded animate-pulse" />
+            </div>
           </div>
         </div>
       </Layout>

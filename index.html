@@ -20,22 +20,8 @@
       fetchpriority="high"
     />
 
-    <!-- Google Analytics 4 (conditional) -->
-    <script>
-      (function(){
-        var id = '%VITE_GA_ID%';
-        if (!id || id.indexOf('VITE_') === 0) return;
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', id);
-      })();
-    </script>
+    <!-- Analytics (GA4 + Meta Pixel) initialized at runtime via src/lib/analytics.ts
+         using VITE_GA_ID and VITE_META_PIXEL_ID env vars. -->
     
     
     <meta property="og:type" content="website" />
