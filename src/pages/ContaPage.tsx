@@ -34,6 +34,7 @@ import {
   STATUS_TERMINAL,
   type StatusPedido,
 } from "@/lib/orderStatus";
+import TierProgress from "@/components/loyalty/TierProgress";
 
 const ContaPage = () => {
   const navigate = useNavigate();
