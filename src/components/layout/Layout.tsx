@@ -13,7 +13,7 @@ import FreeShippingBar from "./FreeShippingBar";
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
 import AbandonedCartBanner from "@/components/cart/AbandonedCartBanner";
-import NewsletterPopup from "./NewsletterPopup";
+// NewsletterPopup desativado a pedido — newsletter continua acessível via Footer
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
 import SocialProofToast from "@/components/product/SocialProofToast";
@@ -65,7 +65,7 @@ const Layout = ({ children }: LayoutProps) => {
       <CartDrawer />
       <AbandonedCartBanner />
       <BottomNav />
-      <NewsletterPopup />
+      {/* NewsletterPopup removido — exit-intent estava incomodando */}
       <PWAInstallPrompt />
       <SocialProofToast />
       <CookieBanner />
