@@ -14,20 +14,12 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
 import AddressDisplay from "@/components/admin/AddressDisplay";
-import type { Database } from "@/integrations/supabase/types";
-
-type StatusPedido = Database["public"]["Enums"]["status_pedido"];
-
-const STATUS_COLORS: Record<StatusPedido, string> = {
-  pendente: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-  confirmado: "bg-blue-100 text-blue-800 border border-blue-200",
-  preparando: "bg-orange-100 text-orange-800 border border-orange-200",
-  enviado: "bg-purple-100 text-purple-800 border border-purple-200",
-  entregue: "bg-green-100 text-green-800 border border-green-200",
-  cancelado: "bg-red-100 text-red-800 border border-red-200",
-};
-
-const STATUS_OPTIONS: StatusPedido[] = ["pendente", "confirmado", "preparando", "enviado", "entregue", "cancelado"];
+import {
+  STATUS_COLORS_ADMIN as STATUS_COLORS,
+  STATUS_OPTIONS,
+  STATUS_SHORT,
+  type StatusPedido,
+} from "@/lib/orderStatus";
 
 const AdminPedidos = () => {
   const queryClient = useQueryClient();
