@@ -178,6 +178,86 @@ serve(async (req) => {
         }
         break;
       }
+
+      // ===== Subscription lifecycle (Clube La Régence) =====
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const meta = sub.metadata || {};
+        const userId = meta.user_id;
+        if (!userId) {
+          console.warn(`⚠️ Subscription ${sub.id} sem user_id no metadata`);
+          break;
+        }
+
+        const priceId = sub.items.data[0]?.price.id;
+        const unitAmount = sub.items.data[0]?.price.unit_amount || 0;
+        const statusMap: Record<string, "ativa" | "pausada" | "cancelada"> = {
+          active: "ativa", trialing: "ativa", past_due: "ativa",
+          paused: "pausada",
+          canceled: "cancelada", incomplete_expired: "cancelada", unpaid: "cancelada",
+        };
+        const localStatus = statusMap[sub.status] || "cancelada";
+        // current_period_end may be undefined in older typings — fallback safe
+        const periodEndUnix = (sub as any).current_period_end as number | undefined;
+        const proxima = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null;
+        const cancelaEm = sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null;
+
+        const { data: existing } = await supabaseAdmin
+          .from("assinaturas")
+          .select("id")
+          .eq("stripe_subscription_id", sub.id)
+          .maybeSingle();
+
+        const payload = {
+          user_id: userId,
+          tipo: (meta.tipo || "mensal") as any,
+          preco: unitAmount / 100,
+          moagem: (meta.moagem || "media") as any,
+          cafe_surpresa: meta.cafe_surpresa === "true",
+          produto_id: meta.produto_id || null,
+          stripe_subscription_id: sub.id,
+          stripe_price_id: priceId,
+          status: localStatus,
+          proxima_entrega: proxima,
+          cancela_em: cancelaEm,
+        };
+
+        if (existing) {
+          await supabaseAdmin.from("assinaturas")
+            .update({ status: payload.status, proxima_entrega: payload.proxima_entrega, cancela_em: payload.cancela_em, stripe_price_id: payload.stripe_price_id, preco: payload.preco })
+            .eq("id", existing.id);
+          console.log(`🔁 Assinatura ${sub.id} atualizada (${localStatus})`);
+        } else {
+          await supabaseAdmin.from("assinaturas").insert(payload);
+          console.log(`✨ Assinatura ${sub.id} criada para user ${userId}`);
+        }
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        await supabaseAdmin
+          .from("assinaturas")
+          .update({ status: "cancelada", cancela_em: new Date().toISOString() })
+          .eq("stripe_subscription_id", sub.id);
+        console.log(`🛑 Assinatura ${sub.id} cancelada`);
+        break;
+      }
+
+      case "invoice.paid": {
+        const inv = event.data.object as Stripe.Invoice;
+        const subId = (inv as any).subscription as string | undefined;
+        if (subId) {
+          // Push next delivery 30 days out (best-effort; precise date virá do próximo subscription.updated)
+          await supabaseAdmin
+            .from("assinaturas")
+            .update({ proxima_entrega: new Date(Date.now() + 30 * 86400000).toISOString() })
+            .eq("stripe_subscription_id", subId);
+          console.log(`💳 Invoice paga, próxima entrega atualizada para sub ${subId}`);
+        }
+        break;
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
