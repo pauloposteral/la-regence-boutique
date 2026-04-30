@@ -334,13 +334,14 @@ const ContaPage = () => {
                       <Badge className={`${STATUS_COLORS[pedido.status]} font-body text-[10px]`}>{STATUS_LABELS[pedido.status] || pedido.status}</Badge>
                     </div>
                     <div className="flex items-center gap-1 mb-4">
-                      {["pendente", "confirmado", "preparando", "enviado", "entregue"].map((s, i, arr) => {
-                        const statusOrder = arr.indexOf(pedido.status);
-                        const done = i <= statusOrder && pedido.status !== "cancelado";
+                      {STATUS_TIMELINE.map((s, i, arr) => {
+                        const currentIdx = arr.indexOf(pedido.status as StatusPedido);
+                        const isTerminalNonDelivered = STATUS_TERMINAL.includes(pedido.status as StatusPedido) && pedido.status !== "entregue";
+                        const done = !isTerminalNonDelivered && currentIdx >= 0 && i <= currentIdx;
                         return (
-                          <div key={s} className="flex items-center flex-1 last:flex-none">
+                          <div key={s} className="flex items-center flex-1 last:flex-none" title={STATUS_LABELS[s]}>
                             <div className={`w-2.5 h-2.5 rounded-full ${done ? "bg-gold" : "bg-border"}`} />
-                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < statusOrder ? "bg-gold" : "bg-border"}`} />}
+                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < currentIdx ? "bg-gold" : "bg-border"}`} />}
                           </div>
                         );
                       })}
