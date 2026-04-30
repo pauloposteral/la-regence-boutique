@@ -44,11 +44,19 @@ const NewsletterPopup = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("newsletter_subscribers").insert({ email: email.trim() });
+    const { data, error } = await supabase.functions.invoke("newsletter-subscribe", {
+      body: { email: email.trim() },
+    });
     setLoading(false);
-    if (error?.code === "23505") { toast.info("Este e-mail já está inscrito!"); dismiss(); return; }
-    if (error) { toast.error("Erro ao inscrever"); return; }
-    toast.success("Inscrito com sucesso! ☕ Você receberá nossas novidades.");
+    if (error || data?.error) {
+      toast.error(data?.error || "Erro ao inscrever");
+      return;
+    }
+    if (data?.alreadyConfirmed) {
+      toast.info("Este e-mail já está inscrito!");
+    } else {
+      toast.success("Confirme seu e-mail ☕ Enviamos um link para você.");
+    }
     dismiss();
   };
 
