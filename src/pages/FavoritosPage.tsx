@@ -95,7 +95,7 @@ const FavoritosPage = () => {
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
-                        className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-light rounded-none uppercase tracking-wide"
+                        className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark rounded-full uppercase tracking-wide"
                         disabled={p.estoque === 0}
                         onClick={() => {
                           addItem({ produtoId: p.id, nome: p.nome, preco: p.preco, precoPromocional: p.preco_promocional || undefined, quantidade: 1, imagemUrl: img, slug: p.slug });

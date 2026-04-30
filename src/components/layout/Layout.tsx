@@ -6,6 +6,9 @@ import Footer from "./Footer";
 import WhatsAppButton from "./WhatsAppButton";
 import ScrollToTop from "./ScrollToTop";
 import ScrollProgress from "./ScrollProgress";
+
+// ScrollProgress só faz sentido em conteúdo longo (blog post)
+const SCROLL_PROGRESS_PREFIXES = ["/blog/"];
 import FreeShippingBar from "./FreeShippingBar";
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
@@ -39,6 +42,7 @@ const ORGANIZATION_JSONLD = {
 const Layout = ({ children }: LayoutProps) => {
   usePrefetchRoutes();
   const location = useLocation();
+  const showScrollProgress = SCROLL_PROGRESS_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -49,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex flex-col">
       {/* Skip to content (accessibility) */}
       <a href="#main-content" className="skip-to-content">Ir para o conteúdo</a>
-      <ScrollProgress />
+      {showScrollProgress && <ScrollProgress />}
       <Header />
       <FreeShippingBar />
       <main id="main-content" className="flex-1 mb-bottom-nav">

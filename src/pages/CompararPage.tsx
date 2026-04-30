@@ -13,6 +13,21 @@ const TORRA_LABELS: Record<string, string> = {
   clara: "Clara", media: "Média", media_escura: "Média Escura", escura: "Escura",
 };
 
+const SensoryBar = ({ value }: { value: number | null | undefined }) => {
+  const v = typeof value === "number" ? Math.max(0, Math.min(5, value)) : 0;
+  if (!value) return <span className="text-muted-foreground text-sm">—</span>;
+  return (
+    <div className="flex items-center gap-1.5 justify-center">
+      <div className="flex gap-0.5 w-20">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className={`h-1.5 flex-1 rounded-full ${i < v ? "bg-gold" : "bg-cream-400"}`} />
+        ))}
+      </div>
+      <span className="text-[10px] font-body font-medium text-brown-light">{v}/5</span>
+    </div>
+  );
+};
+
 const CompararPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -74,12 +89,28 @@ const CompararPage = () => {
         p.notas_sensoriais?.length > 0 ? (
           <div className="flex flex-wrap gap-1 justify-center">
             {p.notas_sensoriais.map((n: string) => (
-              <span key={n} className="text-[10px] font-body bg-gold/5 text-gold/70 border border-gold/20 px-2 py-0.5 rounded-sm">{n}</span>
+              <span key={n} className="text-[10px] font-body bg-gold/5 text-gold/70 border border-gold/20 px-2 py-0.5 rounded-full">{n}</span>
             ))}
           </div>
         ) : (
           <span className="text-muted-foreground">—</span>
         ),
+    },
+    {
+      label: "Acidez",
+      render: (p) => <SensoryBar value={p.acidez} />,
+    },
+    {
+      label: "Corpo",
+      render: (p) => <SensoryBar value={p.corpo} />,
+    },
+    {
+      label: "Doçura",
+      render: (p) => <SensoryBar value={p.docura} />,
+    },
+    {
+      label: "Retrogosto",
+      render: (p) => <SensoryBar value={p.retrogosto} />,
     },
     {
       label: "Perfil Sensorial",
