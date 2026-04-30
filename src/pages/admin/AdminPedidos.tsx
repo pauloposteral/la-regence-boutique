@@ -177,10 +177,10 @@ const AdminPedidos = () => {
                 <td className="px-4 py-3 font-body text-sm font-medium">{fmt(Number(p.total))}</td>
                 <td className="px-4 py-3">
                   <Select value={p.status} onValueChange={(v) => updateStatus(p.id, v as StatusPedido)}>
-                    <SelectTrigger className="h-7 w-32">
-                      <Badge className={`${STATUS_COLORS[p.status as StatusPedido]} font-body text-[10px] capitalize`}>{p.status}</Badge>
+                    <SelectTrigger className="h-7 w-36">
+                      <Badge className={`${STATUS_COLORS[p.status as StatusPedido]} font-body text-[10px]`}>{STATUS_SHORT[p.status as StatusPedido] ?? p.status}</Badge>
                     </SelectTrigger>
-                    <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}</SelectContent>
+                    <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{STATUS_SHORT[s]}</SelectItem>)}</SelectContent>
                   </Select>
                 </td>
                 <td className="px-4 py-3">
