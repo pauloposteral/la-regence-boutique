@@ -27,17 +27,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const STATUS_LABELS: Record<string, string> = {
-  pendente: "Pendente", confirmado: "Confirmado", preparando: "Preparando",
-  enviado: "Enviado", entregue: "Entregue", cancelado: "Cancelado",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  pendente: "bg-muted text-muted-foreground", confirmado: "bg-accent/10 text-accent",
-  preparando: "bg-accent/20 text-accent", enviado: "bg-primary/10 text-primary",
-  entregue: "bg-green-100 text-green-700", cancelado: "bg-destructive/10 text-destructive",
-};
+import {
+  STATUS_LABELS,
+  STATUS_COLORS_CUSTOMER as STATUS_COLORS,
+  STATUS_TIMELINE,
+  STATUS_TERMINAL,
+  type StatusPedido,
+} from "@/lib/orderStatus";
 
 const ContaPage = () => {
   const navigate = useNavigate();
@@ -338,13 +334,14 @@ const ContaPage = () => {
                       <Badge className={`${STATUS_COLORS[pedido.status]} font-body text-[10px]`}>{STATUS_LABELS[pedido.status] || pedido.status}</Badge>
                     </div>
                     <div className="flex items-center gap-1 mb-4">
-                      {["pendente", "confirmado", "preparando", "enviado", "entregue"].map((s, i, arr) => {
-                        const statusOrder = arr.indexOf(pedido.status);
-                        const done = i <= statusOrder && pedido.status !== "cancelado";
+                      {STATUS_TIMELINE.map((s, i, arr) => {
+                        const currentIdx = arr.indexOf(pedido.status as StatusPedido);
+                        const isTerminalNonDelivered = STATUS_TERMINAL.includes(pedido.status as StatusPedido) && pedido.status !== "entregue";
+                        const done = !isTerminalNonDelivered && currentIdx >= 0 && i <= currentIdx;
                         return (
-                          <div key={s} className="flex items-center flex-1 last:flex-none">
+                          <div key={s} className="flex items-center flex-1 last:flex-none" title={STATUS_LABELS[s]}>
                             <div className={`w-2.5 h-2.5 rounded-full ${done ? "bg-gold" : "bg-border"}`} />
-                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < statusOrder ? "bg-gold" : "bg-border"}`} />}
+                            {i < arr.length - 1 && <div className={`flex-1 h-px ${done && i < currentIdx ? "bg-gold" : "bg-border"}`} />}
                           </div>
                         );
                       })}

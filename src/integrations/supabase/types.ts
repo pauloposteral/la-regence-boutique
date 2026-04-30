@@ -1041,6 +1041,11 @@ export type Database = {
         | "enviado"
         | "entregue"
         | "cancelado"
+        | "pago"
+        | "torrando"
+        | "embalando"
+        | "saiu_para_entrega"
+        | "reembolsado"
       tipo_assinatura: "mensal" | "trimestral" | "semestral"
       tipo_moagem: "graos" | "grossa" | "media" | "fina" | "extra_fina"
       tipo_torra: "clara" | "media" | "media_escura" | "escura"
@@ -1180,6 +1185,11 @@ export const Constants = {
         "enviado",
         "entregue",
         "cancelado",
+        "pago",
+        "torrando",
+        "embalando",
+        "saiu_para_entrega",
+        "reembolsado",
       ],
       tipo_assinatura: ["mensal", "trimestral", "semestral"],
       tipo_moagem: ["graos", "grossa", "media", "fina", "extra_fina"],
