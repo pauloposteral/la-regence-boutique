@@ -1,62 +1,141 @@
 
-# Auditoria End-to-End — La Régence E-commerce
+# Auditoria Completa La Régence — 30 Melhorias
 
-## Avaliação: Fase 2 Concluída ✅
-
----
-
-## Todas as Correções Implementadas
-
-### Plano Original (25 itens) ✅
-1-25. Estoque, upload, Pix, máscaras, forwardRef, edge functions, empresa, fundação, favicon, dark mode, CSV, email, rate limiting, focus visible, SEO, fidelidade, admin, timeline, avaliações, assinaturas, blog, newsletter, comparador, quiz, PWA
-
-### Auditoria 50 Melhorias — Fase 1 (10 itens) ✅
-1. Validação de estoque no carrinho
-2. SEO dinâmico no Blog
-3. Produto inexistente → 404
-4. Busca sanitizada no Header
-5. Fix useMemo → useEffect
-6. ThemeProvider removido (next-themes)
-7. Banner LGPD/Cookies
-8. Blog com paginação
-9. Blog com breadcrumbs + SEO
-10. Sitemap no robots.txt
-
-### Auditoria 50 Melhorias — Fase 2 (10 itens) ✅
-11. Cross-sell inteligente — baseado em categoria e notas sensoriais
-12. Footer links corrigidos — substituídos placeholders por links reais + FAQ
-13. Breadcrumbs em FavoritosPage
-14. Breadcrumbs em AssinaturaPage + SEOHead
-15. Breadcrumbs em QuizPage + SEOHead
-16. BlogPostPage com SEOHead dinâmico
-17. Página FAQ completa — 5 seções, 19 perguntas
-18. Idempotency key no checkout — Stripe session com proteção anti-duplicata
-19. Proteção double-submit reforçada no checkout
-20. Rota /faq adicionada ao App.tsx e Footer
+Auditoria cirúrgica feita sobre `Index`, `Header`, `ProdutoPage`, `CafesPage`, `CartContext`, `Layout`, `HeroSection`, edge functions, RLS e o `.lovable/plan.md`. Tudo abaixo é **evolução cirúrgica** — zero regressão, preserva 100% do que já funciona.
 
 ---
 
-## Itens Pendentes (20 restantes)
+## 🔒 SEGURANÇA (crítico — fazer primeiro)
 
-### Críticos
-- Validação de cupom server-side (edge function)
-- Expiração de preço no carrinho
-- Checkout salvar endereço no perfil
+**1. Endurecer RLS contra acesso anônimo** (já marcado como dívida)
+Tabelas `profiles`, `enderecos`, `pedidos`, `assinaturas`, `pontos_fidelidade`, `favoritos`, `itens_pedido` têm policies em `{public}`. Recriar com role `{authenticated}` e adicionar `TO authenticated` explícito + policy de DENY para `anon`.
 
-### Performance
-- WebP/AVIF para imagens
-- Reduzir framer-motion imports desnecessários
-- Service worker real
-- localStorage com try/catch universal
+**2. Validação de cupom server-side**
+Hoje o cupom é validado no client (manipulável). Criar edge function `validate-coupon` que checa `ativo`, `valido_ate`, `usos_restantes`, `valor_minimo` e decrementa `usos_restantes` atomicamente em transação no checkout.
 
-### Design
-- Logo no email transacional
-- BottomNav indicador animado
-- STATUS_COLORS unificado em um único arquivo
-- Skeleton loading em Homepage/ProdutoPage
+**3. Rate limiting nas edge functions sensíveis**
+`create-checkout-payment`, `send-email`, `delete-account`. Tabela `rate_limits (key, count, window_start)` + check por IP/user_id. 10 req/min por IP no checkout.
 
-### Analytics & Marketing
-- GA4 / Plausible analytics
-- Facebook Pixel
-- UTM tracking
-- Newsletter double opt-in
+**4. Sanitização de busca no Header (LIKE injection parcial)**
+Linha 48 do `Header.tsx` filtra `%_\\` mas o `or()` ainda concatena. Migrar para `.textSearch()` ou usar `ilike` parametrizado direto. Mesmo no `CafesPage`.
+
+**5. Newsletter com double opt-in**
+Hoje qualquer um insere qualquer email. Adicionar coluna `confirmed boolean default false` + token de confirmação + edge function `confirm-newsletter`. Evita spam e LGPD.
+
+---
+
+## 💰 CONVERSÃO E CHECKOUT
+
+**6. Validação server-side de preços no checkout**
+`create-checkout-payment` aceita `subtotal` e `total` do cliente. **Recalcular** no servidor a partir de `produtos.preco`/`variantes.preco` ignorando o que veio do client. Vital — hoje pode-se pagar R$0,01.
+
+**7. Recalcular frete no servidor**
+Mesmo problema: `custoFrete` vem do client. Validar via API dos Correios na edge function antes de criar a session Stripe.
+
+**8. Salvar endereço no perfil pós-checkout**
+Quando logado, fazer upsert em `enderecos` com `principal=true` na primeira compra. Reduz fricção em compras futuras.
+
+**9. Carrinho persistente cross-device**
+Hoje `localStorage` apenas. Sincronizar com tabela `carts (user_id, items jsonb)` quando logado. Merge inteligente no login.
+
+**10. Expiração de preço no carrinho**
+Já validado no `openCart`, mas não na ida ao checkout. Forçar revalidação imediata antes do POST `create-checkout-payment`, com toast se mudou.
+
+**11. Recuperação de carrinho abandonado por email**
+Cron edge function `abandoned-cart-recovery` que detecta `pedidos.status='pendente'` há > 1h e dispara email com cupom de 5%. Aumenta receita 5-15%.
+
+**12. Cross-sell no CartDrawer**
+Sugerir 2 produtos da mesma categoria dentro do drawer ("Frequentemente comprados juntos"). AOV +12% em média.
+
+---
+
+## ⚡ PERFORMANCE
+
+**13. Imagens em WebP/AVIF + responsive `srcset`**
+Hoje `OptimizedImage` apenas faz lazy. Servir variantes via Supabase Image Transformation (`?width=400&format=webp`). LCP -40%.
+
+**14. Preload da imagem do hero**
+`HeroSection` carrega PNG grande como `background-image` (não preloadeado). Adicionar `<link rel="preload" as="image" fetchpriority="high">` no `index.html` ou via `SEOHead`.
+
+**15. Reduzir bundle do framer-motion**
+Importar de `framer-motion/mini` quando possível ou trocar animações simples (Header logo hover, scroll indicator) por CSS puro. -30KB gzip.
+
+**16. Query batching no Header**
+`fav-count` + `header-search` são queries separadas. Combinar busca de favoritos no `useAuth` ou em provider único. Menos round-trips.
+
+**17. Index no Postgres para queries quentes**
+- `produtos(ativo, destaque)` para homepage
+- `produtos(slug)` único para `useProdutoBySlug`
+- `pedidos(user_id, created_at desc)` para conta
+- `pontos_fidelidade(user_id)` para tier
+Reduz latência 50-200ms por query.
+
+**18. Service Worker real (PWA já manifesta)**
+`PWAInstallPrompt` existe mas não há SW registrado. Adicionar Workbox com cache-first para assets e stale-while-revalidate para API. Offline funcional.
+
+---
+
+## 🎨 UX E DESIGN
+
+**19. Skeleton loading no `ProdutoPage` e Homepage**
+Hoje mostra Loading global. Skeletons específicos (galeria, info, abas) preservam layout e reduzem CLS. Já no plano original.
+
+**20. Toast de feedback consistente**
+Padronizar duração, posição e ícones. Hoje há `sonner` em alguns lugares e `toast` em outros. Centralizar wrapper.
+
+**21. Filtro persistente no `CafesPage` mobile**
+Sheet lateral atual fecha ao trocar página. Adicionar chip removível dos filtros ativos no topo (já tem URL params, faltam chips).
+
+**22. Empty states ilustrados**
+`/favoritos` vazio, `/comparar` vazio, busca sem resultado — hoje só texto. CTA + ilustração SVG dourada melhora retenção.
+
+**23. Comparador de cafés visual**
+Tabela `CompararPage` é funcional mas seca. Adicionar barras visuais para acidez/corpo/doçura (já tem dados em `produtos`).
+
+**24. Scroll progress bar só em posts longos**
+`ScrollProgress` está em todo Layout. Mover para `BlogPostPage` apenas — em homepage é distração.
+
+---
+
+## 📈 SEO E MARKETING
+
+**25. Sitemap.xml dinâmico funcional**
+Edge `generate-sitemap` já existe. Cron diário regenerando com produtos + posts ativos. Linkar no `robots.txt` (já está no plano, falta CRON).
+
+**26. JSON-LD Product completo em `ProdutoPage`**
+Schema.org `Product` + `Offer` + `AggregateRating` (média de `avaliacoes`) + `Review`. Rich snippets no Google = +20% CTR.
+
+**27. Open Graph dinâmico com imagem do produto**
+`SEOHead` aceita `og:image` mas `ProdutoPage` não passa. Adicionar imagem principal + alt. Compartilhamento WhatsApp/Instagram fica visual.
+
+**28. GA4 + Meta Pixel**
+`trackPageView` e `trackAddToCart` já existem em `lib/analytics.ts` mas sem provedor real. Plugar GA4 + Pixel via env vars. Mensurar funil real.
+
+---
+
+## 🛠️ ADMIN E OPERAÇÃO
+
+**29. Dashboard admin com métricas reais**
+`AdminDashboard` (399 linhas) já estruturado — auditar se KPIs (receita, ticket médio, conversão, AOV, top SKUs) usam dados ao vivo do Supabase via SQL views ou se há mocks. Adicionar gráfico de receita 30d com Recharts (já instalado).
+
+**30. Logs de auditoria admin**
+Tabela `admin_audit_log (admin_id, action, table_name, record_id, before jsonb, after jsonb, created_at)` + trigger nas tabelas críticas (`produtos`, `pedidos`, `cupons`, `user_roles`). Compliance e rastreabilidade.
+
+---
+
+## Priorização sugerida
+
+| Prioridade | Itens | Justificativa |
+|---|---|---|
+| **🔴 Crítico (semana 1)** | 1, 2, 6, 7 | Vulnerabilidades reais — pagamento e RLS |
+| **🟠 Alto (semana 2)** | 3, 4, 8, 13, 14, 17, 26 | Performance + segurança + SEO de receita |
+| **🟡 Médio (semana 3)** | 5, 9, 10, 11, 12, 19, 28 | Conversão e UX |
+| **🟢 Polimento** | 15, 16, 18, 20–25, 27, 29, 30 | Refinamento e observabilidade |
+
+---
+
+## Como prosseguir
+
+Posso começar pelos **4 itens críticos vermelhos** (1, 2, 6, 7) em uma única passada — são os de maior risco e menor escopo de UI. Depois subimos por bloco.
+
+Aprova a lista ou quer reorganizar/excluir itens antes de implementar?
