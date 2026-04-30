@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Coffee, Gift, Truck, Star, ArrowRight, Pause, X as XIcon, RefreshCw } from "lucide-react";
+import { Check, Coffee, Gift, Truck, Star, ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
