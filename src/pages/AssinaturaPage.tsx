@@ -240,12 +240,17 @@ const AssinaturaPage = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
-                  <Button variant="outline" size="sm" className="font-body text-xs gap-1.5" onClick={handlePause}>
-                    <Pause className="w-3.5 h-3.5" /> Pausar
+                  <Button
+                    size="sm"
+                    className="bg-gold text-white hover:bg-gold-dark font-body text-xs gap-1.5 rounded-full"
+                    onClick={handleManage}
+                    disabled={submitting}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Gerenciar assinatura
                   </Button>
-                  <Button variant="outline" size="sm" className="font-body text-xs gap-1.5 text-destructive hover:text-destructive" onClick={handleCancel}>
-                    <XIcon className="w-3.5 h-3.5" /> Cancelar
-                  </Button>
+                  <p className="font-body text-[11px] text-muted-foreground self-center">
+                    Pause, cancele ou atualize pagamento no portal seguro do Stripe.
+                  </p>
                 </div>
               </div>
             </motion.div>
