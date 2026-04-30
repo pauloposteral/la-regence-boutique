@@ -206,7 +206,7 @@ const AdminPedidos = () => {
             <div className="space-y-4 font-body text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div><p className="text-xs text-muted-foreground">Data</p><p>{new Date(detailOrder.created_at).toLocaleString("pt-BR")}</p></div>
-                <div><p className="text-xs text-muted-foreground">Status</p><Badge className={`${STATUS_COLORS[detailOrder.status as StatusPedido]} capitalize`}>{detailOrder.status}</Badge></div>
+                <div><p className="text-xs text-muted-foreground">Status</p><Badge className={STATUS_COLORS[detailOrder.status as StatusPedido]}>{STATUS_SHORT[detailOrder.status as StatusPedido] ?? detailOrder.status}</Badge></div>
                 <div><p className="text-xs text-muted-foreground">Subtotal</p><p>{fmt(Number(detailOrder.subtotal))}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total</p><p className="font-semibold">{fmt(Number(detailOrder.total))}</p></div>
                 {detailOrder.metodo_pagamento && <div><p className="text-xs text-muted-foreground">Pagamento</p><p className="capitalize">{detailOrder.metodo_pagamento}</p></div>}
