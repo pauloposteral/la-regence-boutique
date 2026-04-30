@@ -31,6 +31,7 @@ interface CartContextType {
   desconto: number;
   setCupom: (code: string | null) => void;
   setDesconto: (value: number) => void;
+  validatePricesNow: () => Promise<boolean>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
