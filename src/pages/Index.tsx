@@ -16,12 +16,50 @@ const DynamicBanners = lazy(() => import("@/components/home/DynamicBanners"));
 const CollectionsSection = lazy(() => import("@/components/home/CollectionsSection"));
 
 const Index = () => {
+  const baseUrl = "https://cafelaregence.com.br";
   const jsonLd = {
-    "@context": "https://schema.org", "@type": "CoffeeStore",
-    name: "La Régence", description: "Cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP.",
-    url: "https://laregence.com.br", telephone: "+5518996540883",
-    address: { "@type": "PostalAddress", streetAddress: "Avenida Guanabara, 2919 - Stella Maris", addressLocality: "Andradina", addressRegion: "SP", addressCountry: "BR" },
-    foundingDate: "2005", priceRange: "$$",
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["Organization", "CoffeeStore"],
+        "@id": `${baseUrl}/#organization`,
+        name: "La Régence",
+        alternateName: "La Régence Cafés Especiais",
+        description: "Cafeteria e torrefação artesanal de cafés especiais desde 2005 em Andradina-SP.",
+        url: baseUrl,
+        logo: `${baseUrl}/og-image.png`,
+        image: `${baseUrl}/og-image.png`,
+        telephone: "+5518996540883",
+        email: "contato@cafelaregence.com.br",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Avenida Guanabara, 2919 - Stella Maris",
+          addressLocality: "Andradina",
+          addressRegion: "SP",
+          postalCode: "16901-100",
+          addressCountry: "BR",
+        },
+        foundingDate: "2005",
+        priceRange: "$$",
+        sameAs: [
+          "https://www.instagram.com/cafelaregence",
+          "https://www.facebook.com/cafelaregence",
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${baseUrl}/#website`,
+        url: baseUrl,
+        name: "La Régence",
+        publisher: { "@id": `${baseUrl}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: `${baseUrl}/cafes?q={search_term_string}` },
+          "query-input": "required name=search_term_string",
+        },
+        inLanguage: "pt-BR",
+      },
+    ],
   };
 
   return (

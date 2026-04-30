@@ -34,6 +34,7 @@ import {
   STATUS_TERMINAL,
   type StatusPedido,
 } from "@/lib/orderStatus";
+import TierProgress from "@/components/loyalty/TierProgress";
 
 const ContaPage = () => {
   const navigate = useNavigate();
@@ -372,13 +373,9 @@ const ContaPage = () => {
           {/* Points Tab */}
           <TabsContent value="pontos">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              {/* Balance Card */}
-              <div className="bg-gradient-to-br from-gold/10 via-gold/5 to-transparent border border-gold/20 rounded-lg p-6 text-center">
-                <Award className="w-10 h-10 text-gold mx-auto mb-2" />
-                <p className="font-body text-xs text-muted-foreground uppercase tracking-wider mb-1">Seus Pontos</p>
-                <p className="font-display text-4xl font-bold text-gold">{pontosData?.total || 0}</p>
-                <p className="font-body text-xs text-muted-foreground mt-2">Ganhe 1 ponto por cada R$ 1 em compras entregues</p>
-              </div>
+              {/* Tier + Balance */}
+              <TierProgress points={pontosData?.total || 0} />
+              <p className="font-body text-xs text-muted-foreground text-center -mt-2">Ganhe 1 ponto por cada R$ 1 em compras entregues</p>
 
               {/* Redemption Options */}
               <div>
