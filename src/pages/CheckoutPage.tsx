@@ -100,8 +100,16 @@ const CheckoutPage = () => {
     setSubmitting(true);
     const idempotencyKey = crypto.randomUUID();
     try {
+      // Server is the source of truth for prices, coupon discount, shipping and total.
+      // We only send the cart items and the coupon CODE — never amounts.
       const { data, error } = await supabase.functions.invoke("create-checkout-payment", {
-        body: { items, form, subtotal, desconto, custoFrete, total, cupomId: null, metodoPagamento: form.metodoPagamento, idempotencyKey },
+        body: {
+          items,
+          form,
+          cupomCodigo: cupom || null,
+          metodoPagamento: form.metodoPagamento,
+          idempotencyKey,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
