@@ -47,6 +47,8 @@ function buildSrcSet(src: string, widths: number[], format: "webp" | "avif" = "w
  * - Intersection Observer for deferred src assignment
  * - Error fallback
  */
+const DEFAULT_WIDTHS = [320, 480, 640, 800, 1080, 1440];
+
 const OptimizedImage = ({
   src,
   alt,
@@ -55,12 +57,22 @@ const OptimizedImage = ({
   eager = false,
   wrapperClassName,
   className,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
   ...props
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [inView, setInView] = useState(eager);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  const { fallbackSrc, srcSetWebp, srcSetAvif } = useMemo(() => {
+    const isSupabase = src?.includes("/storage/v1/object/public/");
+    return {
+      fallbackSrc: isSupabase ? transformSupabase(src, 800, "webp") : src,
+      srcSetWebp: isSupabase ? buildSrcSet(src, DEFAULT_WIDTHS, "webp") : undefined,
+      srcSetAvif: isSupabase ? buildSrcSet(src, DEFAULT_WIDTHS, "avif") : undefined,
+    };
+  }, [src]);
 
   useEffect(() => {
     if (eager) return;
@@ -90,25 +102,29 @@ const OptimizedImage = ({
 
   return (
     <div className={cn("relative overflow-hidden", aspectRatio, wrapperClassName)}>
-      {/* Skeleton placeholder */}
       {showSkeleton && !loaded && (
         <div className="absolute inset-0 animate-pulse bg-muted" />
       )}
-      <img
-        ref={imgRef}
-        src={inView ? src : undefined}
-        alt={alt}
-        loading={eager ? "eager" : "lazy"}
-        decoding="async"
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-        className={cn(
-          "w-full h-full object-cover transition-opacity duration-500",
-          loaded ? "opacity-100" : "opacity-0",
-          className
-        )}
-        {...props}
-      />
+      <picture>
+        {inView && srcSetAvif && <source type="image/avif" srcSet={srcSetAvif} sizes={sizes} />}
+        {inView && srcSetWebp && <source type="image/webp" srcSet={srcSetWebp} sizes={sizes} />}
+        <img
+          ref={imgRef}
+          src={inView ? fallbackSrc : undefined}
+          alt={alt}
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-500",
+            loaded ? "opacity-100" : "opacity-0",
+            className
+          )}
+          {...props}
+        />
+      </picture>
     </div>
   );
 };
