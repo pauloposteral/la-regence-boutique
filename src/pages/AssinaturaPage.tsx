@@ -389,11 +389,11 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300"
+                  className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300 rounded-full"
                   onClick={handleSubscribe}
-                  disabled={!cafeSurpresa && !selectedCafe}
+                  disabled={submitting || (!cafeSurpresa && !selectedCafe)}
                 >
-                  Assinar agora — R$ {PLANS.find((p) => p.tipo === selectedPlan)!.price.toFixed(2).replace(".", ",")}/mês
+                  {submitting ? "Redirecionando…" : `Assinar agora — R$ ${PLANS.find((p) => p.tipo === selectedPlan)!.price.toFixed(2).replace(".", ",")}/mês`}
                 </Button>
                 <p className="font-body text-xs text-muted-foreground mt-3">
                   Cancele quando quiser · Primeira entrega em até 7 dias
