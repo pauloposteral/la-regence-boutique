@@ -6,6 +6,9 @@ import Footer from "./Footer";
 import WhatsAppButton from "./WhatsAppButton";
 import ScrollToTop from "./ScrollToTop";
 import ScrollProgress from "./ScrollProgress";
+
+// ScrollProgress só faz sentido em conteúdo longo (blog post)
+const SCROLL_PROGRESS_PREFIXES = ["/blog/"];
 import FreeShippingBar from "./FreeShippingBar";
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
