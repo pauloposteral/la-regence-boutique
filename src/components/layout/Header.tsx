@@ -41,11 +41,14 @@ const Header = () => {
     queryKey: ["header-search", debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
+      // Sanitize: strip wildcards/backslashes/commas/parens that break PostgREST .or()
+      const safe = debouncedSearch.replace(/[%_\\,()]/g, "").trim().slice(0, 60);
+      if (safe.length < 2) return [];
       const { data } = await supabase
         .from("produtos")
         .select("nome, slug, preco, preco_promocional, notas_sensoriais, categorias(nome), produto_imagens(url, principal)")
         .eq("ativo", true)
-        .or(`nome.ilike.%${debouncedSearch.replace(/[%_\\]/g, '')}%,origem.ilike.%${debouncedSearch.replace(/[%_\\]/g, '')}%`)
+        .or(`nome.ilike.%${safe}%,origem.ilike.%${safe}%`)
         .limit(6);
       return (data || []).map((p: any) => ({
         ...p,
