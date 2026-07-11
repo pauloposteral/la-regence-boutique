@@ -683,6 +683,12 @@ const CheckoutPage = () => {
                       <span className="font-mono">-R$ {desconto.toFixed(2).replace(".", ",")}</span>
                     </div>
                   )}
+                  {freteZeradoPorCupom && (
+                    <div className="flex justify-between text-gold">
+                      <span>Cupom ({cupom})</span>
+                      <span className="font-mono">Frete grátis</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Frete</span>
                     <span className={`font-mono ${custoFrete === 0 ? "text-gold" : ""}`}>
