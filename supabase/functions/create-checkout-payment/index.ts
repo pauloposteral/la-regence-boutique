@@ -121,7 +121,7 @@ serve(async (req) => {
 
     const { data: produtos, error: prodErr } = await supabaseAdmin
       .from("produtos")
-      .select("id, nome, preco, preco_promocional, estoque, ativo")
+      .select("id, nome, preco, preco_promocional, estoque, ativo, peso_padrao")
       .in("id", produtoIds);
     if (prodErr) throw prodErr;
 
@@ -129,7 +129,7 @@ serve(async (req) => {
     if (varianteIds.length > 0) {
       const { data: v, error: varErr } = await supabaseAdmin
         .from("variantes")
-        .select("id, preco, estoque, ativo, produto_id")
+        .select("id, preco, estoque, ativo, produto_id, peso")
         .in("id", varianteIds);
       if (varErr) throw varErr;
       variantes = v || [];
