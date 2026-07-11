@@ -119,7 +119,7 @@ serve(async (req) => {
           console.log(`📦 Estoque decrementado para pedido ${pedidoId}`);
         }
 
-        // Send confirmation email
+        // Send confirmation email (customer) + notification (owner)
         const { data: pedido } = await supabaseAdmin
           .from("pedidos")
           .select("*, itens_pedido(count)")
@@ -128,23 +128,43 @@ serve(async (req) => {
 
         if (pedido) {
           const email = pedido.email_visitante || session.customer_email;
+          const totalFmt = Number(pedido.total).toFixed(2).replace(".", ",");
+          const paymentMethod = pedido.metodo_pagamento === "pix" ? "Pix" : "Cartão";
+          const itemCount = pedido.itens_pedido?.[0]?.count || 0;
+
           if (email) {
             try {
               await supabaseAdmin.functions.invoke("send-email", {
                 body: {
                   type: "order_confirmation",
                   to: email,
-                  data: {
-                    orderId: pedidoId,
-                    total: Number(pedido.total).toFixed(2).replace(".", ","),
-                    paymentMethod: pedido.metodo_pagamento === "pix" ? "Pix" : "Cartão",
-                    itemCount: pedido.itens_pedido?.[0]?.count || 0,
-                  },
+                  data: { orderId: pedidoId, total: totalFmt, paymentMethod, itemCount },
                 },
               });
             } catch (e: any) {
               console.error("⚠️ Falha ao enviar email de confirmação:", e.message);
             }
+          }
+
+          // Notify the store owner
+          const ownerEmail = Deno.env.get("OWNER_EMAIL") || "pauloposteral@hotmail.com";
+          try {
+            await supabaseAdmin.functions.invoke("send-email", {
+              body: {
+                type: "admin_new_order",
+                to: ownerEmail,
+                data: {
+                  orderId: pedidoId,
+                  total: totalFmt,
+                  paymentMethod,
+                  itemCount,
+                  customerEmail: email || "—",
+                  customerName: pedido.nome_cliente || pedido.nome_visitante || "",
+                },
+              },
+            });
+          } catch (e: any) {
+            console.error("⚠️ Falha ao notificar dono:", e.message);
           }
         }
         break;

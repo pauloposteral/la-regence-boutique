@@ -12,7 +12,8 @@ type EmailType =
   | "order_shipped"
   | "order_delivered"
   | "status_update"
-  | "contact_reply";
+  | "contact_reply"
+  | "admin_new_order";
 
 interface EmailRequest {
   type: EmailType;
@@ -145,6 +146,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Contato recebido",
           `${h(`Obrigado, ${d.name || ""}`)}${p("Recebemos sua mensagem e vamos responder em até 1 dia útil.")}${d.message ? box(`<div style="font-size:13px;color:${C.brown};line-height:1.6"><em>"${String(d.message).slice(0, 400)}"</em></div>`) : ""}${btn(`${SITE}`, "Voltar à Loja")}`,
           "Recebemos sua mensagem."
+        ),
+      };
+    case "admin_new_order":
+      return {
+        subject: `🔔 Novo pedido #${shortId} — R$ ${d.total || "0,00"}`,
+        html: shell(
+          "Novo pedido recebido",
+          `${h("Novo pedido pago")}${p(`Pedido <strong>#${shortId}</strong> foi confirmado e pago.`)}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Cliente:</strong> ${d.customerName || d.customerEmail || "—"}</div><div><strong style="color:${C.brownDark}">E-mail:</strong> ${d.customerEmail || "—"}</div><div><strong style="color:${C.brownDark}">Total:</strong> R$ ${d.total || "0,00"}</div><div><strong style="color:${C.brownDark}">Pagamento:</strong> ${d.paymentMethod || "—"}</div><div><strong style="color:${C.brownDark}">Itens:</strong> ${d.itemCount || 0} produto(s)</div></div>`)}${btn(`${SITE}/admin/pedidos`, "Abrir no Admin")}`,
+          `Novo pedido #${shortId}`
         ),
       };
   }
