@@ -24,30 +24,31 @@ const CartDrawer = () => {
   const progressoFrete = Math.min(100, (subtotal / FRETE_GRATIS_MIN) * 100);
 
   const aplicarCupom = async () => {
-    if (!cupomInput.trim()) return;
+    const code = cupomInput.trim().toUpperCase();
+    if (!code) return;
     setCupomLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("cupons")
-        .select("*")
-        .eq("codigo", cupomInput.trim().toUpperCase())
-        .eq("ativo", true)
-        .single();
-
-      if (error || !data) { toast.error("Cupom inválido ou expirado"); return; }
-      if (data.valor_minimo && subtotal < Number(data.valor_minimo)) {
-        toast.error(`Valor mínimo de R$ ${Number(data.valor_minimo).toFixed(2).replace(".", ",")} para este cupom`);
+      const { data, error } = await supabase.rpc("preview_coupon", {
+        _codigo: code,
+        _subtotal: subtotal,
+      });
+      if (error) { toast.error("Erro ao validar cupom"); return; }
+      const row = Array.isArray(data) ? data[0] : data;
+      const motivo = row?.motivo;
+      const desc = Number(row?.desconto || 0);
+      if (motivo !== "ok" || desc <= 0) {
+        const msg: Record<string, string> = {
+          invalido: "Cupom inválido",
+          expirado: "Cupom expirado",
+          esgotado: "Cupom esgotado",
+          valor_minimo: "Valor mínimo não atingido para este cupom",
+        };
+        toast.error(msg[motivo || ""] || "Cupom inválido");
         return;
       }
-      if (data.valido_ate && new Date(data.valido_ate) < new Date()) { toast.error("Cupom expirado"); return; }
-
-      let desc = 0;
-      if (data.desconto_percentual) desc = subtotal * (Number(data.desconto_percentual) / 100);
-      else if (data.desconto_valor) desc = Number(data.desconto_valor);
-
-      setCupom(data.codigo);
+      setCupom(code);
       setDesconto(desc);
-      toast.success(`Cupom "${data.codigo}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+      toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
     } catch { toast.error("Erro ao validar cupom"); }
     finally { setCupomLoading(false); }
   };
