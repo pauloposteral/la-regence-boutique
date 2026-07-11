@@ -41,15 +41,19 @@ const CheckoutPage = () => {
   const [form, setForm] = useState({
     nome: "", email: "", telefone: "", cpf: "",
     cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
-    frete: "padrao" as "padrao" | "expresso",
+    frete: "" as string, // serviço selecionado (id do Melhor Envio)
+    freteNome: "", freteCompany: "", fretePreco: 0, fretePrazo: "" as string,
     presente: false, mensagemPresente: "",
     metodoPagamento: "card" as "card" | "pix",
   });
 
   const [cepLoading, setCepLoading] = useState(false);
+  const [freteOpts, setFreteOpts] = useState<any[]>([]);
+  const [freteLoading, setFreteLoading] = useState(false);
+  const [freteErr, setFreteErr] = useState("");
+  const [freteGratisFlag, setFreteGratisFlag] = useState(false);
 
-  const freteGratis = subtotal >= FRETE_GRATIS_MIN;
-  const custoFrete = freteGratis ? 0 : form.frete === "expresso" ? 29.90 : 14.90;
+  const custoFrete = form.fretePreco || 0;
   const pixDesconto = form.metodoPagamento === "pix" ? (subtotal - desconto) * 0.1 : 0;
   const total = Math.max(0, subtotal - desconto - pixDesconto + custoFrete);
 
