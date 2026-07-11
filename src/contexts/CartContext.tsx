@@ -55,6 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [cupom, setCupom] = useState<string | null>(null);
   const [desconto, setDesconto] = useState(0);
+  const [cupomTipo, setCupomTipo] = useState<"desconto" | "frete_gratis" | null>(null);
   const userIdRef = useRef<string | null>(null);
   const remoteLoadedRef = useRef(false);
   const skipNextRemoteSyncRef = useRef(false);
@@ -215,6 +216,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
     setCupom(null);
     setDesconto(0);
+    setCupomTipo(null);
     localStorage.removeItem(CART_STORAGE_KEY);
     const uid = userIdRef.current;
     if (uid) {
@@ -229,7 +231,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items, isOpen, openCart, closeCart, addItem, removeItem, updateQuantity, clearCart,
-        subtotal, totalItems, cupom, desconto, setCupom, setDesconto, validatePricesNow,
+        subtotal, totalItems, cupom, desconto, cupomTipo, setCupom, setDesconto, setCupomTipo, validatePricesNow,
       }}
     >
       {children}
