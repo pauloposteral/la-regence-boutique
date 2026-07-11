@@ -150,6 +150,7 @@ serve(async (req) => {
 
       let unitPrice: number;
       let stock: number;
+      let pesoKg: number = Number(produto.peso_padrao) || PESO_PADRAO_KG;
 
       if (item.varianteId) {
         const variante = varMap.get(item.varianteId);
@@ -158,10 +159,13 @@ serve(async (req) => {
         }
         unitPrice = Number(variante.preco);
         stock = variante.estoque;
+        if (variante.peso) pesoKg = Number(variante.peso);
       } else {
         unitPrice = Number(produto.preco_promocional ?? produto.preco);
         stock = produto.estoque;
       }
+
+      if (pesoKg > 10) pesoKg = pesoKg / 1000; // normaliza gramas → kg
 
       if (stock < item.quantidade) {
         throw new Error(`Estoque insuficiente para "${produto.nome}". Disponível: ${stock}`);
@@ -173,6 +177,7 @@ serve(async (req) => {
         ...item,
         nome: produto.nome,
         unitPrice,
+        pesoKg,
         lineSubtotal,
       });
     }
