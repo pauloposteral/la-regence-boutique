@@ -29,8 +29,10 @@ interface CartContextType {
   totalItems: number;
   cupom: string | null;
   desconto: number;
+  cupomTipo: "desconto" | "frete_gratis" | null;
   setCupom: (code: string | null) => void;
   setDesconto: (value: number) => void;
+  setCupomTipo: (tipo: "desconto" | "frete_gratis" | null) => void;
   validatePricesNow: () => Promise<boolean>;
 }
 

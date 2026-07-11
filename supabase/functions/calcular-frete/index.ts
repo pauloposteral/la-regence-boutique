@@ -11,8 +11,8 @@ const corsHeaders = {
 const CEP_ORIGEM = "16901100"; // Andradina/SP
 const PESO_PADRAO_KG = 0.25; // 250g padrão
 const CAIXA = { width: 11, height: 6, length: 16 }; // cm
-const FRETE_GRATIS_MIN = 150;
-const FRETE_GRATIS_SP_MIN = 100;
+// Fallback usado apenas se a tabela regras_frete_gratis estiver vazia
+const FALLBACK_FRETE_GRATIS_MIN = 150;
 
 const ME_BASE = "https://melhorenvio.com.br/api/v2";
 const UA = "La Regence Cafes (contato@cafelaregence.com.br)";
@@ -38,8 +38,38 @@ function onlyDigits(s: string): string {
   return (s || "").replace(/\D/g, "");
 }
 
-function isSPState(uf?: string) {
-  return (uf || "").toUpperCase() === "SP";
+async function evaluateFreeShipping(
+  supabase: ReturnType<typeof createClient>,
+  subtotal: number,
+  uf?: string,
+): Promise<{ free: boolean; regra: { nome: string; uf: string | null; valor_minimo: number } | null }> {
+  try {
+    const { data } = await supabase
+      .from("regras_frete_gratis")
+      .select("nome, uf, valor_minimo, prioridade")
+      .eq("ativa", true)
+      .order("prioridade", { ascending: true });
+    const regras = Array.isArray(data) ? data : [];
+    if (regras.length === 0) {
+      const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
+      return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: FALLBACK_FRETE_GRATIS_MIN } : null };
+    }
+    const ufUp = (uf || "").toUpperCase();
+    // Ordena: regras aplicáveis com menor valor mínimo primeiro
+    const aplicaveis = regras
+      .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
+      .filter((r: any) => subtotal >= Number(r.valor_minimo || 0))
+      .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
+    if (aplicaveis.length > 0) {
+      const r: any = aplicaveis[0];
+      return { free: true, regra: { nome: r.nome, uf: r.uf, valor_minimo: Number(r.valor_minimo) } };
+    }
+    return { free: false, regra: null };
+  } catch (e) {
+    console.error("[calcular-frete] evaluateFreeShipping erro", e);
+    const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
+    return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: FALLBACK_FRETE_GRATIS_MIN } : null };
+  }
 }
 
 serve(async (req) => {
@@ -162,10 +192,8 @@ serve(async (req) => {
     const raw = await meRes.json();
     const services = (Array.isArray(raw) ? raw : []).filter((s: any) => !s.error && s.price);
 
-    // Free shipping rules
-    const freteGratisGeral = subtotalEfetivo >= FRETE_GRATIS_MIN;
-    const freteGratisSP = isSPState(uf) && subtotalEfetivo >= FRETE_GRATIS_SP_MIN;
-    const isFreeShipping = freteGratisGeral || freteGratisSP;
+    // Free shipping rules (dinâmicas via tabela regras_frete_gratis)
+    const { free: isFreeShipping, regra: regraFrete } = await evaluateFreeShipping(supabaseAdmin, subtotalEfetivo, uf);
 
     const options = services.map((s: any) => {
       const originalPrice = Number(s.price);
@@ -191,11 +219,8 @@ serve(async (req) => {
         cep_destino: cepDestino,
         subtotal: subtotalEfetivo,
         free_shipping: isFreeShipping,
-        free_shipping_reason: freteGratisGeral
-          ? "acima_de_150"
-          : freteGratisSP
-          ? "sp_acima_de_100"
-          : null,
+        free_shipping_reason: regraFrete?.nome || null,
+        free_shipping_rule: regraFrete,
         options,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
