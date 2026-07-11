@@ -90,6 +90,31 @@ const AdminPedidos = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
     toast.success("Status atualizado");
     if (detailOrder?.id === id) loadStatusHistory(id);
+    // Send transactional email on key status transitions
+    try {
+      const emailType =
+        status === "enviado" ? "order_shipped" :
+        status === "entregue" ? "order_delivered" :
+        null;
+      if (emailType) {
+        const order = (pedidos || []).find((p: any) => p.id === id);
+        const to = order?.email_visitante || order?.profiles?.email;
+        if (to) {
+          await supabase.functions.invoke("send-email", {
+            body: {
+              type: emailType,
+              to,
+              data: {
+                orderId: id,
+                trackingCode: order?.codigo_rastreamento || undefined,
+              },
+            },
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("send-email failed", e);
+    }
   };
 
   const updateTracking = async (id: string, code: string) => {
