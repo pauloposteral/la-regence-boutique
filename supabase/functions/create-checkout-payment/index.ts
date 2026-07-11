@@ -90,6 +90,7 @@ serve(async (req) => {
       form,
       cupomCodigo,            // server validates the code, NOT the discount value
       metodoPagamento,
+      freteServicoId,         // id do serviço Melhor Envio escolhido
       idempotencyKey,
     } = body;
 
