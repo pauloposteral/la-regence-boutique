@@ -404,6 +404,7 @@ export type Database = {
           desconto_percentual: number | null
           desconto_valor: number | null
           id: string
+          tipo: string
           usos_restantes: number | null
           valido_ate: string | null
           valor_minimo: number | null
@@ -415,6 +416,7 @@ export type Database = {
           desconto_percentual?: number | null
           desconto_valor?: number | null
           id?: string
+          tipo?: string
           usos_restantes?: number | null
           valido_ate?: string | null
           valor_minimo?: number | null
@@ -426,6 +428,7 @@ export type Database = {
           desconto_percentual?: number | null
           desconto_valor?: number | null
           id?: string
+          tipo?: string
           usos_restantes?: number | null
           valido_ate?: string | null
           valor_minimo?: number | null
@@ -949,6 +952,39 @@ export type Database = {
         }
         Relationships: []
       }
+      regras_frete_gratis: {
+        Row: {
+          ativa: boolean
+          created_at: string
+          id: string
+          nome: string
+          prioridade: number
+          uf: string | null
+          updated_at: string
+          valor_minimo: number
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          prioridade?: number
+          uf?: string | null
+          updated_at?: string
+          valor_minimo?: number
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          prioridade?: number
+          uf?: string | null
+          updated_at?: string
+          valor_minimo?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1028,6 +1064,7 @@ export type Database = {
         Returns: {
           desconto: number
           motivo: string
+          tipo: string
         }[]
       }
       redeem_coupon: {
@@ -1037,6 +1074,7 @@ export type Database = {
           cupom_id: string
           desconto: number
           motivo: string
+          tipo: string
         }[]
       }
     }
