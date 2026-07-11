@@ -98,7 +98,7 @@ const AdminPedidos = () => {
         null;
       if (emailType) {
         const order = (pedidos || []).find((p: any) => p.id === id);
-        const to = order?.email_visitante || order?.profiles?.email;
+        const to = order?.email_visitante as string | undefined;
         if (to) {
           await supabase.functions.invoke("send-email", {
             body: {
