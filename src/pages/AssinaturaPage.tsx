@@ -17,6 +17,8 @@ import type { Database } from "@/integrations/supabase/types";
 type TipoAssinatura = Database["public"]["Enums"]["tipo_assinatura"];
 type TipoMoagem = Database["public"]["Enums"]["tipo_moagem"];
 
+// Tiers do Clube La Régence — enum DB (mensal/trimestral/semestral) reusado
+// como slot interno p/ os 3 tiers: Explorador / Connoisseur / Sommelier.
 const PLANS: {
   tipo: TipoAssinatura;
   label: string;
@@ -25,10 +27,37 @@ const PLANS: {
   discount: string;
   period: string;
   badge?: string;
+  features: string[];
 }[] = [
-  { tipo: "mensal", label: "Mensal", price: 49.9, originalPrice: 49.9, discount: "", period: "/mês" },
-  { tipo: "trimestral", label: "Trimestral", price: 44.9, originalPrice: 49.9, discount: "10% off", period: "/mês", badge: "Mais popular" },
-  { tipo: "semestral", label: "Semestral", price: 39.9, originalPrice: 49.9, discount: "20% off", period: "/mês", badge: "Melhor custo" },
+  {
+    tipo: "mensal",
+    label: "Explorador",
+    price: 59,
+    originalPrice: 59,
+    discount: "",
+    period: "/mês",
+    features: ["1×250g café surpresa", "Notas de degustação", "Frete grátis"],
+  },
+  {
+    tipo: "trimestral",
+    label: "Connoisseur",
+    price: 109,
+    originalPrice: 109,
+    discount: "15% off na loja",
+    period: "/mês",
+    badge: "Mais popular",
+    features: ["2×250g de origens diferentes", "Ficha técnica exclusiva", "Frete grátis + 15% off"],
+  },
+  {
+    tipo: "semestral",
+    label: "Sommelier",
+    price: 189,
+    originalPrice: 189,
+    discount: "20% off + cuppings",
+    period: "/mês",
+    badge: "Curadoria premium",
+    features: ["3×250g curadoria exclusiva", "Micro-lotes raros", "Frete grátis + 20% off + cuppings online"],
+  },
 ];
 
 const MOAGEM_LABELS: Record<TipoMoagem, string> = {
@@ -209,7 +238,9 @@ const AssinaturaPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-body text-xs text-muted-foreground uppercase tracking-wider">Plano</p>
-                    <p className="font-display text-xl font-semibold capitalize">{assinatura.tipo}</p>
+                    <p className="font-display text-xl font-semibold">
+                      {PLANS.find((p) => p.tipo === assinatura.tipo)?.label || assinatura.tipo}
+                    </p>
                   </div>
                   <Badge className="bg-gold/15 text-gold font-body text-xs border border-gold/30">Ativa</Badge>
                 </div>
@@ -287,10 +318,18 @@ const AssinaturaPage = () => {
                         <span className="font-body text-xs text-muted-foreground">{plan.period}</span>
                       </div>
                       {plan.discount && (
-                        <p className="font-body text-xs text-gold font-medium">
-                          {plan.discount} — era R$ {plan.originalPrice.toFixed(2).replace(".", ",")}
+                        <p className="font-body text-xs text-gold font-medium mb-3">
+                          {plan.discount}
                         </p>
                       )}
+                      <ul className="space-y-1.5 mt-3 pt-3 border-t border-cream-400">
+                        {plan.features.map((f, i) => (
+                          <li key={i} className="flex items-start gap-1.5 font-body text-xs text-brown">
+                            <Check className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
                       <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                         active ? "border-gold bg-gold" : "border-border"
                       }`}>
