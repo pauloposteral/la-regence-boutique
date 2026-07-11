@@ -238,7 +238,9 @@ const AssinaturaPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-body text-xs text-muted-foreground uppercase tracking-wider">Plano</p>
-                    <p className="font-display text-xl font-semibold capitalize">{assinatura.tipo}</p>
+                    <p className="font-display text-xl font-semibold">
+                      {PLANS.find((p) => p.tipo === assinatura.tipo)?.label || assinatura.tipo}
+                    </p>
                   </div>
                   <Badge className="bg-gold/15 text-gold font-body text-xs border border-gold/30">Ativa</Badge>
                 </div>
