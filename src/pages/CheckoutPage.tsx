@@ -31,7 +31,7 @@ const TRUST_BADGES = [
 ];
 
 const CheckoutPage = () => {
-  const { items, subtotal, desconto, cupom, clearCart, validatePricesNow } = useCart();
+  const { items, subtotal, desconto, cupom, cupomTipo, clearCart, validatePricesNow } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -53,7 +53,8 @@ const CheckoutPage = () => {
   const [freteErr, setFreteErr] = useState("");
   const [freteGratisFlag, setFreteGratisFlag] = useState(false);
 
-  const custoFrete = form.fretePreco || 0;
+  const freteZeradoPorCupom = cupomTipo === "frete_gratis";
+  const custoFrete = freteZeradoPorCupom ? 0 : (form.fretePreco || 0);
   const pixDesconto = form.metodoPagamento === "pix" ? (subtotal - desconto) * 0.1 : 0;
   const total = Math.max(0, subtotal - desconto - pixDesconto + custoFrete);
 
@@ -680,6 +681,12 @@ const CheckoutPage = () => {
                     <div className="flex justify-between text-gold">
                       <span>Cupom ({cupom})</span>
                       <span className="font-mono">-R$ {desconto.toFixed(2).replace(".", ",")}</span>
+                    </div>
+                  )}
+                  {freteZeradoPorCupom && (
+                    <div className="flex justify-between text-gold">
+                      <span>Cupom ({cupom})</span>
+                      <span className="font-mono">Frete grátis</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted-foreground">

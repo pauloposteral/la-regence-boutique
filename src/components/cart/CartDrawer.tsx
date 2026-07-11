@@ -16,7 +16,7 @@ const MOAGEM_LABELS: Record<string, string> = {
 };
 
 const CartDrawer = () => {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal, totalItems, cupom, desconto, setCupom, setDesconto } = useCart();
+  const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal, totalItems, cupom, desconto, cupomTipo, setCupom, setDesconto, setCupomTipo } = useCart();
   const [cupomInput, setCupomInput] = useState("");
   const [cupomLoading, setCupomLoading] = useState(false);
 
@@ -35,8 +35,9 @@ const CartDrawer = () => {
       if (error) { toast.error("Erro ao validar cupom"); return; }
       const row = Array.isArray(data) ? data[0] : data;
       const motivo = row?.motivo;
+      const tipo = (row?.tipo as "desconto" | "frete_gratis" | undefined) || "desconto";
       const desc = Number(row?.desconto || 0);
-      if (motivo !== "ok" || desc <= 0) {
+      if (motivo !== "ok") {
         const msg: Record<string, string> = {
           invalido: "Cupom inválido",
           expirado: "Cupom expirado",
@@ -46,9 +47,18 @@ const CartDrawer = () => {
         toast.error(msg[motivo || ""] || "Cupom inválido");
         return;
       }
+      if (tipo === "desconto" && desc <= 0) {
+        toast.error("Cupom inválido");
+        return;
+      }
       setCupom(code);
       setDesconto(desc);
-      toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+      setCupomTipo(tipo);
+      if (tipo === "frete_gratis") {
+        toast.success(`Cupom "${code}" aplicado! Frete grátis 🚚`);
+      } else {
+        toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+      }
     } catch { toast.error("Erro ao validar cupom"); }
     finally { setCupomLoading(false); }
   };
@@ -179,7 +189,7 @@ const CartDrawer = () => {
                 ) : (
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
                     <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
-                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 

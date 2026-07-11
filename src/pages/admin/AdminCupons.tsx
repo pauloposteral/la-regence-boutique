@@ -13,7 +13,8 @@ import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
 
 const emptyCoupon = {
-  codigo: "", desconto_percentual: null as number | null, desconto_valor: null as number | null,
+  codigo: "", tipo: "desconto" as "desconto" | "frete_gratis",
+  desconto_percentual: null as number | null, desconto_valor: null as number | null,
   valor_minimo: null as number | null, usos_restantes: null as number | null,
   valido_ate: "", ativo: true,
 };
@@ -34,12 +35,16 @@ const AdminCupons = () => {
   const openCreate = () => { setEditing(null); setForm(emptyCoupon); setOpen(true); };
   const openEdit = (c: any) => {
     setEditing(c);
-    setForm({ codigo: c.codigo, desconto_percentual: c.desconto_percentual, desconto_valor: c.desconto_valor, valor_minimo: c.valor_minimo, usos_restantes: c.usos_restantes, valido_ate: c.valido_ate ? c.valido_ate.slice(0, 10) : "", ativo: c.ativo });
+    setForm({ codigo: c.codigo, tipo: (c.tipo || "desconto") as "desconto" | "frete_gratis", desconto_percentual: c.desconto_percentual, desconto_valor: c.desconto_valor, valor_minimo: c.valor_minimo, usos_restantes: c.usos_restantes, valido_ate: c.valido_ate ? c.valido_ate.slice(0, 10) : "", ativo: c.ativo });
     setOpen(true);
   };
 
   const handleSave = async () => {
-    const payload = { ...form, valido_ate: form.valido_ate ? new Date(form.valido_ate).toISOString() : null };
+    const payload: any = { ...form, valido_ate: form.valido_ate ? new Date(form.valido_ate).toISOString() : null };
+    if (form.tipo === "frete_gratis") {
+      payload.desconto_percentual = null;
+      payload.desconto_valor = null;
+    }
     if (editing) { await supabase.from("cupons").update(payload).eq("id", editing.id); toast.success("Cupom atualizado"); }
     else { await supabase.from("cupons").insert(payload); toast.success("Cupom criado"); }
     qc.invalidateQueries({ queryKey: ["admin-cupons"] }); setOpen(false);
@@ -71,7 +76,7 @@ const AdminCupons = () => {
             {paginated.map((c: any) => (
               <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-sm font-mono font-medium">{c.codigo}</td>
-                <td className="px-4 py-3 font-body text-sm">{c.desconto_percentual ? `${c.desconto_percentual}%` : c.desconto_valor ? `R$ ${Number(c.desconto_valor).toFixed(2)}` : "—"}</td>
+                <td className="px-4 py-3 font-body text-sm">{c.tipo === "frete_gratis" ? <Badge className="bg-gold/15 text-gold border-0 font-body text-[10px]">Frete grátis</Badge> : c.desconto_percentual ? `${c.desconto_percentual}%` : c.desconto_valor ? `R$ ${Number(c.desconto_valor).toFixed(2)}` : "—"}</td>
                 <td className="px-4 py-3 font-body text-sm">{c.valor_minimo ? `R$ ${Number(c.valor_minimo).toFixed(2)}` : "—"}</td>
                 <td className="px-4 py-3 font-body text-sm">{c.usos_restantes ?? "∞"}</td>
                 <td className="px-4 py-3 font-body text-sm">{c.valido_ate ? new Date(c.valido_ate).toLocaleDateString("pt-BR") : "—"}</td>
@@ -97,10 +102,19 @@ const AdminCupons = () => {
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar Cupom" : "Novo Cupom"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div><Label className="font-body text-xs">Código</Label><Input value={form.codigo} onChange={(e) => set("codigo", e.target.value.toUpperCase())} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label className="font-body text-xs">Desconto %</Label><Input type="number" value={form.desconto_percentual ?? ""} onChange={(e) => set("desconto_percentual", e.target.value ? +e.target.value : null)} /></div>
-              <div><Label className="font-body text-xs">Desconto R$</Label><Input type="number" step="0.01" value={form.desconto_valor ?? ""} onChange={(e) => set("desconto_valor", e.target.value ? +e.target.value : null)} /></div>
+            <div>
+              <Label className="font-body text-xs mb-2 block">Tipo do cupom</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => set("tipo", "desconto")} className={`px-3 py-2 rounded-lg text-xs font-body border transition-colors ${form.tipo === "desconto" ? "border-gold bg-gold/10 text-gold" : "border-border text-muted-foreground hover:border-gold/50"}`}>Desconto</button>
+                <button type="button" onClick={() => set("tipo", "frete_gratis")} className={`px-3 py-2 rounded-lg text-xs font-body border transition-colors ${form.tipo === "frete_gratis" ? "border-gold bg-gold/10 text-gold" : "border-border text-muted-foreground hover:border-gold/50"}`}>Frete grátis</button>
+              </div>
             </div>
+            {form.tipo === "desconto" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label className="font-body text-xs">Desconto %</Label><Input type="number" value={form.desconto_percentual ?? ""} onChange={(e) => set("desconto_percentual", e.target.value ? +e.target.value : null)} /></div>
+                <div><Label className="font-body text-xs">Desconto R$</Label><Input type="number" step="0.01" value={form.desconto_valor ?? ""} onChange={(e) => set("desconto_valor", e.target.value ? +e.target.value : null)} /></div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="font-body text-xs">Valor mínimo</Label><Input type="number" step="0.01" value={form.valor_minimo ?? ""} onChange={(e) => set("valor_minimo", e.target.value ? +e.target.value : null)} /></div>
               <div><Label className="font-body text-xs">Usos restantes</Label><Input type="number" value={form.usos_restantes ?? ""} onChange={(e) => set("usos_restantes", e.target.value ? +e.target.value : null)} /></div>

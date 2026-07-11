@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, Package, ShoppingCart, Tag, Image, FolderTree,
-  Users, FileText, Coffee, Menu, X, LogOut, ChevronRight, Layers, Clock,
+  Users, FileText, Coffee, Menu, X, LogOut, ChevronRight, Layers, Clock, Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: "/admin/pedidos", icon: ShoppingCart, label: "Pedidos", badgeKey: "pendingOrders" as const },
   { to: "/admin/categorias", icon: FolderTree, label: "Categorias" },
   { to: "/admin/cupons", icon: Tag, label: "Cupons" },
+  { to: "/admin/frete-gratis", icon: Truck, label: "Frete Grátis" },
   { to: "/admin/banners", icon: Image, label: "Banners" },
   { to: "/admin/assinaturas", icon: Coffee, label: "Assinaturas" },
   { to: "/admin/clientes", icon: Users, label: "Clientes" },
@@ -30,6 +31,7 @@ const BREADCRUMB_LABELS: Record<string, string> = {
   "/admin/pedidos": "Pedidos",
   "/admin/categorias": "Categorias",
   "/admin/cupons": "Cupons",
+  "/admin/frete-gratis": "Frete Grátis",
   "/admin/banners": "Banners",
   "/admin/assinaturas": "Assinaturas",
   "/admin/clientes": "Clientes",

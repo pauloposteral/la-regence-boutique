@@ -10,10 +10,40 @@ const corsHeaders = {
 };
 
 // === Server-side business rules (single source of truth) ===
-const FRETE_GRATIS_MIN = 150;
-const FRETE_GRATIS_SP_MIN = 100;
+const FALLBACK_FRETE_GRATIS_MIN = 150; // usado apenas se a tabela regras_frete_gratis estiver vazia
 const FRETE_FALLBACK = 19.90;
 const PIX_DISCOUNT = 0.10;
+
+async function isFreteGratisPorRegra(
+  supabase: ReturnType<typeof createClient>,
+  subtotal: number,
+  uf?: string,
+): Promise<{ free: boolean; nome: string | null }> {
+  try {
+    const { data } = await supabase
+      .from("regras_frete_gratis")
+      .select("nome, uf, valor_minimo")
+      .eq("ativa", true);
+    const regras = Array.isArray(data) ? data : [];
+    if (regras.length === 0) {
+      const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
+      return { free: ok, nome: ok ? "Frete grátis Brasil" : null };
+    }
+    const ufUp = (uf || "").toUpperCase();
+    const aplicaveis = regras
+      .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
+      .filter((r: any) => subtotal >= Number(r.valor_minimo || 0))
+      .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
+    if (aplicaveis.length > 0) {
+      return { free: true, nome: aplicaveis[0].nome };
+    }
+    return { free: false, nome: null };
+  } catch (e) {
+    console.error("[create-checkout] isFreteGratisPorRegra erro", e);
+    const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
+    return { free: ok, nome: ok ? "Frete grátis Brasil" : null };
+  }
+}
 
 // Melhor Envio (server-side revalidation)
 const ME_BASE = "https://melhorenvio.com.br/api/v2";
@@ -213,16 +243,31 @@ serve(async (req) => {
     const pixDescontoValor = isPix ? round2(subtotalAfterCoupon * PIX_DISCOUNT) : 0;
     const subtotalAposDescontos = round2(subtotalAfterCoupon - pixDescontoValor);
 
+    // === 3.b Coupon type ("desconto" | "frete_gratis") ===
+    let cupomTipo: string | null = null;
+    if (cupomId) {
+      const { data: cupRow } = await supabaseAdmin
+        .from("cupons")
+        .select("tipo")
+        .eq("id", cupomId)
+        .maybeSingle();
+      cupomTipo = (cupRow?.tipo as string) || "desconto";
+    }
+    const cupomZeraFrete = cupomTipo === "frete_gratis";
+
     // === 5. Server-side shipping — revalidate with Melhor Envio ===
-    const isSP = (form?.estado || "").toUpperCase() === "SP";
-    const freteGratisAtingido =
-      subtotalAposDescontos >= FRETE_GRATIS_MIN ||
-      (isSP && subtotalAposDescontos >= FRETE_GRATIS_SP_MIN);
+    const { free: freteGratisAtingido, nome: regraFreteNome } = await isFreteGratisPorRegra(
+      supabaseAdmin,
+      subtotalAposDescontos,
+      form?.estado,
+    );
 
     let custoFrete = 0;
-    let freteNomeServico = "Frete Grátis";
+    let freteNomeServico = cupomZeraFrete
+      ? `Frete Grátis (cupom ${cupomCodigo})`
+      : regraFreteNome || "Frete Grátis";
 
-    if (!freteGratisAtingido) {
+    if (!freteGratisAtingido && !cupomZeraFrete) {
       const cepDestino = (form?.cep || "").replace(/\D/g, "");
       if (cepDestino.length !== 8) throw new Error("CEP inválido");
 
