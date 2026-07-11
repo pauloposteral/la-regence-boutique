@@ -11,20 +11,61 @@ const corsHeaders = {
 
 // === Server-side business rules (single source of truth) ===
 const FRETE_GRATIS_MIN = 150;
-const FRETE_PADRAO = 14.90;
-const FRETE_EXPRESSO = 29.90;
+const FRETE_GRATIS_SP_MIN = 100;
+const FRETE_FALLBACK = 19.90;
 const PIX_DISCOUNT = 0.10;
+
+// Melhor Envio (server-side revalidation)
+const ME_BASE = "https://melhorenvio.com.br/api/v2";
+const CEP_ORIGEM = "16901100";
+const CAIXA = { width: 11, height: 6, length: 16 };
+const PESO_PADRAO_KG = 0.25;
+const UA_ME = "La Regence Cafes (contato@cafelaregence.com.br)";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-function calcularFrete(subtotalAposDesconto: number, modo: string, cidade?: string, estado?: string): number {
-  // Free shipping: above threshold OR within São Paulo state
-  const isSP = (estado || "").toUpperCase() === "SP";
-  if (subtotalAposDesconto >= FRETE_GRATIS_MIN) return 0;
-  if (isSP && subtotalAposDesconto >= 100) return 0; // SP gets free above R$100
-  return modo === "expresso" ? FRETE_EXPRESSO : FRETE_PADRAO;
+async function calcularFreteServidor(
+  cepDestino: string,
+  produtos: Array<{ preco: number; peso_kg: number; quantidade: number }>,
+): Promise<any[]> {
+  const token = Deno.env.get("MELHOR_ENVIO_TOKEN");
+  if (!token) return [];
+  const meProducts = produtos.map((p, idx) => ({
+    id: String(idx + 1),
+    width: CAIXA.width,
+    height: CAIXA.height,
+    length: CAIXA.length,
+    weight: Number((p.peso_kg || PESO_PADRAO_KG).toFixed(3)),
+    insurance_value: Number((p.preco * p.quantidade).toFixed(2)),
+    quantity: p.quantidade,
+  }));
+  try {
+    const res = await fetch(`${ME_BASE}/me/shipment/calculate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent": UA_ME,
+      },
+      body: JSON.stringify({
+        from: { postal_code: CEP_ORIGEM },
+        to: { postal_code: cepDestino },
+        products: meProducts,
+      }),
+    });
+    if (!res.ok) {
+      console.error("[create-checkout] ME erro", res.status, await res.text());
+      return [];
+    }
+    const raw = await res.json();
+    return (Array.isArray(raw) ? raw : []).filter((s: any) => !s.error && s.price);
+  } catch (e) {
+    console.error("[create-checkout] ME exception", e);
+    return [];
+  }
 }
 
 serve(async (req) => {
