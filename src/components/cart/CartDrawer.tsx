@@ -97,7 +97,7 @@ const CartDrawer = () => {
             )}
 
             {/* Items */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-8">
                   <ShoppingBag className="w-12 h-12 text-cream-500 mb-4" />
@@ -107,13 +107,16 @@ const CartDrawer = () => {
                 </div>
               ) : (
                 <div className="p-5 space-y-4">
-                  {items.map((item) => (
+                  {items.map((item) => {
+                    const unit = item.precoPromocional || item.preco;
+                    return (
                     <motion.div
                       key={`${item.produtoId}-${item.varianteId}`}
                       layout
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      exit={{ opacity: 0, x: -20, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
+                      transition={{ duration: 0.25 }}
                       className="flex gap-3 bg-cream-100 rounded-xl p-3 border border-cream-400"
                     >
                       <div className="w-16 h-16 bg-cream-200 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
@@ -123,21 +126,40 @@ const CartDrawer = () => {
                         <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block text-brown-dark hover:text-gold transition-colors duration-300" onClick={closeCart}>{item.nome}</Link>
                         <p className="text-[10px] text-cream-700 font-body">
                           {item.moagem && MOAGEM_LABELS[item.moagem]}{item.peso && ` · ${item.peso >= 1000 ? `${item.peso / 1000}kg` : `${item.peso}g`}`}
+                          <span className="ml-1 text-cream-700">· R$ {unit.toFixed(2).replace(".", ",")} un.</span>
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center border border-cream-400 rounded-full">
-                            <button onClick={() => updateQuantity(item.produtoId, item.varianteId, item.quantidade - 1)} className="p-1 hover:bg-cream-200 transition-colors rounded-l-full"><Minus className="w-3 h-3 text-brown" /></button>
-                            <span className="w-7 text-center text-xs font-body text-brown-dark">{item.quantidade}</span>
-                            <button onClick={() => updateQuantity(item.produtoId, item.varianteId, item.quantidade + 1)} className="p-1 hover:bg-cream-200 transition-colors rounded-r-full"><Plus className="w-3 h-3 text-brown" /></button>
+                            <button
+                              aria-label="Diminuir quantidade"
+                              onClick={() => updateQuantity(item.produtoId, item.varianteId, item.quantidade - 1)}
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 transition-colors rounded-l-full"
+                            >
+                              <Minus className="w-4 h-4 text-brown" />
+                            </button>
+                            <span className="w-8 text-center text-sm font-body text-brown-dark tabular-nums">{item.quantidade}</span>
+                            <button
+                              aria-label="Aumentar quantidade"
+                              onClick={() => updateQuantity(item.produtoId, item.varianteId, item.quantidade + 1)}
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 transition-colors rounded-r-full"
+                            >
+                              <Plus className="w-4 h-4 text-brown" />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-body font-semibold text-sm text-brown-dark">R$ {((item.precoPromocional || item.preco) * item.quantidade).toFixed(2).replace(".", ",")}</span>
-                            <button onClick={() => removeItem(item.produtoId, item.varianteId)} className="p-1 text-cream-700 hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <div className="flex items-center gap-1">
+                            <span className="font-body font-semibold text-sm text-brown-dark">R$ {(unit * item.quantidade).toFixed(2).replace(".", ",")}</span>
+                            <button
+                              aria-label="Remover item"
+                              onClick={() => { removeItem(item.produtoId, item.varianteId); toast.success("Item removido"); }}
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-cream-700 hover:text-destructive transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
                       </div>
                     </motion.div>
-                  ))}
+                  );})}
                 </div>
               )}
             </div>
