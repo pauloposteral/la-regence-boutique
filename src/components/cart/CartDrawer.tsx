@@ -189,7 +189,7 @@ const CartDrawer = () => {
                 ) : (
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
                     <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
-                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
