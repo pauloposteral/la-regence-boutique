@@ -582,7 +582,7 @@ const CheckoutPage = () => {
                       {[
                         { label: "Cliente", value: `${form.nome} · ${form.email}`, step: 0 },
                         { label: "Endereço", value: `${form.logradouro}, ${form.numero} — ${form.bairro}, ${form.cidade}/${form.estado}`, step: 1 },
-                        { label: "Envio", value: form.frete === "expresso" ? "Expresso (2-4 dias)" : "Padrão (5-10 dias)", step: 2 },
+                        { label: "Envio", value: form.freteNome ? `${form.freteCompany} · ${form.freteNome}${form.fretePrazo ? ` (${form.fretePrazo})` : ""}` : "—", step: 2 },
                         { label: "Pagamento", value: form.metodoPagamento === "pix" ? "Pix (10% desconto)" : "Cartão de Crédito", step: 3 },
                       ].map((item) => (
                         <div key={item.label} className="flex items-start justify-between p-3 bg-muted/20 rounded-lg border border-border/50">
