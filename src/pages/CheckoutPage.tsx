@@ -94,11 +94,76 @@ const CheckoutPage = () => {
         return;
       }
     }
+    if (step === 2 && !form.frete) {
+      toast.error("Selecione uma opção de envio");
+      return;
+    }
     setErrors({});
     if (step < STEPS.length - 1) setStep(step + 1);
   };
 
   const prevStep = () => { if (step > 0) setStep(step - 1); };
+
+  // Fetch Melhor Envio quotes when reaching step 2
+  useEffect(() => {
+    if (step !== 2) return;
+    const cepDigits = form.cep.replace(/\D/g, "");
+    if (cepDigits.length !== 8 || items.length === 0) return;
+
+    let cancelled = false;
+    setFreteLoading(true);
+    setFreteErr("");
+    setFreteOpts([]);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("calcular-frete", {
+          body: {
+            cep_destino: cepDigits,
+            estado: form.estado,
+            subtotal,
+            items: items.map((i) => ({
+              produtoId: i.produtoId,
+              varianteId: i.varianteId || null,
+              quantidade: i.quantidade,
+            })),
+          },
+        });
+        if (cancelled) return;
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        const opts = data?.options || [];
+        setFreteOpts(opts);
+        setFreteGratisFlag(!!data?.free_shipping);
+        // Auto-select cheapest if none chosen yet
+        if (opts.length > 0 && !form.frete) {
+          const first = opts[0];
+          const prazoTxt = first.delivery_range
+            ? `${first.delivery_range.min}-${first.delivery_range.max} dias úteis`
+            : first.delivery_time
+            ? `até ${first.delivery_time} dias úteis`
+            : "";
+          setForm((prev) => ({
+            ...prev,
+            frete: first.id,
+            freteNome: first.name,
+            freteCompany: first.company,
+            fretePreco: Number(first.price) || 0,
+            fretePrazo: prazoTxt,
+          }));
+        }
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error(e);
+        setFreteErr("Não foi possível calcular o frete. Verifique o CEP e tente novamente.");
+      } finally {
+        if (!cancelled) setFreteLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, form.cep, form.estado, items.length, subtotal]);
 
   const finalizarPedido = async () => {
     if (submitting) return; // Prevent double-submit
