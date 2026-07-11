@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -41,15 +41,19 @@ const CheckoutPage = () => {
   const [form, setForm] = useState({
     nome: "", email: "", telefone: "", cpf: "",
     cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
-    frete: "padrao" as "padrao" | "expresso",
+    frete: "" as string, // serviço selecionado (id do Melhor Envio)
+    freteNome: "", freteCompany: "", fretePreco: 0, fretePrazo: "" as string,
     presente: false, mensagemPresente: "",
     metodoPagamento: "card" as "card" | "pix",
   });
 
   const [cepLoading, setCepLoading] = useState(false);
+  const [freteOpts, setFreteOpts] = useState<any[]>([]);
+  const [freteLoading, setFreteLoading] = useState(false);
+  const [freteErr, setFreteErr] = useState("");
+  const [freteGratisFlag, setFreteGratisFlag] = useState(false);
 
-  const freteGratis = subtotal >= FRETE_GRATIS_MIN;
-  const custoFrete = freteGratis ? 0 : form.frete === "expresso" ? 29.90 : 14.90;
+  const custoFrete = form.fretePreco || 0;
   const pixDesconto = form.metodoPagamento === "pix" ? (subtotal - desconto) * 0.1 : 0;
   const total = Math.max(0, subtotal - desconto - pixDesconto + custoFrete);
 
@@ -90,11 +94,76 @@ const CheckoutPage = () => {
         return;
       }
     }
+    if (step === 2 && !form.frete) {
+      toast.error("Selecione uma opção de envio");
+      return;
+    }
     setErrors({});
     if (step < STEPS.length - 1) setStep(step + 1);
   };
 
   const prevStep = () => { if (step > 0) setStep(step - 1); };
+
+  // Fetch Melhor Envio quotes when reaching step 2
+  useEffect(() => {
+    if (step !== 2) return;
+    const cepDigits = form.cep.replace(/\D/g, "");
+    if (cepDigits.length !== 8 || items.length === 0) return;
+
+    let cancelled = false;
+    setFreteLoading(true);
+    setFreteErr("");
+    setFreteOpts([]);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("calcular-frete", {
+          body: {
+            cep_destino: cepDigits,
+            estado: form.estado,
+            subtotal,
+            items: items.map((i) => ({
+              produtoId: i.produtoId,
+              varianteId: i.varianteId || null,
+              quantidade: i.quantidade,
+            })),
+          },
+        });
+        if (cancelled) return;
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        const opts = data?.options || [];
+        setFreteOpts(opts);
+        setFreteGratisFlag(!!data?.free_shipping);
+        // Auto-select cheapest if none chosen yet
+        if (opts.length > 0 && !form.frete) {
+          const first = opts[0];
+          const prazoTxt = first.delivery_range
+            ? `${first.delivery_range.min}-${first.delivery_range.max} dias úteis`
+            : first.delivery_time
+            ? `até ${first.delivery_time} dias úteis`
+            : "";
+          setForm((prev) => ({
+            ...prev,
+            frete: first.id,
+            freteNome: first.name,
+            freteCompany: first.company,
+            fretePreco: Number(first.price) || 0,
+            fretePrazo: prazoTxt,
+          }));
+        }
+      } catch (e: any) {
+        if (cancelled) return;
+        console.error(e);
+        setFreteErr("Não foi possível calcular o frete. Verifique o CEP e tente novamente.");
+      } finally {
+        if (!cancelled) setFreteLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, form.cep, form.estado, items.length, subtotal]);
 
   const finalizarPedido = async () => {
     if (submitting) return; // Prevent double-submit
@@ -126,6 +195,7 @@ const CheckoutPage = () => {
           form,
           cupomCodigo: cupom || null,
           metodoPagamento: form.metodoPagamento,
+          freteServicoId: form.frete,
           idempotencyKey,
         },
       });
@@ -340,45 +410,82 @@ const CheckoutPage = () => {
                   <div className="space-y-5">
                     <div>
                       <h2 className="font-display text-xl font-semibold">Método de Envio</h2>
-                      <p className="font-body text-xs text-muted-foreground mt-1">Escolha como deseja receber</p>
-                    </div>
-                    <div className="space-y-3">
-                      {[
-                        { value: "padrao", label: "Padrão", desc: "5 a 10 dias úteis", price: freteGratis ? "Grátis" : "R$ 14,90", icon: "📦" },
-                        { value: "expresso", label: "Expresso", desc: "2 a 4 dias úteis", price: freteGratis ? "Grátis" : "R$ 29,90", icon: "⚡" },
-                      ].map((opt) => (
-                        <label
-                          key={opt.value}
-                          className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                            form.frete === opt.value
-                              ? "border-gold bg-gold/5 shadow-[0_0_16px_hsl(var(--gold)/0.08)]"
-                              : "border-border hover:border-gold/30"
-                          }`}
-                          onClick={() => updateField("frete", opt.value)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                              form.frete === opt.value ? "border-gold" : "border-muted-foreground/40"
-                            }`}>
-                              {form.frete === opt.value && (
-                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-gold" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-body font-medium text-sm flex items-center gap-2">
-                                <span>{opt.icon}</span> {opt.label}
-                              </p>
-                              <p className="text-xs text-muted-foreground font-body">{opt.desc}</p>
-                            </div>
-                          </div>
-                          <span className={`font-mono text-sm font-semibold ${custoFrete === 0 ? "text-gold" : ""}`}>{opt.price}</span>
-                        </label>
-                      ))}
+                      <p className="font-body text-xs text-muted-foreground mt-1">Escolha a transportadora e prazo</p>
                     </div>
 
-                    {freteGratis && (
+                    {freteLoading && (
+                      <div className="flex items-center justify-center py-8 text-muted-foreground">
+                        <div className="btn-spinner mr-3" />
+                        <span className="font-body text-sm">Calculando frete...</span>
+                      </div>
+                    )}
+
+                    {freteErr && !freteLoading && (
+                      <div className="p-4 rounded-lg border border-destructive/30 bg-destructive/5 text-center">
+                        <p className="font-body text-sm text-destructive mb-2">{freteErr}</p>
+                        <Button size="sm" variant="outline" onClick={() => setStep(1)} className="font-body text-xs rounded-full">
+                          Revisar CEP
+                        </Button>
+                      </div>
+                    )}
+
+                    {!freteLoading && freteOpts.length > 0 && (
+                      <div className="space-y-3">
+                        {freteOpts.map((opt) => {
+                          const selected = form.frete === opt.id;
+                          const prazoTxt = opt.delivery_range
+                            ? `${opt.delivery_range.min}-${opt.delivery_range.max} dias úteis`
+                            : opt.delivery_time
+                            ? `até ${opt.delivery_time} dias úteis`
+                            : "";
+                          return (
+                            <label
+                              key={opt.id}
+                              className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                selected
+                                  ? "border-gold bg-gold/5 shadow-[0_0_16px_hsl(var(--gold)/0.08)]"
+                                  : "border-border hover:border-gold/30"
+                              }`}
+                              onClick={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  frete: opt.id,
+                                  freteNome: opt.name,
+                                  freteCompany: opt.company,
+                                  fretePreco: Number(opt.price) || 0,
+                                  fretePrazo: prazoTxt,
+                                }));
+                              }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                  selected ? "border-gold" : "border-muted-foreground/40"
+                                }`}>
+                                  {selected && (
+                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-gold" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-body font-medium text-sm">
+                                    {opt.company} · {opt.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground font-body">{prazoTxt}</p>
+                                </div>
+                              </div>
+                              <span className={`font-mono text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold" : ""}`}>
+                                {opt.free || opt.price === 0
+                                  ? "Grátis"
+                                  : `R$ ${Number(opt.price).toFixed(2).replace(".", ",")}`}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {freteGratisFlag && (
                       <div className="bg-gold/10 rounded-lg p-3 text-center">
-                        <p className="font-body text-xs text-gold font-medium">🎉 Frete grátis para compras acima de R$ {FRETE_GRATIS_MIN},00!</p>
+                        <p className="font-body text-xs text-gold font-medium">🎉 Frete grátis aplicado ao seu pedido!</p>
                       </div>
                     )}
 
@@ -475,7 +582,7 @@ const CheckoutPage = () => {
                       {[
                         { label: "Cliente", value: `${form.nome} · ${form.email}`, step: 0 },
                         { label: "Endereço", value: `${form.logradouro}, ${form.numero} — ${form.bairro}, ${form.cidade}/${form.estado}`, step: 1 },
-                        { label: "Envio", value: form.frete === "expresso" ? "Expresso (2-4 dias)" : "Padrão (5-10 dias)", step: 2 },
+                        { label: "Envio", value: form.freteNome ? `${form.freteCompany} · ${form.freteNome}${form.fretePrazo ? ` (${form.fretePrazo})` : ""}` : "—", step: 2 },
                         { label: "Pagamento", value: form.metodoPagamento === "pix" ? "Pix (10% desconto)" : "Cartão de Crédito", step: 3 },
                       ].map((item) => (
                         <div key={item.label} className="flex items-start justify-between p-3 bg-muted/20 rounded-lg border border-border/50">

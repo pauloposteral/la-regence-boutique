@@ -11,20 +11,61 @@ const corsHeaders = {
 
 // === Server-side business rules (single source of truth) ===
 const FRETE_GRATIS_MIN = 150;
-const FRETE_PADRAO = 14.90;
-const FRETE_EXPRESSO = 29.90;
+const FRETE_GRATIS_SP_MIN = 100;
+const FRETE_FALLBACK = 19.90;
 const PIX_DISCOUNT = 0.10;
+
+// Melhor Envio (server-side revalidation)
+const ME_BASE = "https://melhorenvio.com.br/api/v2";
+const CEP_ORIGEM = "16901100";
+const CAIXA = { width: 11, height: 6, length: 16 };
+const PESO_PADRAO_KG = 0.25;
+const UA_ME = "La Regence Cafes (contato@cafelaregence.com.br)";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-function calcularFrete(subtotalAposDesconto: number, modo: string, cidade?: string, estado?: string): number {
-  // Free shipping: above threshold OR within São Paulo state
-  const isSP = (estado || "").toUpperCase() === "SP";
-  if (subtotalAposDesconto >= FRETE_GRATIS_MIN) return 0;
-  if (isSP && subtotalAposDesconto >= 100) return 0; // SP gets free above R$100
-  return modo === "expresso" ? FRETE_EXPRESSO : FRETE_PADRAO;
+async function calcularFreteServidor(
+  cepDestino: string,
+  produtos: Array<{ preco: number; peso_kg: number; quantidade: number }>,
+): Promise<any[]> {
+  const token = Deno.env.get("MELHOR_ENVIO_TOKEN");
+  if (!token) return [];
+  const meProducts = produtos.map((p, idx) => ({
+    id: String(idx + 1),
+    width: CAIXA.width,
+    height: CAIXA.height,
+    length: CAIXA.length,
+    weight: Number((p.peso_kg || PESO_PADRAO_KG).toFixed(3)),
+    insurance_value: Number((p.preco * p.quantidade).toFixed(2)),
+    quantity: p.quantidade,
+  }));
+  try {
+    const res = await fetch(`${ME_BASE}/me/shipment/calculate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent": UA_ME,
+      },
+      body: JSON.stringify({
+        from: { postal_code: CEP_ORIGEM },
+        to: { postal_code: cepDestino },
+        products: meProducts,
+      }),
+    });
+    if (!res.ok) {
+      console.error("[create-checkout] ME erro", res.status, await res.text());
+      return [];
+    }
+    const raw = await res.json();
+    return (Array.isArray(raw) ? raw : []).filter((s: any) => !s.error && s.price);
+  } catch (e) {
+    console.error("[create-checkout] ME exception", e);
+    return [];
+  }
 }
 
 serve(async (req) => {
@@ -49,6 +90,7 @@ serve(async (req) => {
       form,
       cupomCodigo,            // server validates the code, NOT the discount value
       metodoPagamento,
+      freteServicoId,         // id do serviço Melhor Envio escolhido
       idempotencyKey,
     } = body;
 
@@ -79,7 +121,7 @@ serve(async (req) => {
 
     const { data: produtos, error: prodErr } = await supabaseAdmin
       .from("produtos")
-      .select("id, nome, preco, preco_promocional, estoque, ativo")
+      .select("id, nome, preco, preco_promocional, estoque, ativo, peso_padrao")
       .in("id", produtoIds);
     if (prodErr) throw prodErr;
 
@@ -87,7 +129,7 @@ serve(async (req) => {
     if (varianteIds.length > 0) {
       const { data: v, error: varErr } = await supabaseAdmin
         .from("variantes")
-        .select("id, preco, estoque, ativo, produto_id")
+        .select("id, preco, estoque, ativo, produto_id, peso")
         .in("id", varianteIds);
       if (varErr) throw varErr;
       variantes = v || [];
@@ -108,6 +150,7 @@ serve(async (req) => {
 
       let unitPrice: number;
       let stock: number;
+      let pesoKg: number = Number(produto.peso_padrao) || PESO_PADRAO_KG;
 
       if (item.varianteId) {
         const variante = varMap.get(item.varianteId);
@@ -116,10 +159,13 @@ serve(async (req) => {
         }
         unitPrice = Number(variante.preco);
         stock = variante.estoque;
+        if (variante.peso) pesoKg = Number(variante.peso);
       } else {
         unitPrice = Number(produto.preco_promocional ?? produto.preco);
         stock = produto.estoque;
       }
+
+      if (pesoKg > 10) pesoKg = pesoKg / 1000; // normaliza gramas → kg
 
       if (stock < item.quantidade) {
         throw new Error(`Estoque insuficiente para "${produto.nome}". Disponível: ${stock}`);
@@ -131,6 +177,7 @@ serve(async (req) => {
         ...item,
         nome: produto.nome,
         unitPrice,
+        pesoKg,
         lineSubtotal,
       });
     }
@@ -166,13 +213,40 @@ serve(async (req) => {
     const pixDescontoValor = isPix ? round2(subtotalAfterCoupon * PIX_DISCOUNT) : 0;
     const subtotalAposDescontos = round2(subtotalAfterCoupon - pixDescontoValor);
 
-    // === 5. Server-side shipping ===
-    const custoFrete = calcularFrete(
-      subtotalAposDescontos,
-      form?.frete || "padrao",
-      form?.cidade,
-      form?.estado
-    );
+    // === 5. Server-side shipping — revalidate with Melhor Envio ===
+    const isSP = (form?.estado || "").toUpperCase() === "SP";
+    const freteGratisAtingido =
+      subtotalAposDescontos >= FRETE_GRATIS_MIN ||
+      (isSP && subtotalAposDescontos >= FRETE_GRATIS_SP_MIN);
+
+    let custoFrete = 0;
+    let freteNomeServico = "Frete Grátis";
+
+    if (!freteGratisAtingido) {
+      const cepDestino = (form?.cep || "").replace(/\D/g, "");
+      if (cepDestino.length !== 8) throw new Error("CEP inválido");
+
+      const produtosParaFrete = validatedItems.map((i: any) => ({
+        preco: i.unitPrice,
+        peso_kg: i.pesoKg,
+        quantidade: i.quantidade,
+      }));
+      const opcoes = await calcularFreteServidor(cepDestino, produtosParaFrete);
+
+      if (opcoes.length === 0) {
+        custoFrete = FRETE_FALLBACK;
+        freteNomeServico = "Envio padrão";
+      } else {
+        const escolhido = freteServicoId
+          ? opcoes.find((o: any) => String(o.id) === String(freteServicoId))
+          : null;
+        const selecionado = escolhido || opcoes.sort(
+          (a: any, b: any) => Number(a.price) - Number(b.price)
+        )[0];
+        custoFrete = round2(Number(selecionado.price) || 0);
+        freteNomeServico = `${selecionado.company?.name || selecionado.company || ""} · ${selecionado.name}`.trim();
+      }
+    }
 
     const total = round2(subtotalAposDescontos + custoFrete);
 

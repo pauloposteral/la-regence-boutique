@@ -335,7 +335,12 @@ const ProdutoPage = () => {
             <ShareButtons url={`/cafe/${produto.slug}`} title={produto.nome} />
 
             {/* Shipping calculator */}
-            <ShippingCalculator />
+            <ShippingCalculator
+              produtoId={produto.id}
+              varianteId={selectedVariant?.id || null}
+              quantidade={quantidade}
+              precoUnitario={currentPrice}
+            />
           </motion.div>
         </div>
 
