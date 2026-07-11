@@ -74,7 +74,7 @@ const CartDrawer = () => {
                 <h2 className="font-display text-xl font-semibold text-brown-dark">Carrinho</h2>
                 <span className="text-xs font-body text-cream-700">({totalItems})</span>
               </div>
-              <button onClick={closeCart} className="p-1 hover:bg-cream-200 rounded transition-colors"><X className="w-5 h-5 text-brown" /></button>
+              <button aria-label="Fechar carrinho" onClick={closeCart} className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 rounded-full transition-colors"><X className="w-5 h-5 text-brown" /></button>
             </div>
 
             {/* Free shipping bar */}
