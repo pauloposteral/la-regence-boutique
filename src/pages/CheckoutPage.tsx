@@ -343,10 +343,6 @@ const CheckoutPage = () => {
                 {step === 2 && (
                   <div className="space-y-5">
                     <div>
-                {/* Step 2: Envio */}
-                {step === 2 && (
-                  <div className="space-y-5">
-                    <div>
                       <h2 className="font-display text-xl font-semibold">Método de Envio</h2>
                       <p className="font-body text-xs text-muted-foreground mt-1">Escolha a transportadora e prazo</p>
                     </div>
