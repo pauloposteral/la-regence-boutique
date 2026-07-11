@@ -2,17 +2,30 @@ import { useState } from "react";
 import { Truck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShippingOption {
+  id: string;
   name: string;
+  company: string;
   price: number;
-  days: string;
+  free: boolean;
+  delivery_time: number | null;
+  delivery_range: { min: number; max: number } | null;
 }
 
-const ShippingCalculator = () => {
+interface Props {
+  produtoId?: string;
+  varianteId?: string | null;
+  quantidade?: number;
+  precoUnitario?: number;
+}
+
+const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitario = 0 }: Props) => {
   const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
+  const [freeShipping, setFreeShipping] = useState(false);
   const [error, setError] = useState("");
 
   const formatCep = (value: string) => {
@@ -33,41 +46,25 @@ const ShippingCalculator = () => {
     setOptions(null);
 
     try {
-      // Validate CEP via ViaCEP
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json();
-
-      if (data.erro) {
-        setError("CEP não encontrado.");
-        setLoading(false);
-        return;
+      const payload: any = { cep_destino: digits };
+      if (produtoId) {
+        payload.items = [{ produtoId, varianteId: varianteId || null, quantidade }];
+        payload.subtotal = precoUnitario * quantidade;
       }
 
-      // Simulated shipping options based on region
-      const state = data.uf;
-      const isSP = state === "SP";
-      const isSudeste = ["RJ", "MG", "ES"].includes(state);
+      const { data, error: fnErr } = await supabase.functions.invoke("calcular-frete", { body: payload });
+      if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
 
-      const shippingOptions: ShippingOption[] = [
-        {
-          name: "Econômico",
-          price: isSP ? 0 : isSudeste ? 12.90 : 18.90,
-          days: isSP ? "3-5 dias úteis" : isSudeste ? "5-8 dias úteis" : "8-12 dias úteis",
-        },
-        {
-          name: "Expresso",
-          price: isSP ? 9.90 : isSudeste ? 19.90 : 29.90,
-          days: isSP ? "1-2 dias úteis" : isSudeste ? "3-4 dias úteis" : "4-6 dias úteis",
-        },
-      ];
-
-      // Free shipping for orders over R$150
-      if (shippingOptions[0].price > 0) {
-        shippingOptions[0].name += "";
+      const opts: ShippingOption[] = data?.options || [];
+      if (opts.length === 0) {
+        setError("Nenhum serviço disponível para este CEP.");
+      } else {
+        setOptions(opts.slice(0, 4));
+        setFreeShipping(!!data?.free_shipping);
       }
-
-      setOptions(shippingOptions);
-    } catch {
+    } catch (e: any) {
+      console.error(e);
       setError("Erro ao calcular frete. Tente novamente.");
     } finally {
       setLoading(false);
@@ -92,7 +89,7 @@ const ShippingCalculator = () => {
         <Button
           variant="outline"
           size="sm"
-          className="font-body text-xs h-9 px-4 shrink-0 border-gold/30 hover:bg-gold/10 hover:border-gold"
+          className="font-body text-xs h-9 px-4 shrink-0 border-gold/30 hover:bg-gold/10 hover:border-gold rounded-full"
           onClick={handleCalculate}
           disabled={loading}
         >
@@ -114,15 +111,23 @@ const ShippingCalculator = () => {
         <div className="space-y-2 pt-1">
           {options.map((opt) => (
             <div
-              key={opt.name}
+              key={opt.id}
               className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2.5"
             >
               <div>
-                <p className="font-body text-sm font-medium text-foreground">{opt.name}</p>
-                <p className="text-[10px] text-muted-foreground font-body">{opt.days}</p>
+                <p className="font-body text-sm font-medium text-foreground">
+                  {opt.company} · {opt.name}
+                </p>
+                <p className="text-[10px] text-muted-foreground font-body">
+                  {opt.delivery_range
+                    ? `${opt.delivery_range.min}-${opt.delivery_range.max} dias úteis`
+                    : opt.delivery_time
+                    ? `até ${opt.delivery_time} dias úteis`
+                    : ""}
+                </p>
               </div>
               <span className="font-mono text-sm font-semibold text-foreground">
-                {opt.price === 0 ? (
+                {opt.free || opt.price === 0 ? (
                   <span className="text-gold">Grátis</span>
                 ) : (
                   `R$ ${opt.price.toFixed(2).replace(".", ",")}`
@@ -130,9 +135,16 @@ const ShippingCalculator = () => {
               </span>
             </div>
           ))}
-          <p className="text-[10px] text-muted-foreground font-body text-center">
-            🚚 Frete grátis em pedidos acima de R$ 150,00
-          </p>
+          {freeShipping && (
+            <p className="text-[10px] text-gold font-body text-center">
+              🎉 Frete grátis aplicado ao seu pedido
+            </p>
+          )}
+          {!freeShipping && (
+            <p className="text-[10px] text-muted-foreground font-body text-center">
+              🚚 Frete grátis em pedidos acima de R$ 150,00
+            </p>
+          )}
         </div>
       )}
     </div>
