@@ -195,6 +195,7 @@ const CheckoutPage = () => {
           form,
           cupomCodigo: cupom || null,
           metodoPagamento: form.metodoPagamento,
+          freteServicoId: form.frete,
           idempotencyKey,
         },
       });
