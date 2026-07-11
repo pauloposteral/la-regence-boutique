@@ -213,13 +213,40 @@ serve(async (req) => {
     const pixDescontoValor = isPix ? round2(subtotalAfterCoupon * PIX_DISCOUNT) : 0;
     const subtotalAposDescontos = round2(subtotalAfterCoupon - pixDescontoValor);
 
-    // === 5. Server-side shipping ===
-    const custoFrete = calcularFrete(
-      subtotalAposDescontos,
-      form?.frete || "padrao",
-      form?.cidade,
-      form?.estado
-    );
+    // === 5. Server-side shipping — revalidate with Melhor Envio ===
+    const isSP = (form?.estado || "").toUpperCase() === "SP";
+    const freteGratisAtingido =
+      subtotalAposDescontos >= FRETE_GRATIS_MIN ||
+      (isSP && subtotalAposDescontos >= FRETE_GRATIS_SP_MIN);
+
+    let custoFrete = 0;
+    let freteNomeServico = "Frete Grátis";
+
+    if (!freteGratisAtingido) {
+      const cepDestino = (form?.cep || "").replace(/\D/g, "");
+      if (cepDestino.length !== 8) throw new Error("CEP inválido");
+
+      const produtosParaFrete = validatedItems.map((i: any) => ({
+        preco: i.unitPrice,
+        peso_kg: i.pesoKg,
+        quantidade: i.quantidade,
+      }));
+      const opcoes = await calcularFreteServidor(cepDestino, produtosParaFrete);
+
+      if (opcoes.length === 0) {
+        custoFrete = FRETE_FALLBACK;
+        freteNomeServico = "Envio padrão";
+      } else {
+        const escolhido = freteServicoId
+          ? opcoes.find((o: any) => String(o.id) === String(freteServicoId))
+          : null;
+        const selecionado = escolhido || opcoes.sort(
+          (a: any, b: any) => Number(a.price) - Number(b.price)
+        )[0];
+        custoFrete = round2(Number(selecionado.price) || 0);
+        freteNomeServico = `${selecionado.company?.name || selecionado.company || ""} · ${selecionado.name}`.trim();
+      }
+    }
 
     const total = round2(subtotalAposDescontos + custoFrete);
 
