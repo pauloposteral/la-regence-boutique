@@ -16,7 +16,7 @@ const MOAGEM_LABELS: Record<string, string> = {
 };
 
 const CartDrawer = () => {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal, totalItems, cupom, desconto, setCupom, setDesconto } = useCart();
+  const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal, totalItems, cupom, desconto, cupomTipo, setCupom, setDesconto, setCupomTipo } = useCart();
   const [cupomInput, setCupomInput] = useState("");
   const [cupomLoading, setCupomLoading] = useState(false);
 
@@ -35,8 +35,9 @@ const CartDrawer = () => {
       if (error) { toast.error("Erro ao validar cupom"); return; }
       const row = Array.isArray(data) ? data[0] : data;
       const motivo = row?.motivo;
+      const tipo = (row?.tipo as "desconto" | "frete_gratis" | undefined) || "desconto";
       const desc = Number(row?.desconto || 0);
-      if (motivo !== "ok" || desc <= 0) {
+      if (motivo !== "ok") {
         const msg: Record<string, string> = {
           invalido: "Cupom inválido",
           expirado: "Cupom expirado",
@@ -46,9 +47,18 @@ const CartDrawer = () => {
         toast.error(msg[motivo || ""] || "Cupom inválido");
         return;
       }
+      if (tipo === "desconto" && desc <= 0) {
+        toast.error("Cupom inválido");
+        return;
+      }
       setCupom(code);
       setDesconto(desc);
-      toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+      setCupomTipo(tipo);
+      if (tipo === "frete_gratis") {
+        toast.success(`Cupom "${code}" aplicado! Frete grátis 🚚`);
+      } else {
+        toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+      }
     } catch { toast.error("Erro ao validar cupom"); }
     finally { setCupomLoading(false); }
   };
