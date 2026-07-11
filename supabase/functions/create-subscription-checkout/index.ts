@@ -11,11 +11,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Mapping plano -> price_id (Stripe LIVE prices criados via tool)
+// Mapping tier interno -> price_id Stripe LIVE (Clube La Régence)
+// Enum DB mensal/trimestral/semestral é reutilizado como slot p/ os 3 tiers:
+//   mensal      => Explorador  (R$ 59)
+//   trimestral  => Connoisseur (R$ 109)
+//   semestral   => Sommelier   (R$ 189)
 const PLAN_PRICES: Record<string, { priceId: string; valor: number }> = {
-  mensal: { priceId: "price_1TS2DMK7VFRW1YcZojLXkURw", valor: 49.9 },
-  trimestral: { priceId: "price_1TS2DOK7VFRW1YcZs4Nxapd3", valor: 44.9 },
-  semestral: { priceId: "price_1TS2DPK7VFRW1YcZN7AEVovj", valor: 39.9 },
+  mensal:     { priceId: "price_1Ts5aMK7VFRW1YcZViWs8hXH", valor: 59 },
+  trimestral: { priceId: "price_1Ts5aNK7VFRW1YcZiDHE58aM", valor: 109 },
+  semestral:  { priceId: "price_1Ts5aOK7VFRW1YcZarRopK2n", valor: 189 },
 };
 
 serve(async (req) => {
