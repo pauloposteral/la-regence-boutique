@@ -169,16 +169,16 @@ const CartDrawer = () => {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t border-cream-400 p-5 space-y-4">
+              <div className="border-t border-cream-400 p-5 pb-safe space-y-4 bg-cream-50">
                 {!cupom ? (
                   <div className="flex gap-2">
-                    <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-sm" />
-                    <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0">Aplicar</Button>
+                    <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm" />
+                    <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 min-h-[44px]">Aplicar</Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
                     <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
-                    <button onClick={() => { setCupom(null); setDesconto(0); }} className="text-xs text-cream-700 hover:text-destructive"><X className="w-3.5 h-3.5" /></button>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
@@ -191,7 +191,7 @@ const CartDrawer = () => {
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>
-                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-white hover:bg-gold-dark transition-all duration-300" size="lg" onClick={closeCart}>
+                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-white hover:bg-gold-dark transition-all duration-300 min-h-[52px]" size="lg" onClick={closeCart}>
                     <Link to="/checkout">Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" /></Link>
                   </Button>
                 </motion.div>
