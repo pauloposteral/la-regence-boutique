@@ -594,6 +594,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notify_restock: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notified_at: string | null
+          produto_id: string
+          user_id: string | null
+          variante_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notified_at?: string | null
+          produto_id: string
+          user_id?: string | null
+          variante_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notified_at?: string | null
+          produto_id?: string
+          user_id?: string | null
+          variante_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notify_restock_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notify_restock_variante_id_fkey"
+            columns: ["variante_id"]
+            isOneToOne: false
+            referencedRelation: "variantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           created_at: string
