@@ -212,6 +212,11 @@ const ProdutoPage = () => {
   return (
     <Layout>
       <SEOHead title={produto.nome} description={produto.descricao_sensorial || produto.descricao || `Café especial ${produto.nome} — La Régence`} image={mainImg} type="product" jsonLd={productJsonLd} />
+      <SEOBreadcrumb items={[
+        { name: "Início", url: `${window.location.origin}/` },
+        { name: "Cafés", url: `${window.location.origin}/cafes` },
+        { name: produto.nome, url: `${window.location.origin}/cafe/${produto.slug}` },
+      ]} />
 
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 lg:px-8 py-4">
