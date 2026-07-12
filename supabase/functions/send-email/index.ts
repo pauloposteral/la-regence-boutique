@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,21 +20,6 @@ interface EmailRequest {
   type: EmailType;
   to: string;
   data: Record<string, any>;
-}
-
-// per-isolate rate limit
-const rl = new Map<string, { count: number; resetAt: number }>();
-const RL_MAX = 5;
-const RL_WIN = 60_000;
-function isRateLimited(key: string) {
-  const now = Date.now();
-  const e = rl.get(key);
-  if (!e || now > e.resetAt) {
-    rl.set(key, { count: 1, resetAt: now + RL_WIN });
-    return false;
-  }
-  e.count++;
-  return e.count > RL_MAX;
 }
 
 const SITE = "https://cafelaregence.com.br";
@@ -195,7 +181,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (isRateLimited(to)) {
+    // Rate-limit persistido (Postgres): 10 e-mails/min por destinatário + 30/min por IP
+    const allowedTo = await checkRateLimit(`send-email:to:${to.toLowerCase()}`, 10, 60);
+    const allowedIp = await checkRateLimit(callerKey(req, "send-email"), 30, 60);
+    if (!allowedTo || !allowedIp) {
       return new Response(JSON.stringify({ error: "Rate limited" }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

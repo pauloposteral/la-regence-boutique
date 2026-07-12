@@ -44,6 +44,22 @@ serve(async (req) => {
 
   console.log(`📨 Stripe event: ${event.type} (${event.id})`);
 
+  // Idempotência: se este event.id já foi processado, retorna 200 sem reexecutar.
+  // Usa unique constraint em webhook_events.event_id para atomicidade.
+  const { error: dupErr } = await supabaseAdmin
+    .from("webhook_events")
+    .insert({ event_id: event.id, provider: "stripe", event_type: event.type });
+  if (dupErr) {
+    if ((dupErr as any).code === "23505") {
+      console.log(`↩️ Event ${event.id} já processado — ignorando duplicata`);
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    console.warn(`⚠️ Falha ao registrar webhook_event ${event.id}:`, dupErr.message);
+    // Continua o processamento — melhor executar do que perder um evento
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
