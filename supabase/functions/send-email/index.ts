@@ -181,7 +181,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (isRateLimited(to)) {
+    // Rate-limit persistido (Postgres): 10 e-mails/min por destinatário + 30/min por IP
+    const allowedTo = await checkRateLimit(`send-email:to:${to.toLowerCase()}`, 10, 60);
+    const allowedIp = await checkRateLimit(callerKey(req, "send-email"), 30, 60);
+    if (!allowedTo || !allowedIp) {
       return new Response(JSON.stringify({ error: "Rate limited" }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
