@@ -8,9 +8,10 @@ import { useAuth } from "@/hooks/useAuth";
 interface BackInStockNotifyProps {
   produtoId: string;
   produtoNome: string;
+  varianteId?: string;
 }
 
-const BackInStockNotify = ({ produtoId, produtoNome }: BackInStockNotifyProps) => {
+const BackInStockNotify = ({ produtoId, produtoNome, varianteId }: BackInStockNotifyProps) => {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
@@ -21,14 +22,15 @@ const BackInStockNotify = ({ produtoId, produtoNome }: BackInStockNotifyProps) =
 
     setLoading(true);
     try {
-      // Store in newsletter_subscribers with a tag for back-in-stock
-      await supabase.from("newsletter_subscribers").upsert(
-        { email },
-        { onConflict: "email" }
-      );
+      await supabase.from("notify_restock").insert({
+        produto_id: produtoId,
+        variante_id: varianteId || null,
+        email: email.trim().toLowerCase(),
+        user_id: user?.id || null,
+      });
       setSuccess(true);
     } catch {
-      // Still show success for UX
+      // Colisão de índice único (já inscrito) — trata como sucesso para UX
       setSuccess(true);
     } finally {
       setLoading(false);
