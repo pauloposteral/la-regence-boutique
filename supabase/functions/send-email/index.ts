@@ -154,6 +154,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Avalie seu pedido e ganhe pontos."
         ),
       };
+    case "back_in_stock":
+      return {
+        subject: `${d.produtoNome || "Seu café"} voltou ao estoque ☕`,
+        html: shell(
+          "De volta ao estoque",
+          `${h("Voltou pra você")}${p(`O café <strong>${d.produtoNome || ""}</strong> que você aguardava está de volta ao estoque — mas os micro-lotes esgotam rápido.`)}${btn(`${SITE}/cafe/${d.slug || ""}`, "Comprar agora")}${p(`<span style="font-size:12px;color:${C.muted}">Você recebeu este e-mail porque solicitou aviso de reposição. Não faremos mais envios sobre este produto.</span>`)}`,
+          "Voltou ao estoque."
+        ),
+      };
   }
 }
 
