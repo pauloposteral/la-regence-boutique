@@ -9,7 +9,7 @@ import ScrollProgress from "./ScrollProgress";
 
 // ScrollProgress só faz sentido em conteúdo longo (blog post)
 const SCROLL_PROGRESS_PREFIXES = ["/blog/"];
-import FreeShippingBar from "./FreeShippingBar";
+// FreeShippingBar removida do header a pedido — mensagem migra para footer/checkout
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
 import AbandonedCartBanner from "@/components/cart/AbandonedCartBanner";
