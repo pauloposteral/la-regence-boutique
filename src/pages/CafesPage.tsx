@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import Layout from "@/components/layout/Layout";
 import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
 import SEOHead from "@/components/SEOHead";
+import SEOBreadcrumb from "@/components/SEOBreadcrumb";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from "@/contexts/CartContext";
