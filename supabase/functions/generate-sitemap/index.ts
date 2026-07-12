@@ -16,7 +16,7 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const baseUrl = "https://lojalaregence.lovable.app";
+  const baseUrl = "https://cafelaregence.com.br";
   const now = new Date().toISOString().split("T")[0];
 
   // Static pages
@@ -80,6 +80,17 @@ serve(async (req) => {
     <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${post.updated_at?.split("T")[0] || now}</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+  }
+
+  // Categories
+  for (const c of categorias || []) {
+    xml += `
+  <url>
+    <loc>${baseUrl}/cafes?categoria=${c.slug}</loc>
+    <lastmod>${c.updated_at?.split("T")[0] || now}</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`;
   }

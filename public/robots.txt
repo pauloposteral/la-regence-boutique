@@ -5,5 +5,9 @@ Disallow: /admin/
 Disallow: /auth
 Disallow: /conta
 Disallow: /checkout
+Disallow: /pagamento-sucesso
+Disallow: /reset-password
+Disallow: /newsletter/confirmar
 
 Sitemap: https://www.cafelaregence.com.br/sitemap.xml
+Sitemap: https://uuuaylqjllxqjjmvdybm.supabase.co/functions/v1/generate-sitemap
