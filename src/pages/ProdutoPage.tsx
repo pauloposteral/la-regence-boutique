@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { trackViewItem } from "@/lib/analytics";
 import SEOHead from "@/components/SEOHead";
+import SEOBreadcrumb from "@/components/SEOBreadcrumb";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
