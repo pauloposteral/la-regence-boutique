@@ -570,6 +570,55 @@ const ContaPage = () => {
               )}
             </motion.div>
           </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="assinaturas">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              {assinaturasLoading ? (
+                <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>
+              ) : assinaturas.length === 0 ? (
+                <div className="bg-card border border-border rounded-lg p-10 text-center">
+                  <Coffee className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="font-display text-lg mb-2">Sem assinaturas ativas</p>
+                  <p className="font-body text-sm text-muted-foreground mb-4">Receba café fresco em casa todo mês.</p>
+                  <Button asChild variant="outline"><Link to="/assinatura">Ver planos</Link></Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <Button onClick={openCustomerPortal} disabled={portalLoading} variant="outline" size="sm" className="font-body text-xs gap-1.5 rounded-full">
+                      <ExternalLink className="w-3 h-3" /> {portalLoading ? "Abrindo..." : "Gerenciar pagamento e assinatura"}
+                    </Button>
+                  </div>
+                  {assinaturas.map((s: any) => (
+                    <div key={s.id} className="bg-card border border-border rounded-lg p-5">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-display text-base font-semibold capitalize">{s.tipo}</p>
+                          <p className="font-body text-xs text-muted-foreground">
+                            {s.cafe_surpresa ? "Café surpresa da curadoria" : s.produtos?.nome || "Café selecionado"}
+                            {s.moagem && ` · Moagem ${s.moagem}`}
+                          </p>
+                        </div>
+                        <Badge className={`font-body text-[10px] capitalize ${s.status === "ativa" ? "bg-green-100 text-green-700" : s.status === "pausada" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
+                          {s.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                        <p className="font-body text-xs text-muted-foreground">
+                          {s.proxima_entrega ? `Próxima entrega: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
+                        </p>
+                        <p className="font-mono text-sm font-semibold">R$ {Number(s.preco).toFixed(2).replace(".", ",")}/mês</p>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="font-body text-[11px] text-muted-foreground text-center">
+                    Para pausar, alterar cartão ou cancelar, use "Gerenciar pagamento e assinatura" acima — abre o portal seguro do Stripe.
+                  </p>
+                </>
+              )}
+            </motion.div>
+          </TabsContent>
         </Tabs>
       </div>
     </Layout>
