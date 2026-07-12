@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Coffee, TrendingUp, Pause, Play, XCircle } from "lucide-react";
+import { Coffee, TrendingUp, Pause, Play, XCircle, Download } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
