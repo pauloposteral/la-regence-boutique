@@ -16,7 +16,7 @@ import AbandonedCartBanner from "@/components/cart/AbandonedCartBanner";
 // NewsletterPopup desativado a pedido — newsletter continua acessível via Footer
 import PWAInstallPrompt from "./PWAInstallPrompt";
 import PageTransition from "./PageTransition";
-import SocialProofToast from "@/components/product/SocialProofToast";
+// SocialProofToast removido — prova social falsa quebra confiança premium
 import CookieBanner from "./CookieBanner";
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes";
 import { trackPageView } from "@/lib/analytics";
@@ -67,7 +67,7 @@ const Layout = ({ children }: LayoutProps) => {
       <BottomNav />
       {/* NewsletterPopup removido — exit-intent estava incomodando */}
       <PWAInstallPrompt />
-      <SocialProofToast />
+      {/* SocialProofToast removido — sem notificações de compras fabricadas */}
       <CookieBanner />
 
       {/* Organization Structured Data */}

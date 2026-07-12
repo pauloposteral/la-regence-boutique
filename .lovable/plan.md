@@ -1,125 +1,90 @@
+# Plano — Limpeza Profissional + 30 Melhorias
 
-# Auditoria 0→100 — Checklist Loja Virtual (La Régence)
+## 1. Remoções imediatas (o que incomoda hoje)
 
-Legenda: ✅ existe · 🟡 parcial · ❌ falta
+**a) Barra "Frete grátis acima de R$ 150 · Torrefação artesanal…" no topo do Header**
+- Arquivo: `src/components/layout/Header.tsx` (bloco `bg-cream-100 text-foreground/70 …` acima do `<header>`).
+- Remover completamente. O Header fica mais limpo, silencioso, no padrão Aesop/Le Labo.
+- A informação de frete grátis continua viva no `FreeShippingBar` (que só aparece quando há itens no carrinho) e na página de produto.
 
----
-
-## 1. Fundação
-✅ Domínio + HTTPS · ✅ Identidade · ✅ Home · ✅ Sobre · ✅ Contato · ✅ Favicon/OG · ✅ FAQ · 🟡 404 (existe mas simples) · ❌ B2B
-
-## 2. Jurídico
-🟡 CNPJ/endereço no rodapé (verificar) · ✅ Termos · ✅ Privacidade · ✅ Trocas · ✅ Envio · ❌ **Cookie consent com opt-in real bloqueando GA/Pixel** · 🟡 Canal LGPD (usa contato) · ❌ NF-e automática · ❌ Reclame Aqui
-
-## 3. Catálogo
-✅ Grid · ✅ Card · ✅ PDP · ✅ Atributos · ✅ Variantes · 🟡 3+ fotos (nem todos) · ✅ Relacionados · ✅ Badges · ❌ **"Avise-me quando chegar"** · ✅ Reviews · 🟡 Guia de preparo · 🟡 Conteúdo rico
-
-## 4. Busca/Navegação
-✅ Menu · ✅ Busca · ✅ Filtros · ✅ Breadcrumbs · ❌ Autocomplete · ❌ Quiz de sabor
-
-## 5. Carrinho
-✅ CRUD · ✅ Drawer + badge · ✅ Persistência · ✅ Mobile (44px + safe-area) · ✅ Vazio · ✅ Cupom · ✅ Estimativa CEP · ✅ Barra frete grátis · ❌ Cross-sell
-
-## 6. Checkout
-✅ Etapas · ✅ Guest/conta · ✅ ViaCEP · ✅ CPF/CNPJ · ✅ Validação · ✅ Resumo · ✅ Frete · ✅ Confirmação · ✅ Endereços salvos · ❌ Checkout expresso
-
-## 7. Pagamentos
-✅ Cartão · ✅ PIX · ✅ Webhook (assinatura verificada) · 🟡 **Idempotência do webhook** (verificar) · ✅ Server-side · ✅ Fallback · ✅ Parcelamento · 🟡 Reembolso (manual) · ❌ Boleto · ❌ Apple/Google Pay
-
-## 8. Frete
-✅ Melhor Envio · ✅ Prazo · ✅ Frete grátis dinâmico (CRUD) · 🟡 **Rastreio no e-mail** (falta e-mail "enviado") · 🟡 CEP não atendido · ❌ Retirada local · 🟡 Unboxing
-
-## 9. Conta
-✅ Login · ✅ Recuperação · 🟡 Verificação e-mail (Supabase confirm) · ✅ Histórico · ✅ Perfil/endereços · ✅ Google · ✅ Timeline · 🟡 Wishlist (base) · ❌ "Comprar de novo" 1-clique · ✅ Fidelidade
-
-## 10. Pós-venda
-✅ Ciclo status completo · ✅ Cliente/admin sincronizados · 🟡 Cancelamento cliente · ❌ Troca/devolução self-service · ❌ **E-mail pedindo review** · ❌ NPS
-
-## 11. E-mails
-🟡 **SPF/DKIM Resend** (depende de você verificar) · ✅ Confirmação · ✅ Pagamento · ❌ **Pedido enviado + rastreio** · ✅ Dono notificado · 🟡 Boas-vindas · ✅ Reset senha (Supabase) · ❌ Entregue+review · ❌ **Carrinho abandonado ativo** (function existe, sem cron) · ✅ Templates com identidade
-
-## 12. Assinaturas
-✅ 3 planos Stripe · ✅ Página comparativa · ✅ Portal · ❌ **Pausar/pular entrega inline** · 🟡 Dunning (Stripe faz sozinho, sem e-mail próprio) · ❌ Personalizar caixa · 🟡 Benefícios exclusivos
-
-## 13. Admin
-✅ Guard + RLS · ✅ CRUD produtos · ✅ Categorias · ✅ Pedidos · ✅ Estoque · ✅ Dashboard · ❌ **Notificação realtime novo pedido** · ✅ Cupons · ✅ Clientes · ✅ Moderação reviews · ✅ Banners · ✅ Assinantes · ❌ **Exportar CSV** · ✅ Audit log
-
-## 14. Marketing
-✅ Newsletter · ✅ Cupom 1ª compra · ✅ Reviews · 🟡 Recuperação carrinho (function sem trigger) · ✅ Depoimentos · ✅ Social · ❌ Indicação · ❌ Landing sazonal · ✅ (sem popup, por design)
-
-## 15. SEO
-✅ Title/desc · ✅ URLs · ✅ Sitemap/robots · ❌ **SPA sem pré-render** (produtos não indexam bem) · ✅ Schema Product · ✅ OG por produto · 🟡 Alt text (parcial) · ❌ Blog ativo · 🟡 Canonical
-
-## 16. Analytics
-🟡 **GA4 depende de IDs em .env** · ❌ Search Console (você) · 🟡 Meta Pixel · ❌ **Scripts sem gate de consentimento** · ❌ Funil · ❌ Clarity
-
-## 17. Performance
-✅ Mobile · ✅ WebP · 🟡 LCP (hero OK, falta preload de fonte) · ✅ Loading states · 🟡 Console limpo · ❌ **Sentry** · ❌ **Error boundaries por rota** · 🟡 A11y · ❌ E2E
-
-## 18. Segurança
-✅ RLS · ✅ Secrets · 🟡 Rotação de creds (depende de você) · ✅ Validação server · ❌ **Rate-limit em send-email/newsletter/login** · 🟡 Backups (Supabase padrão, sem teste) · ❌ CSP headers
-
-## 19. Atendimento
-✅ WhatsApp · ✅ E-mail · ✅ FAQ · 🟡 Horário · ❌ Chat
+**b) Toasts de "prova social" falsos ("Fulano de SP acabou de comprar…")**
+- Arquivo: `src/components/product/SocialProofToast.tsx` (e onde estiver montado — provavelmente `ProdutoPage.tsx` e/ou `Layout.tsx`).
+- Remover o componente do render e apagar o arquivo. Nada de nomes/cidades fabricados — quebra confiança de marca premium.
+- Substituir a função ("mostrar tração") por sinais **reais**: contagem de avaliações verificadas, "X pessoas compraram nos últimos 30 dias" **somente se vier de `pedidos` real**, ou nada.
 
 ---
 
-## Score: **82/100** — vendendo, com 4 gaps P0 travando o "10/10"
+## 2. Bugs a corrigir nesta rodada
+
+1. Console warning `Unknown message type: RESET_BLANK_CHECK` — filtrar/ignorar no bootstrap para não poluir o console.
+2. Header: `grid-cols-3` quebra levemente em telas ~360px (logo comprime o bloco de ícones). Ajustar para `flex` com `flex-1` no centro em mobile.
+3. Busca do Header: quando `searchResults` está vazio mas o usuário digitou 2+ chars, não mostra estado "nenhum resultado" — só some. Adicionar empty state.
+4. `FavoriteButton` invalida `["favoritos"]` mas o Header usa `["fav-count", user?.id]` — contador só atualiza no refetch de página. Padronizar invalidations.
+5. `StickyAddToCart` fica **atrás** do `BottomNav` em alguns iPhones (bottom-14 fixo, mas BottomNav usa safe-area). Usar `bottom-[calc(3.5rem+env(safe-area-inset-bottom))]`.
+6. `CartDrawer` — cupom aplicado permanece após esvaziar carrinho. Limpar no `clearCart`.
+7. `SEOHead` em `/` seta título mas algumas subpáginas (Blog, FAQ) caem no default — auditar e completar.
 
 ---
 
-# Plano de correção
+## 3. As 30 melhorias (agrupadas)
 
-## 🔴 P0 — Fechar gate (1 sprint)
+### Confiança & profissionalismo (1–6)
+1. Remover barra de frete do topo (item 1a).
+2. Remover toasts de compra falsa (item 1b).
+3. Rodapé: exibir CNPJ, razão social, endereço completo e canais oficiais em bloco discreto (LGPD + confiança).
+4. Selos reais: "Site seguro · Pagamento Stripe · SSL" com ícones sóbrios (sem badges kitsch).
+5. Página `/politica-de-privacidade`, `/termos`, `/trocas-e-devolucoes`, `/politica-de-cookies` linkadas do footer (criar se faltarem).
+6. Página "Sobre" com foto real da torrefação/equipe (placeholder profissional se ainda não houver foto do cliente).
 
-1. **Cookie consent LGPD com gate real** — banner que só carrega GA4/Pixel após `accept`. Bloquear `initGA()`/`fbq('init')` em `main.tsx` até `localStorage.cookieConsent === 'accepted'`.
-2. **E-mail "pedido enviado" com rastreio** — trigger no update de `pedidos.status='shipped'` (ou botão no admin ao inserir código) → invoca `send-email` tipo `order_shipped` com link Melhor Envio.
-3. **Rate-limit** em `send-email`, `newsletter-subscribe` e tentativas de login (usar RPC `check_rate_limit` já existente).
-4. **Idempotência webhook Stripe** — garantir tabela `webhook_events(event_id)` com unique constraint; return 200 se duplicado.
+### Header/Nav (7–10)
+7. Header collapse: reduzir altura de `h-20` para `h-16` no scrolled, com transição de logo 56→40px.
+8. Mega-menu leve em "Cafés" com subcategorias (Origem, Torra, Método) — desktop only.
+9. Busca com estado "Nenhum resultado para …" + sugestões (top 3 produtos populares).
+10. Substituir `Heart` do header por link direto "Favoritos" no menu da conta (declutter).
 
-## 🟡 P1 — Elevar qualidade (2-3 sprints)
+### Home (11–14)
+11. Hero: remover sobreposições excessivas, alinhar a um único CTA primário + link secundário.
+12. `CoffeeCarousel`: adicionar navegação por teclado (←/→) e aria-labels.
+13. `TestimonialsSection`: usar somente reviews com `reviews.status='approved'` do banco (sem mock).
+14. `SensoryNotesBanner`: reduzir densidade cromática, respeitar espaçamento premium.
 
-5. **Notificação realtime admin** — subscribe `pedidos` no `AdminLayout`, badge com contador de `status='paid'` não visto + som opcional.
-6. **Carrinho abandonado ativo** — cron pg (a cada 2h) invoca `abandoned-cart-recovery` para carrinhos > 4h e < 24h sem pedido.
-7. **E-mail pós-entrega pedindo review** — trigger em `status='entregue'` → e-mail com link direto pra `/produto/:slug#review`.
-8. **Boas-vindas + verificação e-mail** — template branded no Supabase confirm + e-mail de boas-vindas via `send-email`.
-9. **Avise-me quando chegar** — tabela `notify_restock(user, variante)` + trigger no update de `estoque > 0`.
-10. **Exportar CSV pedidos/clientes/assinantes** — botão no admin gerando CSV client-side (papaparse).
-11. **Error boundaries por rota** + **Sentry** (DSN via env).
-12. **Cross-sell no carrinho** — 2 produtos "harmoniza com" no drawer.
-13. **Cancelar pedido pelo cliente** (se `status IN ('pending','paid')`) na página de detalhe.
-14. **Pausar/pular assinatura inline** na área do cliente (Stripe API).
-15. **Preload Playfair woff2** + `content-visibility:auto` seções abaixo da fold.
-16. **Canonical dinâmico por rota** no `SEOHead.tsx`.
-17. **Alt text descritivo** em todas imagens (auditar componentes).
+### PDP — Produto (15–19)
+15. Galeria: pinch-zoom mobile + lightbox desktop.
+16. Bloco "Ficha técnica" estruturado (Origem, Altitude, Processo, Torra, SCA, Notas) em `<dl>` semântico.
+17. Cross-sell: mostrar 4 produtos da mesma origem/torra em vez de aleatórios.
+18. Estoque baixo real ("Restam X unidades") usando `variantes.estoque` — sem urgência falsa.
+19. Botão "Compartilhar" com Web Share API nativa em mobile.
 
-## 🟢 P2 — Crescimento (backlog)
+### Carrinho & Checkout (20–23)
+20. `CartDrawer`: mostrar economia total (soma de `preco - preco_promocional`) em destaque discreto.
+21. Cupom: feedback inline (verde/vermelho) sem toast intrusivo.
+22. Checkout: salvar CEP no `localStorage` e pré-preencher.
+23. Resumo do pedido sticky no desktop durante o checkout.
 
-18. Autocomplete de busca (Meilisearch/Algolia ou fuse.js local)
-19. Quiz de perfil de sabor
-20. Pré-render SEO (react-snap ou migrar rotas críticas para SSG)
-21. Programa de indicação
-22. Landing pages sazonais (CMS mínimo já existe via banners)
-23. NPS pós-compra
-24. Troca/devolução self-service
-25. Comprar de novo 1-clique
-26. Blog ativo com CMS
-27. Personalizar próxima caixa de assinatura
-28. Retirada local
-29. CSP headers
-30. Testes E2E (Playwright) dos 2 fluxos críticos
-31. Clarity (heatmaps, gratuito)
-32. Chat no site
-33. NF-e automática (Bling/eNotas)
-34. Boleto / Apple Pay / Google Pay
+### Conta do cliente (24–26)
+24. "Meus pedidos" com filtros (status, período) e busca por número.
+25. Endereços: marcar padrão, editar inline, deletar com confirmação.
+26. Central de preferências: opt-in granular (novidades, ofertas, blog, avaliações).
+
+### Performance/SEO/Qualidade (27–30)
+27. `content-visibility: auto` nas seções abaixo da fold da Home (LCP/CLS).
+28. Sitemap dinâmico incluir `blog_posts`, `collections` e `categorias`.
+29. Meta description específica por página (Cafés, Assinatura, Sobre, Blog, cada produto).
+30. Lighthouse pass: garantir contraste AA em todos os `text-cream-*` sobre `bg-cream-*` e labels dourados.
 
 ---
 
-## Ordem de execução sugerida (após aprovar)
+## 4. Ordem de execução sugerida
 
-**Sprint 1 (P0):** itens 1→4
-**Sprint 2 (P1 crítico):** itens 5, 6, 7, 11
-**Sprint 3 (P1 UX):** itens 8, 9, 10, 12, 13, 14
-**Sprint 4 (P1 polish):** itens 15, 16, 17
+**Onda A (limpeza + bugs, 1 sprint curto):** itens 1, 2 e bugs 1–7.
+**Onda B (confiança + header + home):** itens 3–14.
+**Onda C (PDP + carrinho + conta):** itens 15–26.
+**Onda D (performance/SEO final):** itens 27–30 + Lighthouse.
 
-Aprove e eu começo pelo Sprint 1.
+## Detalhes técnicos
+
+- Remoções não tocam schema nem edge functions.
+- `SocialProofToast` sai do bundle (import + arquivo).
+- Bugs de query invalidation resolvidos padronizando chaves em `useAuth` layer.
+- Novas páginas jurídicas: rotas em `src/App.tsx` + componente em `src/pages/InstitucionalPages.tsx` (já existe, estender).
+- Sem alterações no design system (paleta gold/brown, Playfair/DM Sans, pill buttons preservados).
