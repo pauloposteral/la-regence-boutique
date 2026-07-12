@@ -85,6 +85,58 @@ const ContaPage = () => {
     enabled: !!user,
   });
 
+  const { data: assinaturas = [], isLoading: assinaturasLoading } = useQuery({
+    queryKey: ["assinaturas-user", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("assinaturas")
+        .select("*, produtos(nome, slug)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const cancelOrder = async (pedidoId: string) => {
+    setCancellingId(pedidoId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("cancel-order", {
+        body: { pedido_id: pedidoId },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (res.error) throw res.error;
+      const data: any = res.data;
+      toast.success(data?.refunded ? "Pedido cancelado e reembolso solicitado" : "Pedido cancelado");
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível cancelar o pedido");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const [portalLoading, setPortalLoading] = useState(false);
+  const openCustomerPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (res.error) throw res.error;
+      const url = (res.data as any)?.url;
+      if (url) window.open(url, "_blank");
+      else throw new Error("URL do portal indisponível");
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir o portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   const { data: pontosData } = useQuery({
     queryKey: ["pontos", user?.id],
     queryFn: async () => {
