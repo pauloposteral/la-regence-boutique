@@ -411,6 +411,29 @@ const ContaPage = () => {
                         {(pedido.itens_pedido || []).length > 3 && <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs font-body text-muted-foreground">+{pedido.itens_pedido.length - 3}</div>}
                       </div>
                       <div className="flex items-center gap-3">
+                        {(["pendente","pago","confirmado","preparando","torrando","embalando"] as const).includes(pedido.status as any) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="font-body text-xs gap-1 text-destructive hover:text-destructive" disabled={cancellingId === pedido.id}>
+                                <XCircle className="w-3 h-3" /> Cancelar
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="font-display">Cancelar pedido?</AlertDialogTitle>
+                                <AlertDialogDescription className="font-body text-sm">
+                                  Se o pedido já foi pago, o reembolso será solicitado ao Stripe e cai em 5–10 dias úteis no seu meio de pagamento.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="font-body">Voltar</AlertDialogCancel>
+                                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-body" onClick={() => cancelOrder(pedido.id)}>
+                                  Cancelar pedido
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                         <Button variant="ghost" size="sm" className="font-body text-xs gap-1" onClick={() => reorderItems(pedido)}>
                           <RefreshCw className="w-3 h-3" /> Comprar novamente
                         </Button>
