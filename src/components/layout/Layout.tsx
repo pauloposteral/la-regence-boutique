@@ -9,7 +9,7 @@ import ScrollProgress from "./ScrollProgress";
 
 // ScrollProgress só faz sentido em conteúdo longo (blog post)
 const SCROLL_PROGRESS_PREFIXES = ["/blog/"];
-import FreeShippingBar from "./FreeShippingBar";
+// FreeShippingBar removida do header a pedido — mensagem migra para footer/checkout
 import BottomNav from "./BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
 import AbandonedCartBanner from "@/components/cart/AbandonedCartBanner";
@@ -55,7 +55,7 @@ const Layout = ({ children }: LayoutProps) => {
       <a href="#main-content" className="skip-to-content">Ir para o conteúdo</a>
       {showScrollProgress && <ScrollProgress />}
       <Header />
-      <FreeShippingBar />
+      {/* FreeShippingBar removida — regras de frete grátis exibidas no carrinho/checkout */}
       <main id="main-content" className="flex-1 mb-bottom-nav">
         <PageTransition>{children}</PageTransition>
       </main>
