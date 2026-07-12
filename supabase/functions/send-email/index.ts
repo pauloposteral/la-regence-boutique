@@ -14,7 +14,8 @@ type EmailType =
   | "order_delivered"
   | "status_update"
   | "contact_reply"
-  | "admin_new_order";
+  | "admin_new_order"
+  | "review_request";
 
 interface EmailRequest {
   type: EmailType;
@@ -141,6 +142,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Novo pedido recebido",
           `${h("Novo pedido pago")}${p(`Pedido <strong>#${shortId}</strong> foi confirmado e pago.`)}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Cliente:</strong> ${d.customerName || d.customerEmail || "—"}</div><div><strong style="color:${C.brownDark}">E-mail:</strong> ${d.customerEmail || "—"}</div><div><strong style="color:${C.brownDark}">Total:</strong> R$ ${d.total || "0,00"}</div><div><strong style="color:${C.brownDark}">Pagamento:</strong> ${d.paymentMethod || "—"}</div><div><strong style="color:${C.brownDark}">Itens:</strong> ${d.itemCount || 0} produto(s)</div></div>`)}${btn(`${SITE}/admin/pedidos`, "Abrir no Admin")}`,
           `Novo pedido #${shortId}`
+        ),
+      };
+    case "review_request":
+      return {
+        subject: `Como foi seu café? Avalie o pedido #${shortId}`,
+        html: shell(
+          "Avalie sua experiência",
+          `${h(`Olá${d.name ? `, ${d.name}` : ""}!`)}${p(`Faz alguns dias que seu pedido <strong>#${shortId}</strong> foi entregue. Como foi a experiência?`)}${p("Sua avaliação ajuda outros amantes de café a descobrir os grãos certos — e você ganha <strong>50 pontos de fidelidade</strong> por cada produto avaliado.")}${box(`<div style="text-align:center;font-size:22px;color:${C.gold};letter-spacing:.15em">★ ★ ★ ★ ★</div>`)}${btn(`${SITE}/conta`, "Avaliar Produtos")}`,
+          "Avalie seu pedido e ganhe pontos."
         ),
       };
   }

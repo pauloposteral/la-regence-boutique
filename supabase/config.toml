@@ -14,3 +14,7 @@ verify_jwt = false
 
 [functions.abandoned-cart-recovery]
 verify_jwt = false
+
+[functions.send-review-requests]
+verify_jwt = false
+

@@ -644,6 +644,7 @@ export type Database = {
           metodo_pagamento: string | null
           order_number: number | null
           presente: boolean | null
+          review_email_sent_at: string | null
           status: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent: string | null
           stripe_session_id: string | null
@@ -666,6 +667,7 @@ export type Database = {
           metodo_pagamento?: string | null
           order_number?: number | null
           presente?: boolean | null
+          review_email_sent_at?: string | null
           status?: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -688,6 +690,7 @@ export type Database = {
           metodo_pagamento?: string | null
           order_number?: number | null
           presente?: boolean | null
+          review_email_sent_at?: string | null
           status?: Database["public"]["Enums"]["status_pedido"]
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null

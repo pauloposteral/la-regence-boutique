@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Package, ShoppingCart, Tag, Image, FolderTree,
   Users, FileText, Coffee, Menu, X, LogOut, ChevronRight, Layers, Clock, Truck,
@@ -43,6 +43,7 @@ const AdminLayout = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [now, setNow] = useState(new Date());
 
@@ -79,6 +80,18 @@ const AdminLayout = () => {
     if (!isLoading && !user) navigate("/auth");
     if (!isLoading && user && isAdmin === false) navigate("/");
   }, [isLoading, user, isAdmin, navigate]);
+
+  // Realtime: refresh pending badge on any pedidos change
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-layout-pedidos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, queryClient]);
 
   if (isLoading || !isAdmin) {
     return (
