@@ -81,6 +81,18 @@ const AdminLayout = () => {
     if (!isLoading && user && isAdmin === false) navigate("/");
   }, [isLoading, user, isAdmin, navigate]);
 
+  // Realtime: refresh pending badge on any pedidos change
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-layout-pedidos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, queryClient]);
+
   if (isLoading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
