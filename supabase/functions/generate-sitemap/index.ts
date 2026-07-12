@@ -16,7 +16,7 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const baseUrl = "https://lojalaregence.lovable.app";
+  const baseUrl = "https://cafelaregence.com.br";
   const now = new Date().toISOString().split("T")[0];
 
   // Static pages
