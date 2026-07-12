@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,21 +20,6 @@ interface EmailRequest {
   type: EmailType;
   to: string;
   data: Record<string, any>;
-}
-
-// per-isolate rate limit
-const rl = new Map<string, { count: number; resetAt: number }>();
-const RL_MAX = 5;
-const RL_WIN = 60_000;
-function isRateLimited(key: string) {
-  const now = Date.now();
-  const e = rl.get(key);
-  if (!e || now > e.resetAt) {
-    rl.set(key, { count: 1, resetAt: now + RL_WIN });
-    return false;
-  }
-  e.count++;
-  return e.count > RL_MAX;
 }
 
 const SITE = "https://cafelaregence.com.br";
