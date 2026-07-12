@@ -81,17 +81,22 @@ const AdminLayout = () => {
     if (!isLoading && user && isAdmin === false) navigate("/");
   }, [isLoading, user, isAdmin, navigate]);
 
-  // Realtime: refresh pending badge on any pedidos change
+  // Realtime: refresh pending badge + toast on new order
   useEffect(() => {
     if (!isAdmin) return;
     const channel = supabase
       .channel("admin-layout-pedidos")
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
+        if (payload.eventType === "INSERT") {
+          const total = payload.new?.total ? Number(payload.new.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
+          toast.success(`Novo pedido recebido ${total}`, { duration: 6000 });
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [isAdmin, queryClient]);
+
 
   if (isLoading || !isAdmin) {
     return (
