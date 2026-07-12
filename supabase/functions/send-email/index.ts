@@ -15,7 +15,8 @@ type EmailType =
   | "status_update"
   | "contact_reply"
   | "admin_new_order"
-  | "review_request";
+  | "review_request"
+  | "back_in_stock";
 
 interface EmailRequest {
   type: EmailType;
@@ -151,6 +152,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Avalie sua experiência",
           `${h(`Olá${d.name ? `, ${d.name}` : ""}!`)}${p(`Faz alguns dias que seu pedido <strong>#${shortId}</strong> foi entregue. Como foi a experiência?`)}${p("Sua avaliação ajuda outros amantes de café a descobrir os grãos certos — e você ganha <strong>50 pontos de fidelidade</strong> por cada produto avaliado.")}${box(`<div style="text-align:center;font-size:22px;color:${C.gold};letter-spacing:.15em">★ ★ ★ ★ ★</div>`)}${btn(`${SITE}/conta`, "Avaliar Produtos")}`,
           "Avalie seu pedido e ganhe pontos."
+        ),
+      };
+    case "back_in_stock":
+      return {
+        subject: `${d.produtoNome || "Seu café"} voltou ao estoque ☕`,
+        html: shell(
+          "De volta ao estoque",
+          `${h("Voltou pra você")}${p(`O café <strong>${d.produtoNome || ""}</strong> que você aguardava está de volta ao estoque — mas os micro-lotes esgotam rápido.`)}${btn(`${SITE}/cafe/${d.slug || ""}`, "Comprar agora")}${p(`<span style="font-size:12px;color:${C.muted}">Você recebeu este e-mail porque solicitou aviso de reposição. Não faremos mais envios sobre este produto.</span>`)}`,
+          "Voltou ao estoque."
         ),
       };
   }

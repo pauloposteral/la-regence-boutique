@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Coffee, TrendingUp, Pause, Play, XCircle } from "lucide-react";
+import { Coffee, TrendingUp, Pause, Play, XCircle, Download } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
@@ -46,9 +46,35 @@ const AdminAssinaturas = () => {
 
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
+  const exportCSV = () => {
+    const rows = filtered.map((s: any) => ({
+      id: s.id.slice(0, 8),
+      plano: s.tipo,
+      preco: s.preco,
+      moagem: s.moagem || "—",
+      cafe: s.cafe_surpresa ? "Surpresa" : s.produtos?.nome || "—",
+      status: s.status,
+      proxima_entrega: s.proxima_entrega ? new Date(s.proxima_entrega).toLocaleDateString("pt-BR") : "—",
+      criada_em: new Date(s.created_at).toLocaleDateString("pt-BR"),
+    }));
+    const headers = Object.keys(rows[0] || {}).join(",");
+    const csv = [headers, ...rows.map((r: any) => Object.values(r).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `assinaturas_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success("CSV exportado!");
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-semibold">Assinaturas</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-semibold">Assinaturas</h1>
+        <Button variant="outline" size="sm" className="gap-1.5 font-body text-xs" onClick={exportCSV}>
+          <Download className="w-3.5 h-3.5" /> Exportar CSV
+        </Button>
+      </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">

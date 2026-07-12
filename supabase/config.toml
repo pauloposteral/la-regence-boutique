@@ -18,6 +18,8 @@ verify_jwt = false
 [functions.send-review-requests]
 verify_jwt = false
 
+[functions.process-restock-notifications]
+verify_jwt = false
 
 [functions.cancel-order]
 verify_jwt = true
