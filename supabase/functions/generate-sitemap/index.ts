@@ -84,6 +84,17 @@ serve(async (req) => {
   </url>`;
   }
 
+  // Categories
+  for (const c of categorias || []) {
+    xml += `
+  <url>
+    <loc>${baseUrl}/cafes?categoria=${c.slug}</loc>
+    <lastmod>${c.updated_at?.split("T")[0] || now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+  }
+
   xml += `
 </urlset>`;
 
