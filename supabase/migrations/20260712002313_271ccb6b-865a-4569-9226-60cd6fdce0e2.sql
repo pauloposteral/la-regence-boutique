@@ -1,0 +1,2 @@
+ALTER TABLE public.pedidos ADD COLUMN IF NOT EXISTS review_email_sent_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_pedidos_review_email_pending ON public.pedidos (status, review_email_sent_at) WHERE status = 'entregue' AND review_email_sent_at IS NULL;
