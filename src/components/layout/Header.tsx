@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, X, Heart, Truck } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
