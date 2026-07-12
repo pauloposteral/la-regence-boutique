@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift } from "lucide-react";
+import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift, XCircle, Coffee, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,6 +84,58 @@ const ContaPage = () => {
     },
     enabled: !!user,
   });
+
+  const { data: assinaturas = [], isLoading: assinaturasLoading } = useQuery({
+    queryKey: ["assinaturas-user", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("assinaturas")
+        .select("*, produtos(nome, slug)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const cancelOrder = async (pedidoId: string) => {
+    setCancellingId(pedidoId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("cancel-order", {
+        body: { pedido_id: pedidoId },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (res.error) throw res.error;
+      const data: any = res.data;
+      toast.success(data?.refunded ? "Pedido cancelado e reembolso solicitado" : "Pedido cancelado");
+      queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível cancelar o pedido");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const [portalLoading, setPortalLoading] = useState(false);
+  const openCustomerPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (res.error) throw res.error;
+      const url = (res.data as any)?.url;
+      if (url) window.open(url, "_blank");
+      else throw new Error("URL do portal indisponível");
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir o portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
   const { data: pontosData } = useQuery({
     queryKey: ["pontos", user?.id],
@@ -206,6 +258,7 @@ const ContaPage = () => {
             <TabsTrigger value="pontos" className="font-body text-xs gap-1.5"><Award className="w-3.5 h-3.5" /> Pontos</TabsTrigger>
             <TabsTrigger value="enderecos" className="font-body text-xs gap-1.5"><MapPin className="w-3.5 h-3.5" /> Endereços</TabsTrigger>
             <TabsTrigger value="favoritos" className="font-body text-xs gap-1.5"><Heart className="w-3.5 h-3.5" /> Favoritos</TabsTrigger>
+            <TabsTrigger value="assinaturas" className="font-body text-xs gap-1.5"><Coffee className="w-3.5 h-3.5" /> Assinaturas</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -358,6 +411,29 @@ const ContaPage = () => {
                         {(pedido.itens_pedido || []).length > 3 && <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs font-body text-muted-foreground">+{pedido.itens_pedido.length - 3}</div>}
                       </div>
                       <div className="flex items-center gap-3">
+                        {(["pendente","pago","confirmado","preparando","torrando","embalando"] as const).includes(pedido.status as any) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="font-body text-xs gap-1 text-destructive hover:text-destructive" disabled={cancellingId === pedido.id}>
+                                <XCircle className="w-3 h-3" /> Cancelar
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="font-display">Cancelar pedido?</AlertDialogTitle>
+                                <AlertDialogDescription className="font-body text-sm">
+                                  Se o pedido já foi pago, o reembolso será solicitado ao Stripe e cai em 5–10 dias úteis no seu meio de pagamento.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="font-body">Voltar</AlertDialogCancel>
+                                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-body" onClick={() => cancelOrder(pedido.id)}>
+                                  Cancelar pedido
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                         <Button variant="ghost" size="sm" className="font-body text-xs gap-1" onClick={() => reorderItems(pedido)}>
                           <RefreshCw className="w-3 h-3" /> Comprar novamente
                         </Button>
@@ -491,6 +567,55 @@ const ContaPage = () => {
                     );
                   })}
                 </div>
+              )}
+            </motion.div>
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="assinaturas">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              {assinaturasLoading ? (
+                <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>
+              ) : assinaturas.length === 0 ? (
+                <div className="bg-card border border-border rounded-lg p-10 text-center">
+                  <Coffee className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="font-display text-lg mb-2">Sem assinaturas ativas</p>
+                  <p className="font-body text-sm text-muted-foreground mb-4">Receba café fresco em casa todo mês.</p>
+                  <Button asChild variant="outline"><Link to="/assinatura">Ver planos</Link></Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <Button onClick={openCustomerPortal} disabled={portalLoading} variant="outline" size="sm" className="font-body text-xs gap-1.5 rounded-full">
+                      <ExternalLink className="w-3 h-3" /> {portalLoading ? "Abrindo..." : "Gerenciar pagamento e assinatura"}
+                    </Button>
+                  </div>
+                  {assinaturas.map((s: any) => (
+                    <div key={s.id} className="bg-card border border-border rounded-lg p-5">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-display text-base font-semibold capitalize">{s.tipo}</p>
+                          <p className="font-body text-xs text-muted-foreground">
+                            {s.cafe_surpresa ? "Café surpresa da curadoria" : s.produtos?.nome || "Café selecionado"}
+                            {s.moagem && ` · Moagem ${s.moagem}`}
+                          </p>
+                        </div>
+                        <Badge className={`font-body text-[10px] capitalize ${s.status === "ativa" ? "bg-green-100 text-green-700" : s.status === "pausada" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
+                          {s.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                        <p className="font-body text-xs text-muted-foreground">
+                          {s.proxima_entrega ? `Próxima entrega: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
+                        </p>
+                        <p className="font-mono text-sm font-semibold">R$ {Number(s.preco).toFixed(2).replace(".", ",")}/mês</p>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="font-body text-[11px] text-muted-foreground text-center">
+                    Para pausar, alterar cartão ou cancelar, use "Gerenciar pagamento e assinatura" acima — abre o portal seguro do Stripe.
+                  </p>
+                </>
               )}
             </motion.div>
           </TabsContent>

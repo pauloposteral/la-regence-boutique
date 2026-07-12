@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import Layout from "@/components/layout/Layout";
 import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
 import SEOHead from "@/components/SEOHead";
+import SEOBreadcrumb from "@/components/SEOBreadcrumb";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useCart } from "@/contexts/CartContext";
@@ -136,6 +137,10 @@ const CafesPage = () => {
   return (
     <Layout>
       <SEOHead title="Nossos Cafés Especiais" description="Explore nossa seleção de cafés especiais com pontuação SCA 80+. Filtre por notas sensoriais, torra, origem e encontre o café perfeito." />
+      <SEOBreadcrumb items={[
+        { name: "Início", url: `${window.location.origin}/` },
+        { name: "Cafés", url: `${window.location.origin}/cafes` },
+      ]} />
       
       <section className="bg-cream-200 border-b border-cream-400 py-20 lg:py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.02]" style={{
