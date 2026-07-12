@@ -144,6 +144,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           `Novo pedido #${shortId}`
         ),
       };
+    case "review_request":
+      return {
+        subject: `Como foi seu café? Avalie o pedido #${shortId}`,
+        html: shell(
+          "Avalie sua experiência",
+          `${h(`Olá${d.name ? `, ${d.name}` : ""}!`)}${p(`Faz alguns dias que seu pedido <strong>#${shortId}</strong> foi entregue. Como foi a experiência?`)}${p("Sua avaliação ajuda outros amantes de café a descobrir os grãos certos — e você ganha <strong>50 pontos de fidelidade</strong> por cada produto avaliado.")}${box(`<div style="text-align:center;font-size:22px;color:${C.gold};letter-spacing:.15em">★ ★ ★ ★ ★</div>`)}${btn(`${SITE}/conta`, "Avaliar Produtos")}`,
+          "Avalie seu pedido e ganhe pontos."
+        ),
+      };
   }
 }
 
