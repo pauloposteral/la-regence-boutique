@@ -256,3 +256,11 @@
     @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
   }
 }
+
+@layer utilities {
+  /* Skip render cost for below-the-fold sections until near viewport */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+  }
+}
