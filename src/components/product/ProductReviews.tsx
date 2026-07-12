@@ -67,19 +67,25 @@ const ProductReviews = ({ produtoId }: Props) => {
     return { star, count, pct: reviews.length > 0 ? (count / reviews.length) * 100 : 0 };
   });
 
+  const stripUnsafe = (s: string) =>
+    s.replace(/<[^>]*>/g, "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
+
   const submit = async () => {
     if (!user) { toast.error("Faça login para avaliar"); return; }
+    const cleanTitulo = stripUnsafe(titulo).slice(0, 100);
+    const cleanComentario = stripUnsafe(comentario).slice(0, 1000);
     setSubmitting(true);
     const { error } = await supabase.from("avaliacoes").insert({
       produto_id: produtoId,
       user_id: user.id,
       nota,
-      titulo: titulo.trim() || null,
-      comentario: comentario.trim() || null,
+      titulo: cleanTitulo || null,
+      comentario: cleanComentario || null,
       aroma,
       sabor,
       finalizacao,
     });
+
     setSubmitting(false);
     if (error) {
       toast.error("Erro ao enviar avaliação");
