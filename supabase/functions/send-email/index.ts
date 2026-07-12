@@ -14,7 +14,8 @@ type EmailType =
   | "order_delivered"
   | "status_update"
   | "contact_reply"
-  | "admin_new_order";
+  | "admin_new_order"
+  | "review_request";
 
 interface EmailRequest {
   type: EmailType;
