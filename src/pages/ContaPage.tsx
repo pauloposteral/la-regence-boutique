@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift } from "lucide-react";
+import { User, MapPin, ShoppingBag, Heart, LogOut, Package, Clock, RefreshCw, Copy, Check, Trash2, AlertTriangle, Award, Gift, XCircle, Coffee, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
