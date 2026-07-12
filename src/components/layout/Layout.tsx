@@ -55,7 +55,7 @@ const Layout = ({ children }: LayoutProps) => {
       <a href="#main-content" className="skip-to-content">Ir para o conteúdo</a>
       {showScrollProgress && <ScrollProgress />}
       <Header />
-      <FreeShippingBar />
+      {/* FreeShippingBar removida — regras de frete grátis exibidas no carrinho/checkout */}
       <main id="main-content" className="flex-1 mb-bottom-nav">
         <PageTransition>{children}</PageTransition>
       </main>
