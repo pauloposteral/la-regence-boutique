@@ -258,6 +258,7 @@ const ContaPage = () => {
             <TabsTrigger value="pontos" className="font-body text-xs gap-1.5"><Award className="w-3.5 h-3.5" /> Pontos</TabsTrigger>
             <TabsTrigger value="enderecos" className="font-body text-xs gap-1.5"><MapPin className="w-3.5 h-3.5" /> Endereços</TabsTrigger>
             <TabsTrigger value="favoritos" className="font-body text-xs gap-1.5"><Heart className="w-3.5 h-3.5" /> Favoritos</TabsTrigger>
+            <TabsTrigger value="assinaturas" className="font-body text-xs gap-1.5"><Coffee className="w-3.5 h-3.5" /> Assinaturas</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
