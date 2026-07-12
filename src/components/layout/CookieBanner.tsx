@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Cookie, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { enableAnalyticsAfterConsent } from "@/lib/analytics";
 
 const COOKIE_KEY = "laregence_cookie_consent";
 
@@ -19,7 +20,8 @@ const CookieBanner = () => {
   }, []);
 
   const accept = () => {
-    try { localStorage.setItem(COOKIE_KEY, "accepted"); } catch {}
+    // LGPD: ativa GA4/Pixel só depois do opt-in explícito
+    enableAnalyticsAfterConsent();
     setVisible(false);
   };
 

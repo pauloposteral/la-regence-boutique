@@ -14,7 +14,14 @@ declare global {
 const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
 const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID as string | undefined;
 
+const CONSENT_KEY = "laregence_cookie_consent";
 let initialized = false;
+
+/** LGPD: só carrega GA4/Pixel após consentimento explícito do usuário. */
+export function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try { return localStorage.getItem(CONSENT_KEY) === "accepted"; } catch { return false; }
+}
 
 function loadScript(src: string, async = true) {
   return new Promise<void>((resolve, reject) => {
@@ -29,6 +36,7 @@ function loadScript(src: string, async = true) {
 
 export function initAnalytics() {
   if (initialized || typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) return; // LGPD gate — nada roda sem opt-in
   initialized = true;
 
   // GA4
@@ -62,7 +70,17 @@ export function initAnalytics() {
   }
 }
 
+/** Chamado pelo CookieBanner após o usuário aceitar. */
+export function enableAnalyticsAfterConsent() {
+  try { localStorage.setItem(CONSENT_KEY, "accepted"); } catch {}
+  initAnalytics();
+  if (typeof window !== "undefined") {
+    trackPageView(window.location.pathname, document.title);
+  }
+}
+
 export function trackPageView(path: string, title?: string) {
+  if (!hasAnalyticsConsent()) return;
   if (GA_ID && window.gtag) {
     window.gtag("event", "page_view", { page_path: path, page_title: title, page_location: window.location.href });
   }
