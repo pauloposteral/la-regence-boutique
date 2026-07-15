@@ -175,7 +175,6 @@ const CartDrawer = () => {
                   );})}
                 </div>
               )}
-            </div>
 
               {/* Cross-sell (dentro do scroll para não empurrar o footer) */}
               {items.length > 0 && <CrossSellProducts />}
