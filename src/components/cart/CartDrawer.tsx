@@ -93,13 +93,15 @@ const CartDrawer = () => {
               <div className="px-5 py-3 bg-cream-200 border-b border-cream-400">
                 <div className="flex items-center justify-between text-xs font-body mb-1.5">
                   {faltaFreteGratis > 0 ? (
-                    <span className="text-brown-light">
-                      Faltam <strong className="text-brown-dark">R$ {faltaFreteGratis.toFixed(2).replace(".", ",")}</strong> para frete grátis
-                    </span>
+                    <>
+                      <span className="text-brown-light">
+                        Faltam <strong className="text-brown-dark">R$ {faltaFreteGratis.toFixed(2).replace(".", ",")}</strong> para frete grátis
+                      </span>
+                      <span className="text-cream-700">R$ {FRETE_GRATIS_MIN},00</span>
+                    </>
                   ) : (
-                    <span className="text-gold font-medium">🎉 Frete grátis!</span>
+                    <span className="text-gold font-medium">🎉 Você ganhou frete grátis!</span>
                   )}
-                  <span className="text-cream-700">R$ {FRETE_GRATIS_MIN},00</span>
                 </div>
                 <div className="w-full h-1.5 bg-cream-400 rounded-full overflow-hidden">
                   <motion.div className="h-full bg-gold rounded-full" initial={{ width: 0 }} animate={{ width: `${progressoFrete}%` }} transition={{ duration: 0.5 }} />
@@ -175,16 +177,17 @@ const CartDrawer = () => {
               )}
             </div>
 
-            {/* Cross-sell */}
-            {items.length > 0 && <CrossSellProducts />}
+              {/* Cross-sell (dentro do scroll para não empurrar o footer) */}
+              {items.length > 0 && <CrossSellProducts />}
+            </div>
 
-            {/* Footer */}
+            {/* Footer — sticky, sempre visível */}
             {items.length > 0 && (
-              <div className="border-t border-cream-400 p-5 pb-safe space-y-4 bg-cream-50">
+              <div className="border-t border-cream-400 p-4 pb-safe space-y-3 bg-cream-50 shadow-[0_-8px_24px_-12px_rgba(60,40,20,0.15)]">
                 {!cupom ? (
                   <div className="flex gap-2">
-                    <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm" />
-                    <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 min-h-[44px]">Aplicar</Button>
+                    <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
+                    <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 h-11 px-4">Aplicar</Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
@@ -193,11 +196,11 @@ const CartDrawer = () => {
                   </div>
                 )}
 
-                <div className="space-y-1.5 text-sm font-body">
+                <div className="space-y-1 text-sm font-body">
                   <div className="flex justify-between text-brown-light"><span>Subtotal</span><span>R$ {subtotal.toFixed(2).replace(".", ",")}</span></div>
                   {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
                   <div className="flex justify-between text-brown-light"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
-                  <div className="flex justify-between font-semibold text-base text-brown-dark pt-2 border-t border-cream-400"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
+                  <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
                   <p className="text-[10px] text-gold text-right font-medium">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
                 </div>
 

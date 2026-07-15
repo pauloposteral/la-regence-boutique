@@ -12,9 +12,10 @@ const navItems = [
 
 const BottomNav = () => {
   const location = useLocation();
-  const { totalItems, openCart } = useCart();
+  const { totalItems, openCart, isOpen: isCartOpen } = useCart();
 
   if (location.pathname.startsWith("/admin")) return null;
+  if (isCartOpen) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-cream-50/90 backdrop-blur-2xl border-t border-cream-400/60 pb-safe">

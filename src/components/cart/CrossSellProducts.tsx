@@ -47,30 +47,34 @@ const CrossSellProducts = () => {
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="px-5 py-4 border-t border-border">
-      <p className="text-xs font-body font-medium text-muted-foreground mb-3">Que tal adicionar?</p>
-      <div className="space-y-2">
+    <div className="px-5 py-4 border-t border-cream-400">
+      <p className="font-body text-[11px] tracking-[0.3em] uppercase text-gold mb-3">Que tal adicionar</p>
+      <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory -mx-1 px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {suggestions.map((p) => {
           const img = p.imagens?.find((i) => i.principal)?.url || p.imagens?.[0]?.url;
+          const preco = p.preco_promocional || p.preco;
           return (
-            <div key={p.id} className="flex items-center gap-2">
+            <div
+              key={p.id}
+              className="snap-start shrink-0 w-[160px] bg-cream-100 border border-cream-400 rounded-xl p-2 flex flex-col gap-2"
+            >
               <Link
                 to={`/cafe/${p.slug}`}
                 onClick={closeCart}
-                className="w-10 h-10 rounded bg-secondary overflow-hidden shrink-0 flex items-center justify-center"
+                className="w-full aspect-square rounded-lg bg-cream-200 overflow-hidden flex items-center justify-center"
               >
-                {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <span>☕</span>}
+                {img ? <img src={img} alt={p.nome} className="w-full h-full object-cover" loading="lazy" /> : <span className="text-2xl">☕</span>}
               </Link>
-              <div className="flex-1 min-w-0">
-                <p className="font-body text-xs font-medium truncate">{p.nome}</p>
-                <p className="font-body text-[10px] text-muted-foreground">
-                  R$ {(p.preco_promocional || p.preco).toFixed(2).replace(".", ",")}
+              <div className="min-w-0">
+                <p className="font-display text-xs font-semibold text-brown-dark leading-tight line-clamp-2">{p.nome}</p>
+                <p className="font-body text-[11px] text-brown-light mt-0.5">
+                  R$ {preco.toFixed(2).replace(".", ",")}
                 </p>
               </div>
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-full border-gold/40 text-gold hover:bg-gold hover:text-white text-[10px] tracking-wider uppercase font-body gap-1"
                 onClick={() => {
                   addItem({
                     produtoId: p.id,
@@ -84,7 +88,7 @@ const CrossSellProducts = () => {
                   toast.success(`${p.nome} adicionado!`);
                 }}
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3 h-3" /> Adicionar
               </Button>
             </div>
           );
