@@ -115,7 +115,10 @@ const AssinaturaPage = () => {
 
   const [selectedCafe, setSelectedCafe] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [endereco, setEndereco] = useState<EnderecoAssinatura>(emptyEndereco);
 
+  // Etapa 1: escolher plano. O pagamento só abre depois do endereço (RN-002).
   const handleSubscribe = async () => {
     if (!user) {
       toast.info("Faça login para assinar");
@@ -127,14 +130,69 @@ const AssinaturaPage = () => {
       return;
     }
 
+    // Pré-preenche com o endereço principal já cadastrado, se houver.
+    if (!endereco.cep) {
+      const { data: salvo } = await supabase
+        .from("enderecos")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("principal", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (salvo) {
+        setEndereco({
+          destinatario: "",
+          telefone: "",
+          cep: salvo.cep || "",
+          logradouro: salvo.logradouro || "",
+          numero: salvo.numero || "",
+          complemento: salvo.complemento || "",
+          bairro: salvo.bairro || "",
+          cidade: salvo.cidade || "",
+          estado: salvo.estado || "",
+          referencia: "",
+        });
+      }
+    }
+    setAddressOpen(true);
+  };
+
+  // Etapa 2: salvar endereço e abrir o pagamento.
+  const handleConfirmAddress = async () => {
+    const erro = validarEndereco(endereco);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setSubmitting(true);
     try {
+      const { data: novoEndereco, error: endErr } = await supabase
+        .from("enderecos")
+        .insert({
+          user_id: user!.id,
+          apelido: "Assinatura",
+          cep: endereco.cep.replace(/\D/g, ""),
+          logradouro: endereco.logradouro.trim(),
+          numero: endereco.numero.trim(),
+          complemento: [endereco.complemento.trim(), endereco.referencia.trim() && `Ref: ${endereco.referencia.trim()}`]
+            .filter(Boolean).join(" — ") || null,
+          bairro: endereco.bairro.trim(),
+          cidade: endereco.cidade.trim(),
+          estado: endereco.estado.trim().toUpperCase(),
+        })
+        .select("id")
+        .single();
+      if (endErr) throw endErr;
+
       const { data, error } = await supabase.functions.invoke("create-subscription-checkout", {
         body: {
           tipo: selectedPlan,
           moagem,
           cafeSurpresa,
           produtoId: cafeSurpresa ? null : selectedCafe,
+          enderecoId: novoEndereco.id,
+          telefone: endereco.telefone,
+          destinatario: endereco.destinatario.trim(),
         },
       });
       if (error) throw error;
@@ -149,6 +207,8 @@ const AssinaturaPage = () => {
       setSubmitting(false);
     }
   };
+
+
 
   const handleManage = async () => {
     setSubmitting(true);
