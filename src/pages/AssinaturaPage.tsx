@@ -534,7 +534,33 @@ const AssinaturaPage = () => {
           </div>
         </div>
       </section>
+      {/* Endereço de entrega — obrigatório antes do pagamento */}
+      <Dialog open={addressOpen} onOpenChange={(o) => !submitting && setAddressOpen(o)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl">
+          <DialogHeader>
+            <span className="font-body text-[11px] tracking-[0.3em] uppercase text-gold">Passo 2 de 2</span>
+            <DialogTitle className="font-display text-2xl text-brown-dark">Para onde enviamos seu café?</DialogTitle>
+            <DialogDescription className="font-body text-sm text-muted-foreground">
+              Torramos sob demanda e despachamos em até 3 dias úteis após a confirmação do pagamento.
+            </DialogDescription>
+          </DialogHeader>
+
+          <AddressForm value={endereco} onChange={setEndereco} disabled={submitting} />
+
+          <DialogFooter className="gap-2 sm:gap-3">
+            <Button variant="outline" className="rounded-full font-body text-xs tracking-[0.2em] uppercase"
+              onClick={() => setAddressOpen(false)} disabled={submitting}>
+              Voltar
+            </Button>
+            <Button className="rounded-full bg-gold text-white hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
+              onClick={handleConfirmAddress} disabled={submitting}>
+              {submitting ? "Abrindo pagamento…" : "Ir para o pagamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
+
   );
 };
 
