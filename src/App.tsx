@@ -22,6 +22,8 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const ContaPage = lazy(() => import("./pages/ContaPage"));
 const AssinaturaPage = lazy(() => import("./pages/AssinaturaPage"));
+const AssinaturaSucessoPage = lazy(() => import("./pages/AssinaturaSucessoPage"));
+const AssinaturaEnderecoPage = lazy(() => import("./pages/AssinaturaEnderecoPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const SobrePage = lazy(() => import("./pages/SobrePage"));
