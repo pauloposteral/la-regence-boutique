@@ -4,10 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Coffee, TrendingUp, Pause, Play, XCircle, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Coffee, TrendingUp, Pause, Play, XCircle, Download, Truck, MapPinOff, Send, AlertTriangle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { isOverdue, formatShipBy } from "@/lib/businessDays";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -19,6 +23,12 @@ const STATUS_COLORS: Record<string, string> = {
 const AdminAssinaturas = () => {
   const queryClient = useQueryClient();
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterSituacao, setFilterSituacao] = useState<string>("all");
+  const [shipTarget, setShipTarget] = useState<any>(null);
+  const [transportadora, setTransportadora] = useState("");
+  const [codigoRastreio, setCodigoRastreio] = useState("");
+  const [urlRastreio, setUrlRastreio] = useState("");
+  const [acting, setActing] = useState(false);
 
   const { data: subs = [] } = useQuery({
     queryKey: ["admin-assinaturas"],
@@ -28,13 +38,46 @@ const AdminAssinaturas = () => {
     },
   });
 
-  const filtered = useMemo(() => {
-    if (filterStatus === "all") return subs;
-    return subs.filter((s: any) => s.status === filterStatus);
-  }, [subs, filterStatus]);
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ["admin-assinatura-ciclos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("assinatura_ciclos")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
 
-  const activeSubs = subs.filter((s: any) => s.status === "ativa");
+  // Ciclo mais recente de cada assinatura → base do semáforo de prazo.
+  const cicloPorAssinatura = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const c of ciclos as any[]) if (!map[c.assinatura_id]) map[c.assinatura_id] = c;
+    return map;
+  }, [ciclos]);
+
+  const situacaoDe = (s: any) => {
+    if (!s.endereco_entrega) return "sem_endereco";
+    const c = cicloPorAssinatura[s.id];
+    if (!c) return "ok";
+    if (c.status === "shipped" || c.status === "delivered") return "despachado";
+    if (c.status === "problem") return "problema";
+    if (c.despachar_ate && isOverdue(c.despachar_ate)) return "atrasado";
+    return "a_despachar";
+  };
+
+  const filtered = useMemo(() => {
+    return (subs as any[]).filter((s) => {
+      if (filterStatus !== "all" && s.status !== filterStatus) return false;
+      if (filterSituacao !== "all" && situacaoDe(s) !== filterSituacao) return false;
+      return true;
+    });
+  }, [subs, filterStatus, filterSituacao, cicloPorAssinatura]);
+
+  const activeSubs = (subs as any[]).filter((s) => s.status === "ativa");
   const monthlyRevenue = activeSubs.reduce((a: number, s: any) => a + Number(s.preco), 0);
+  const semEndereco = activeSubs.filter((s) => !s.endereco_entrega).length;
+  const atrasadas = activeSubs.filter((s) => situacaoDe(s) === "atrasado").length;
 
   const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
@@ -44,7 +87,42 @@ const AdminAssinaturas = () => {
     toast.success(`Assinatura ${status === "ativa" ? "reativada" : status === "pausada" ? "pausada" : "cancelada"}`);
   };
 
+  const runAction = async (body: Record<string, unknown>, okMsg: string) => {
+    setActing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("subscription-admin", { body });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(okMsg);
+      queryClient.invalidateQueries({ queryKey: ["admin-assinaturas"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-assinatura-ciclos"] });
+      return true;
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível concluir a ação");
+      return false;
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const confirmarDespacho = async () => {
+    if (!transportadora.trim() || !codigoRastreio.trim()) {
+      toast.error("Informe transportadora e código de rastreio");
+      return;
+    }
+    const ciclo = cicloPorAssinatura[shipTarget.id];
+    const ok = await runAction(
+      { action: "ship", assinaturaId: shipTarget.id, cicloId: ciclo?.id, transportadora, codigoRastreio, urlRastreio },
+      "Despacho registrado e cliente avisado por e-mail"
+    );
+    if (ok) {
+      setShipTarget(null);
+      setTransportadora(""); setCodigoRastreio(""); setUrlRastreio("");
+    }
+  };
+
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+
 
   const exportCSV = () => {
     const rows = filtered.map((s: any) => ({
