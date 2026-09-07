@@ -56,13 +56,38 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { tipo, moagem, cafeSurpresa, produtoId } = body;
+    const { tipo, moagem, cafeSurpresa, produtoId, enderecoId, telefone, destinatario } = body;
     const plan = PLAN_PRICES[tipo];
     if (!plan) {
       return new Response(JSON.stringify({ error: "Plano inválido" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // RN-002: sem endereço de entrega válido não existe sessão de pagamento.
+    if (!enderecoId) {
+      return new Response(JSON.stringify({ error: "Informe o endereço de entrega" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: endereco } = await supabaseAdmin
+      .from("enderecos")
+      .select("*")
+      .eq("id", enderecoId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!endereco) {
+      return new Response(JSON.stringify({ error: "Endereço de entrega não encontrado" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const cepDigits = String((endereco as any).cep || "").replace(/\D/g, "");
+    if (cepDigits.length !== 8 || !(endereco as any).numero || !(endereco as any).cidade) {
+      return new Response(JSON.stringify({ error: "Endereço de entrega incompleto" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
       apiVersion: "2025-08-27.basil",
