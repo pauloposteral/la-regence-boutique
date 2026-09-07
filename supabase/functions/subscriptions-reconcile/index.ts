@@ -1,9 +1,90 @@
 // Conferência diária: assinaturas ativas sem endereço, sem e-mail de
 // confirmação e ciclos com prazo vencido. Age e manda o resumo ao admin.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { adminClient, notify, notifyAdmins } from "../_shared/notify.ts";
-import { planLabel, brl, createAddressLink, getCustomer, formatEndereco, formatDateBR, MOAGEM_LABELS } from "../_shared/subscriptions.ts";
+import { planLabel, brl, createAddressLink, getCustomer, formatEndereco, formatDateBR, MOAGEM_LABELS, ensureCicloAndNotify } from "../_shared/subscriptions.ts";
 import { saoPauloDateString, formatShipBy } from "../_shared/businessDays.ts";
+
+/** Valor mensal (centavos) → tipo de plano do Clube. */
+const PLANO_POR_VALOR: Record<number, string> = {
+  5900: "mensal",
+  10900: "trimestral",
+  18900: "semestral",
+};
+
+/**
+ * Assinaturas pagas no Stripe que nunca chegaram ao banco (webhook antigo).
+ * Cria o registro, o ciclo e dispara o pedido de endereço automaticamente.
+ */
+async function importarOrfaosDoStripe(detalhes: string[]): Promise<number> {
+  const key = Deno.env.get("STRIPE_SECRET_KEY");
+  if (!key) return 0;
+  const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" });
+  const supabase = adminClient();
+  let importadas = 0;
+
+  const subs = await stripe.subscriptions.list({ status: "active", limit: 100 });
+  if (!subs.data.length) return 0;
+
+  const { data: usersPage } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const porEmail = new Map<string, string>();
+  for (const u of usersPage?.users || []) {
+    if (u.email) porEmail.set(u.email.toLowerCase(), u.id);
+  }
+
+  for (const sub of subs.data) {
+    const { data: existente } = await supabase
+      .from("assinaturas")
+      .select("id")
+      .eq("stripe_subscription_id", sub.id)
+      .maybeSingle();
+    if (existente) continue;
+
+    const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+    if (!customerId) continue;
+    const customer: any = await stripe.customers.retrieve(customerId);
+    const email = (customer?.email || "").toLowerCase();
+    const userId = email ? porEmail.get(email) : undefined;
+    if (!userId) {
+      detalhes.push(`Stripe ${sub.id}: pagamento ativo sem conta no site (${email || "sem e-mail"}) — resolver manualmente.`);
+      continue;
+    }
+
+    const item: any = sub.items.data[0];
+    const valor = item?.price?.unit_amount ?? 0;
+    const tipo = PLANO_POR_VALOR[valor] || "mensal";
+    const periodStart = item?.current_period_start ?? sub.start_date;
+    const periodEnd = item?.current_period_end ?? null;
+
+    const { data: nova, error } = await supabase
+      .from("assinaturas")
+      .insert({
+        user_id: userId,
+        tipo,
+        status: "ativa",
+        cafe_surpresa: true,
+        preco: valor / 100,
+        stripe_subscription_id: sub.id,
+        stripe_price_id: item?.price?.id ?? null,
+        proxima_entrega: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+        telefone_contato: customer?.phone || null,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (error || !nova) {
+      detalhes.push(`Stripe ${sub.id}: falha ao importar (${error?.message || "erro"}).`);
+      continue;
+    }
+
+    await ensureCicloAndNotify(nova.id as string, new Date(periodStart * 1000).toISOString().slice(0, 10));
+    importadas++;
+    detalhes.push(`${email}: assinatura ${planLabel(tipo)} importada do Stripe e pedido de endereço enviado.`);
+  }
+
+  return importadas;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +101,8 @@ serve(async (req) => {
   const detalhes: string[] = [];
 
   try {
+    acoes += await importarOrfaosDoStripe(detalhes);
+
     const { data: ativas } = await supabase
       .from("assinaturas")
       .select("*, produtos(nome)")
