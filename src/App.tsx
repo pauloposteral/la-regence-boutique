@@ -94,6 +94,8 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/conta" element={<ProtectedRoute><ContaPage /></ProtectedRoute>} />
                   <Route path="/assinatura" element={<AssinaturaPage />} />
+                  <Route path="/assinatura/sucesso" element={<AssinaturaSucessoPage />} />
+                  <Route path="/assinatura/endereco" element={<AssinaturaEnderecoPage />} />
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/sobre" element={<SobrePage />} />
