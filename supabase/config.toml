@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.cancel-order]
 verify_jwt = true
+
+[functions.subscription-address]
+verify_jwt = false
+
+[functions.subscriptions-reconcile]
+verify_jwt = false
