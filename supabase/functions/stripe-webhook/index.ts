@@ -23,6 +23,106 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  /**
+   * Cria ou atualiza a assinatura local a partir do objeto do Stripe.
+   * Também resolve o endereço de entrega escolhido no checkout (metadata).
+   * Retorna o id local da assinatura.
+   */
+  async function upsertAssinatura(sub: Stripe.Subscription): Promise<string | null> {
+    const meta = sub.metadata || {};
+    const userId = meta.user_id;
+    if (!userId) {
+      console.warn(`⚠️ Subscription ${sub.id} sem user_id no metadata`);
+      return null;
+    }
+
+    const priceId = sub.items.data[0]?.price.id;
+    const unitAmount = sub.items.data[0]?.price.unit_amount || 0;
+    const statusMap: Record<string, "ativa" | "pausada" | "cancelada"> = {
+      active: "ativa", trialing: "ativa", past_due: "ativa",
+      paused: "pausada",
+      canceled: "cancelada", incomplete_expired: "cancelada", unpaid: "cancelada",
+    };
+    const localStatus = statusMap[sub.status] || "cancelada";
+    const periodEndUnix = (sub as any).current_period_end as number | undefined;
+    const proxima = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null;
+    const cancelaEm = sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null;
+
+    // Endereço escolhido no passo "Onde entregar"
+    let enderecoSnapshot: Record<string, unknown> | null = null;
+    const enderecoId = meta.endereco_id || null;
+    if (enderecoId) {
+      const { data: end } = await supabaseAdmin
+        .from("enderecos")
+        .select("*")
+        .eq("id", enderecoId)
+        .maybeSingle();
+      if (end) {
+        enderecoSnapshot = {
+          destinatario: meta.destinatario || null,
+          cep: (end as any).cep,
+          logradouro: (end as any).logradouro,
+          numero: (end as any).numero,
+          complemento: (end as any).complemento,
+          bairro: (end as any).bairro,
+          cidade: (end as any).cidade,
+          estado: (end as any).estado,
+        };
+      }
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from("assinaturas")
+      .select("id, endereco_entrega")
+      .eq("stripe_subscription_id", sub.id)
+      .maybeSingle();
+
+    if (existing) {
+      const patch: Record<string, unknown> = {
+        status: localStatus,
+        proxima_entrega: proxima,
+        cancela_em: cancelaEm,
+        stripe_price_id: priceId,
+        preco: unitAmount / 100,
+      };
+      // Não sobrescreve um endereço já informado pelo cliente
+      if (enderecoSnapshot && !(existing as any).endereco_entrega) {
+        patch.endereco_entrega = enderecoSnapshot;
+        patch.endereco_id = enderecoId;
+        if (meta.telefone) patch.telefone_contato = meta.telefone;
+      }
+      await supabaseAdmin.from("assinaturas").update(patch).eq("id", (existing as any).id);
+      console.log(`🔁 Assinatura ${sub.id} atualizada (${localStatus})`);
+      return (existing as any).id;
+    }
+
+    const { data: inserted } = await supabaseAdmin
+      .from("assinaturas")
+      .insert({
+        user_id: userId,
+        tipo: (meta.tipo || "mensal") as any,
+        preco: unitAmount / 100,
+        moagem: (meta.moagem || "media") as any,
+        cafe_surpresa: meta.cafe_surpresa === "true",
+        produto_id: meta.produto_id || null,
+        stripe_subscription_id: sub.id,
+        stripe_price_id: priceId,
+        status: localStatus,
+        proxima_entrega: proxima,
+        cancela_em: cancelaEm,
+        endereco_id: enderecoId,
+        endereco_entrega: enderecoSnapshot,
+        telefone_contato: meta.telefone || null,
+      })
+      .select("id")
+      .maybeSingle();
+
+    console.log(`✨ Assinatura ${sub.id} criada para user ${userId}`);
+    return (inserted as any)?.id ?? null;
+  }
+
+
+
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
 
