@@ -101,6 +101,8 @@ serve(async (req) => {
   const detalhes: string[] = [];
 
   try {
+    acoes += await importarOrfaosDoStripe(detalhes);
+
     const { data: ativas } = await supabase
       .from("assinaturas")
       .select("*, produtos(nome)")
