@@ -620,13 +620,57 @@ const ContaPage = () => {
                           {s.status}
                         </Badge>
                       </div>
+                      {s.endereco_entrega ? (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <p className="font-body text-[10px] tracking-[0.2em] uppercase text-gold mb-1">Entrega</p>
+                          <p className="font-body text-xs text-muted-foreground">
+                            {s.endereco_entrega.destinatario ? `${s.endereco_entrega.destinatario} · ` : ""}
+                            {s.endereco_entrega.logradouro}, {s.endereco_entrega.numero}
+                            {s.endereco_entrega.complemento ? ` — ${s.endereco_entrega.complemento}` : ""} ·{" "}
+                            {s.endereco_entrega.bairro}, {s.endereco_entrega.cidade}/{s.endereco_entrega.estado} · CEP {s.endereco_entrega.cep}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 pt-3 border-t border-border bg-gold/5 -mx-5 px-5 py-3">
+                          <p className="font-body text-xs text-brown-dark">
+                            Falta o endereço de entrega. Enviamos um link por e-mail — ou fale com a gente em contato@cafelaregence.com.br.
+                          </p>
+                        </div>
+                      )}
+
+                      {(ciclos as any[]).filter((c) => c.assinatura_id === s.id).length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <p className="font-body text-[10px] tracking-[0.2em] uppercase text-gold mb-2">Envios</p>
+                          <ul className="space-y-1.5">
+                            {(ciclos as any[]).filter((c) => c.assinatura_id === s.id).slice(0, 6).map((c) => (
+                              <li key={c.id} className="flex items-center justify-between gap-3 font-body text-xs">
+                                <span className="text-muted-foreground">
+                                  #{c.numero} · {new Date(c.created_at).toLocaleDateString("pt-BR")}
+                                  {c.codigo_rastreio ? ` · ${c.transportadora || "Rastreio"} ${c.codigo_rastreio}` : ""}
+                                </span>
+                                <Badge className={`font-body text-[10px] ${
+                                  c.status === "shipped" || c.status === "delivered" ? "bg-green-100 text-green-700"
+                                  : c.status === "awaiting_address" ? "bg-red-100 text-red-700"
+                                  : c.status === "problem" ? "bg-orange-100 text-orange-700"
+                                  : "bg-yellow-100 text-yellow-700"}`}>
+                                  {c.status === "shipped" ? "Despachado" : c.status === "delivered" ? "Entregue"
+                                    : c.status === "awaiting_address" ? "Aguardando endereço"
+                                    : c.status === "problem" ? "Com problema" : "Em preparo"}
+                                </Badge>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                         <p className="font-body text-xs text-muted-foreground">
-                          {s.proxima_entrega ? `Próxima entrega: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
+                          {s.proxima_entrega ? `Próxima cobrança: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
                         </p>
                         <p className="font-mono text-sm font-semibold">R$ {Number(s.preco).toFixed(2).replace(".", ",")}/mês</p>
                       </div>
                     </div>
+
                   ))}
                   <p className="font-body text-[11px] text-muted-foreground text-center">
                     Para pausar, alterar cartão ou cancelar, use "Gerenciar pagamento e assinatura" acima — abre o portal seguro do Stripe.
