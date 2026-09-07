@@ -98,6 +98,22 @@ const ContaPage = () => {
     enabled: !!user,
   });
 
+  // Histórico de envios de cada assinatura (ciclos mensais)
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ["assinatura-ciclos-user", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("assinatura_ciclos")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+
+
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const cancelOrder = async (pedidoId: string) => {
     setCancellingId(pedidoId);
