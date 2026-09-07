@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import type { Database } from "@/integrations/supabase/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import AddressForm, { emptyEndereco, validarEndereco, type EnderecoAssinatura } from "@/components/subscription/AddressForm";
 
 type TipoAssinatura = Database["public"]["Enums"]["tipo_assinatura"];
 type TipoMoagem = Database["public"]["Enums"]["tipo_moagem"];
