@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_tokens: {
+        Row: {
+          assinatura_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          assinatura_id?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          assinatura_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_tokens_assinatura_id_fkey"
+            columns: ["assinatura_id"]
+            isOneToOne: false
+            referencedRelation: "assinaturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -47,11 +85,78 @@ export type Database = {
         }
         Relationships: []
       }
+      assinatura_ciclos: {
+        Row: {
+          assinatura_id: string
+          codigo_rastreio: string | null
+          created_at: string
+          despachado_em: string | null
+          despachar_ate: string | null
+          endereco_snapshot: Json | null
+          id: string
+          numero: number
+          observacoes: string | null
+          periodo_ref: string
+          preferencias_snapshot: Json | null
+          status: Database["public"]["Enums"]["status_ciclo"]
+          transportadora: string | null
+          updated_at: string
+          url_rastreio: string | null
+          user_id: string
+        }
+        Insert: {
+          assinatura_id: string
+          codigo_rastreio?: string | null
+          created_at?: string
+          despachado_em?: string | null
+          despachar_ate?: string | null
+          endereco_snapshot?: Json | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          periodo_ref: string
+          preferencias_snapshot?: Json | null
+          status?: Database["public"]["Enums"]["status_ciclo"]
+          transportadora?: string | null
+          updated_at?: string
+          url_rastreio?: string | null
+          user_id: string
+        }
+        Update: {
+          assinatura_id?: string
+          codigo_rastreio?: string | null
+          created_at?: string
+          despachado_em?: string | null
+          despachar_ate?: string | null
+          endereco_snapshot?: Json | null
+          id?: string
+          numero?: number
+          observacoes?: string | null
+          periodo_ref?: string
+          preferencias_snapshot?: Json | null
+          status?: Database["public"]["Enums"]["status_ciclo"]
+          transportadora?: string | null
+          updated_at?: string
+          url_rastreio?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assinatura_ciclos_assinatura_id_fkey"
+            columns: ["assinatura_id"]
+            isOneToOne: false
+            referencedRelation: "assinaturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assinaturas: {
         Row: {
           cafe_surpresa: boolean | null
           cancela_em: string | null
           created_at: string
+          endereco_entrega: Json | null
+          endereco_id: string | null
           id: string
           metodo_preparo: string | null
           moagem: Database["public"]["Enums"]["tipo_moagem"] | null
@@ -61,6 +166,7 @@ export type Database = {
           status: Database["public"]["Enums"]["status_assinatura"]
           stripe_price_id: string | null
           stripe_subscription_id: string | null
+          telefone_contato: string | null
           tipo: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at: string
           user_id: string
@@ -69,6 +175,8 @@ export type Database = {
           cafe_surpresa?: boolean | null
           cancela_em?: string | null
           created_at?: string
+          endereco_entrega?: Json | null
+          endereco_id?: string | null
           id?: string
           metodo_preparo?: string | null
           moagem?: Database["public"]["Enums"]["tipo_moagem"] | null
@@ -78,6 +186,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_assinatura"]
           stripe_price_id?: string | null
           stripe_subscription_id?: string | null
+          telefone_contato?: string | null
           tipo: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at?: string
           user_id: string
@@ -86,6 +195,8 @@ export type Database = {
           cafe_surpresa?: boolean | null
           cancela_em?: string | null
           created_at?: string
+          endereco_entrega?: Json | null
+          endereco_id?: string | null
           id?: string
           metodo_preparo?: string | null
           moagem?: Database["public"]["Enums"]["tipo_moagem"] | null
@@ -95,11 +206,19 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_assinatura"]
           stripe_price_id?: string | null
           stripe_subscription_id?: string | null
+          telefone_contato?: string | null
           tipo?: Database["public"]["Enums"]["tipo_assinatura"]
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "assinaturas_endereco_id_fkey"
+            columns: ["endereco_id"]
+            isOneToOne: false
+            referencedRelation: "enderecos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assinaturas_produto_id_fkey"
             columns: ["produto_id"]
@@ -593,6 +712,72 @@ export type Database = {
           unsubscribed_at?: string | null
         }
         Relationships: []
+      }
+      notification_log: {
+        Row: {
+          assinatura_id: string | null
+          assunto: string | null
+          canal: string
+          ciclo_id: string | null
+          created_at: string
+          destinatario: string
+          id: string
+          pedido_id: string | null
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          tentativas: number
+          tipo: string
+          ultimo_erro: string | null
+        }
+        Insert: {
+          assinatura_id?: string | null
+          assunto?: string | null
+          canal?: string
+          ciclo_id?: string | null
+          created_at?: string
+          destinatario: string
+          id?: string
+          pedido_id?: string | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          tentativas?: number
+          tipo: string
+          ultimo_erro?: string | null
+        }
+        Update: {
+          assinatura_id?: string | null
+          assunto?: string | null
+          canal?: string
+          ciclo_id?: string | null
+          created_at?: string
+          destinatario?: string
+          id?: string
+          pedido_id?: string | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          tentativas?: number
+          tipo?: string
+          ultimo_erro?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_assinatura_id_fkey"
+            columns: ["assinatura_id"]
+            isOneToOne: false
+            referencedRelation: "assinaturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "assinatura_ciclos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notify_restock: {
         Row: {
@@ -1150,6 +1335,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       status_assinatura: "ativa" | "pausada" | "cancelada"
+      status_ciclo:
+        | "awaiting_address"
+        | "ready_to_ship"
+        | "shipped"
+        | "delivered"
+        | "problem"
       status_pedido:
         | "pendente"
         | "confirmado"
@@ -1294,6 +1485,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       status_assinatura: ["ativa", "pausada", "cancelada"],
+      status_ciclo: [
+        "awaiting_address",
+        "ready_to_ship",
+        "shipped",
+        "delivered",
+        "problem",
+      ],
       status_pedido: [
         "pendente",
         "confirmado",

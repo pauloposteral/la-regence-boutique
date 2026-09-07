@@ -16,7 +16,13 @@ type EmailType =
   | "contact_reply"
   | "admin_new_order"
   | "review_request"
-  | "back_in_stock";
+  | "back_in_stock"
+  | "subscription_confirmed"
+  | "subscription_address_needed"
+  | "subscription_shipped"
+  | "admin_new_subscription"
+  | "admin_notification_failed"
+  | "admin_reconciliation";
 
 interface EmailRequest {
   type: EmailType;
@@ -163,8 +169,78 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Voltou ao estoque."
         ),
       };
+
+    // ===== Clube La Régence (assinaturas) =====
+    case "subscription_confirmed": {
+      const enderecoBox = d.endereco
+        ? box(`<div style="font-size:13px;color:${C.brown};line-height:1.7"><strong style="color:${C.brownDark}">Vai para:</strong><br>${d.endereco}</div>`)
+        : `<div style="background:#FFF8E8;border:1px solid ${C.gold};border-radius:10px;padding:18px 20px;margin:18px 0;font-size:13px;color:${C.brown}">Ainda falta o endereço de entrega. Assim que você informar, seu café entra na fila de torra.</div>`;
+      const primeiro = d.enderecoRecebido
+        ? "Endereço recebido! Agora sim: seu café entra na fila de torra e sai daqui até " + (d.despacharAte || "") + "."
+        : "Deu tudo certo: seu pagamento foi aprovado e sua assinatura já está ativa.";
+      return {
+        subject: "Sua assinatura La Régence está confirmada ☕",
+        html: shell(
+          "Assinatura confirmada",
+          `${h(`Oi, ${d.nome || "tudo bem"}!`)}${p(primeiro)}${
+            d.enderecoRecebido ? "" : p(`Agora é com a gente. Seu café vai ser torrado fresquinho e sai daqui até <strong>${d.despacharAte || "3 dias úteis"}</strong>. Assim que despachar, você recebe o código de rastreio por aqui.`)
+          }${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Plano:</strong> ${d.plano || "—"} · R$ ${d.valor || "—"}/mês</div><div><strong style="color:${C.brownDark}">Café:</strong> ${d.cafe || "Surpresa"}</div><div><strong style="color:${C.brownDark}">Moagem:</strong> ${d.moagem || "—"}</div><div><strong style="color:${C.brownDark}">Próxima cobrança:</strong> ${d.proximaCobranca || "—"}</div></div>`)}${enderecoBox}${btn(`${SITE}/conta?tab=assinatura`, "Ver minha assinatura")}${p("Qualquer dúvida, é só responder este e-mail ou chamar no WhatsApp (18) 99654-0883.")}${p(`<em style="color:${C.brown}">Respeita o grão.</em><br>Paulo · Café La Régence`)}`,
+          `Plano ${d.plano || ""} ativo. Seu café sai daqui até ${d.despacharAte || "3 dias úteis"}.`
+        ),
+      };
+    }
+    case "subscription_address_needed":
+      return {
+        subject: d.lembrete ? "Seu café está esperando um endereço ☕" : "Falta só o endereço pra gente enviar seu café",
+        html: shell(
+          "Falta o endereço",
+          `${h(`Oi, ${d.nome || "tudo bem"}.`)}${p(`Seu pagamento está confirmado e sua assinatura <strong>${d.plano || ""}</strong> está ativa. Só que na hora de assinar o site não pediu seu endereço… falha nossa, e já estamos corrigindo.`)}${p("Me diz pra onde enviar e seu café entra na fila de torra na hora:")}${btn(d.link || `${SITE}/assinatura/endereco`, "Informar endereço de entrega")}${p("Depois disso ele sai daqui em até 3 dias úteis, com rastreio.")}${p("Se preferir, responde este e-mail com o endereço completo e o CEP que eu mesmo cadastro.")}${p(`<em style="color:${C.brown}">Respeita o grão.</em><br>Paulo · Café La Régence`)}`,
+          "Sua assinatura está ativa, mas falta o endereço. Leva um minuto."
+        ),
+      };
+    case "subscription_shipped":
+      return {
+        subject: "Seu café saiu pra entrega 📦",
+        html: shell(
+          "Café despachado",
+          `${h(`Oi, ${d.nome || "tudo bem"}!`)}${p("Seu café acabou de sair daqui de Andradina.")}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Transportadora:</strong> ${d.transportadora || "—"}</div><div><strong style="color:${C.brownDark}">Código:</strong> ${d.codigoRastreio || "—"}</div></div>${d.urlRastreio ? btn(d.urlRastreio, "Rastrear entrega") : ""}`)}${d.endereco ? box(`<div style="font-size:13px;color:${C.brown};line-height:1.7"><strong style="color:${C.brownDark}">Vai para:</strong><br>${d.endereco}</div>`) : ""}${p("Uma dica: café recém-torrado gosta de descansar uns dias. Quando chegar aí, ele vai estar no ponto.")}${p(`<em style="color:${C.brown}">Respeita o grão.</em><br>Paulo · Café La Régence`)}`,
+          `Rastreio ${d.codigoRastreio || ""} · ${d.transportadora || ""}`
+        ),
+      };
+    case "admin_new_subscription":
+      return {
+        subject: `[NOVA ASSINATURA] ${d.nome || d.email || "cliente"} · ${d.plano || ""} · R$ ${d.valor || "0,00"}/mês`,
+        html: shell(
+          "Nova assinatura",
+          `${h("Nova assinatura paga")}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Cliente:</strong> ${d.nome || "—"}</div><div><strong style="color:${C.brownDark}">E-mail:</strong> ${d.email || "—"}</div><div><strong style="color:${C.brownDark}">Telefone:</strong> ${d.telefone || "—"}</div><div><strong style="color:${C.brownDark}">Plano:</strong> ${d.plano || "—"} · R$ ${d.valor || "—"}/mês</div><div><strong style="color:${C.brownDark}">Café:</strong> ${d.cafe || "Surpresa"} · <strong style="color:${C.brownDark}">Moagem:</strong> ${d.moagem || "—"}</div><div><strong style="color:${C.brownDark}">Despachar até:</strong> ${d.despacharAte || "—"}</div></div>`)}${
+            d.endereco
+              ? box(`<div style="font-size:13px;color:${C.brown};line-height:1.7"><strong style="color:${C.brownDark}">Endereço:</strong><br>${d.endereco}</div>`)
+              : `<div style="background:#FFF3F0;border:1px solid #E0A090;border-radius:10px;padding:18px 20px;margin:18px 0;font-size:14px;color:#8A3A28"><strong>⚠️ SEM ENDEREÇO</strong> — pedido de endereço enviado ao cliente.</div>`
+          }${btn(`${SITE}/admin/assinaturas`, "Abrir no admin")}`,
+          `Nova assinatura ${d.plano || ""}`
+        ),
+      };
+    case "admin_notification_failed":
+      return {
+        subject: "⚠️ Falha ao enviar notificação",
+        html: shell(
+          "Falha de notificação",
+          `${h("Uma notificação não saiu")}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Tipo:</strong> ${d.tipo || "—"}</div><div><strong style="color:${C.brownDark}">Destinatário:</strong> ${d.destinatario || "—"}</div><div><strong style="color:${C.brownDark}">Erro:</strong> ${String(d.erro || "").slice(0, 300)}</div></div>`)}${p("Reenvie manualmente pelo painel de assinaturas.")}${btn(`${SITE}/admin/assinaturas`, "Abrir no admin")}`,
+          "Uma notificação falhou."
+        ),
+      };
+    case "admin_reconciliation":
+      return {
+        subject: `Resumo diário das assinaturas — ${d.data || ""}`,
+        html: shell(
+          "Resumo diário",
+          `${h("Como estão as assinaturas hoje")}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Ativas:</strong> ${d.ativas ?? 0}</div><div><strong style="color:${C.brownDark}">Sem endereço:</strong> ${d.semEndereco ?? 0}</div><div><strong style="color:${C.brownDark}">A despachar:</strong> ${d.aDespachar ?? 0}</div><div><strong style="color:${C.brownDark}">Prazo vencido:</strong> ${d.vencidas ?? 0}</div><div><strong style="color:${C.brownDark}">E-mails reenviados:</strong> ${d.acoes ?? 0}</div></div>`)}${d.detalhes ? p(String(d.detalhes)) : ""}${btn(`${SITE}/admin/assinaturas`, "Abrir no admin")}`,
+          "Resumo diário das assinaturas."
+        ),
+      };
   }
 }
+
 
 async function sendViaResend(to: string, subject: string, html: string) {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

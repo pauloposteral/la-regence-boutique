@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import type { Database } from "@/integrations/supabase/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import AddressForm, { emptyEndereco, validarEndereco, type EnderecoAssinatura } from "@/components/subscription/AddressForm";
 
 type TipoAssinatura = Database["public"]["Enums"]["tipo_assinatura"];
 type TipoMoagem = Database["public"]["Enums"]["tipo_moagem"];
@@ -115,7 +117,10 @@ const AssinaturaPage = () => {
 
   const [selectedCafe, setSelectedCafe] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [endereco, setEndereco] = useState<EnderecoAssinatura>(emptyEndereco);
 
+  // Etapa 1: escolher plano. O pagamento só abre depois do endereço (RN-002).
   const handleSubscribe = async () => {
     if (!user) {
       toast.info("Faça login para assinar");
@@ -127,14 +132,69 @@ const AssinaturaPage = () => {
       return;
     }
 
+    // Pré-preenche com o endereço principal já cadastrado, se houver.
+    if (!endereco.cep) {
+      const { data: salvo } = await supabase
+        .from("enderecos")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("principal", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (salvo) {
+        setEndereco({
+          destinatario: "",
+          telefone: "",
+          cep: salvo.cep || "",
+          logradouro: salvo.logradouro || "",
+          numero: salvo.numero || "",
+          complemento: salvo.complemento || "",
+          bairro: salvo.bairro || "",
+          cidade: salvo.cidade || "",
+          estado: salvo.estado || "",
+          referencia: "",
+        });
+      }
+    }
+    setAddressOpen(true);
+  };
+
+  // Etapa 2: salvar endereço e abrir o pagamento.
+  const handleConfirmAddress = async () => {
+    const erro = validarEndereco(endereco);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setSubmitting(true);
     try {
+      const { data: novoEndereco, error: endErr } = await supabase
+        .from("enderecos")
+        .insert({
+          user_id: user!.id,
+          apelido: "Assinatura",
+          cep: endereco.cep.replace(/\D/g, ""),
+          logradouro: endereco.logradouro.trim(),
+          numero: endereco.numero.trim(),
+          complemento: [endereco.complemento.trim(), endereco.referencia.trim() && `Ref: ${endereco.referencia.trim()}`]
+            .filter(Boolean).join(" — ") || null,
+          bairro: endereco.bairro.trim(),
+          cidade: endereco.cidade.trim(),
+          estado: endereco.estado.trim().toUpperCase(),
+        })
+        .select("id")
+        .single();
+      if (endErr) throw endErr;
+
       const { data, error } = await supabase.functions.invoke("create-subscription-checkout", {
         body: {
           tipo: selectedPlan,
           moagem,
           cafeSurpresa,
           produtoId: cafeSurpresa ? null : selectedCafe,
+          enderecoId: novoEndereco.id,
+          telefone: endereco.telefone,
+          destinatario: endereco.destinatario.trim(),
         },
       });
       if (error) throw error;
@@ -149,6 +209,8 @@ const AssinaturaPage = () => {
       setSubmitting(false);
     }
   };
+
+
 
   const handleManage = async () => {
     setSubmitting(true);
@@ -472,7 +534,33 @@ const AssinaturaPage = () => {
           </div>
         </div>
       </section>
+      {/* Endereço de entrega — obrigatório antes do pagamento */}
+      <Dialog open={addressOpen} onOpenChange={(o) => !submitting && setAddressOpen(o)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl">
+          <DialogHeader>
+            <span className="font-body text-[11px] tracking-[0.3em] uppercase text-gold">Passo 2 de 2</span>
+            <DialogTitle className="font-display text-2xl text-brown-dark">Para onde enviamos seu café?</DialogTitle>
+            <DialogDescription className="font-body text-sm text-muted-foreground">
+              Torramos sob demanda e despachamos em até 3 dias úteis após a confirmação do pagamento.
+            </DialogDescription>
+          </DialogHeader>
+
+          <AddressForm value={endereco} onChange={setEndereco} disabled={submitting} />
+
+          <DialogFooter className="gap-2 sm:gap-3">
+            <Button variant="outline" className="rounded-full font-body text-xs tracking-[0.2em] uppercase"
+              onClick={() => setAddressOpen(false)} disabled={submitting}>
+              Voltar
+            </Button>
+            <Button className="rounded-full bg-gold text-white hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
+              onClick={handleConfirmAddress} disabled={submitting}>
+              {submitting ? "Abrindo pagamento…" : "Ir para o pagamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
+
   );
 };
 

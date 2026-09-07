@@ -56,13 +56,38 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { tipo, moagem, cafeSurpresa, produtoId } = body;
+    const { tipo, moagem, cafeSurpresa, produtoId, enderecoId, telefone, destinatario } = body;
     const plan = PLAN_PRICES[tipo];
     if (!plan) {
       return new Response(JSON.stringify({ error: "Plano inválido" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // RN-002: sem endereço de entrega válido não existe sessão de pagamento.
+    if (!enderecoId) {
+      return new Response(JSON.stringify({ error: "Informe o endereço de entrega" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: endereco } = await supabaseAdmin
+      .from("enderecos")
+      .select("*")
+      .eq("id", enderecoId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!endereco) {
+      return new Response(JSON.stringify({ error: "Endereço de entrega não encontrado" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const cepDigits = String((endereco as any).cep || "").replace(/\D/g, "");
+    if (cepDigits.length !== 8 || !(endereco as any).numero || !(endereco as any).cidade) {
+      return new Response(JSON.stringify({ error: "Endereço de entrega incompleto" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
       apiVersion: "2025-08-27.basil",
@@ -92,11 +117,33 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://lojalaregence.lovable.app";
 
+    // Endereço também vai para o Stripe (aparece no recibo). Fonte da verdade é o nosso banco.
+    const e = endereco as any;
+    try {
+      await stripe.customers.update(customerId!, {
+        phone: telefone || undefined,
+        shipping: {
+          name: destinatario || profile?.full_name || user.email!,
+          phone: telefone || undefined,
+          address: {
+            line1: `${e.logradouro}, ${e.numero}`,
+            line2: e.complemento || undefined,
+            postal_code: cepDigits,
+            city: e.cidade,
+            state: e.estado,
+            country: "BR",
+          },
+        },
+      });
+    } catch (err) {
+      console.warn("Não foi possível gravar o shipping no Stripe:", err);
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: plan.priceId, quantity: 1 }],
-      success_url: `${origin}/conta?assinatura=ok`,
+      success_url: `${origin}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/assinatura`,
       subscription_data: {
         metadata: {
@@ -105,10 +152,14 @@ serve(async (req) => {
           moagem: moagem || "media",
           cafe_surpresa: String(!!cafeSurpresa),
           produto_id: produtoId || "",
+          endereco_id: enderecoId,
+          telefone: telefone || "",
+          destinatario: destinatario || "",
         },
       },
       allow_promotion_codes: true,
     });
+
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
