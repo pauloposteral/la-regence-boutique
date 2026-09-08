@@ -206,7 +206,12 @@ const AdminAssinaturas = () => {
                 ok: { t: "—", c: "bg-muted text-muted-foreground" },
               };
               return (
-              <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+              <tr
+                key={s.id}
+                className={`border-b border-border last:border-0 hover:bg-muted/30 ${
+                  sit === "atrasado" || sit === "sem_endereco" ? "bg-red-50/70" : ""
+                }`}
+              >
                 <td className="px-4 py-3 font-body text-xs font-mono">#{s.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 font-body text-sm capitalize">{s.tipo}</td>
                 <td className="px-4 py-3 font-body text-sm">{fmt(Number(s.preco))}</td>
