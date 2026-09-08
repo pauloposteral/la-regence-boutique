@@ -46,7 +46,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
-            className="font-display text-[2rem] xs:text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.08] mb-6 text-white text-balance"
+            className="font-display text-[2rem] sm:text-5xl lg:text-7xl font-bold leading-[1.08] mb-6 text-white"
           >
             Cada xícara,{" "}
             <span className="block italic font-medium text-gold-light">
