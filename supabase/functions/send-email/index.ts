@@ -239,6 +239,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Resumo diário das assinaturas."
         ),
       };
+    case "admin_ship_reminder":
+      return {
+        subject: `⏰ Despachar amanhã: ${d.quantidade ?? 0} assinatura(s) vencem em ${d.prazo || ""}`,
+        html: shell(
+          "Prazo de despacho amanhã",
+          `${h("Amanhã é o último dia")}${p(`Estas entregas do Clube precisam sair até <strong>${d.prazo || "amanhã"}</strong>.`)}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9">${d.lista || "—"}</div>`)}${p("Ao registrar o despacho no painel, o cliente recebe o e-mail com o código de rastreio automaticamente.")}${btn(`${SITE}/admin/assinaturas`, "Registrar despacho")}`,
+          `${d.quantidade ?? 0} entrega(s) vencem amanhã`
+        ),
+      };
   }
 }
 
