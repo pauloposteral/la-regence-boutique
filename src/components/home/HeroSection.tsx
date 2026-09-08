@@ -13,7 +13,7 @@ const HeroSection = () => {
   ].join(", ");
 
   return (
-    <section className="relative min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden bg-brown-deep">
+    <section className="relative min-h-[75vh] min-h-[75dvh] lg:min-h-[80vh] lg:min-h-[80dvh] flex items-center overflow-hidden bg-brown-deep py-20 lg:py-24">
       {/* LCP image — real <img> matches preload exactly (single fetch) */}
       <img
         src={heroSrc}
@@ -46,13 +46,13 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
-            className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.05] mb-6 text-white"
+            className="font-display text-[2rem] sm:text-5xl lg:text-7xl font-bold leading-[1.08] mb-6 text-white"
           >
             Cada xícara,{" "}
             <span className="block italic font-medium text-gold-light">
               uma experiência
             </span>
-            <span className="block font-accent text-3xl sm:text-4xl lg:text-5xl font-light text-white/80 mt-2">
+            <span className="block font-accent text-2xl sm:text-4xl lg:text-5xl font-light text-white/80 mt-2">
               sensorial única
             </span>
           </motion.h1>
@@ -79,12 +79,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="flex flex-row gap-4"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto"
           >
             <Button
               asChild
               size="lg"
-              className="bg-gold text-white hover:bg-gold-dark font-body text-base tracking-[0.08em] uppercase px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
+              className="w-full sm:w-auto bg-gold text-white hover:bg-gold-dark font-body text-sm sm:text-base tracking-[0.08em] uppercase px-6 sm:px-8 transition-all duration-300 hover:shadow-[0_4px_20px_hsl(var(--gold)/0.3)]"
             >
               <Link to="/cafes">
                 Explorar Cafés
@@ -95,7 +95,7 @@ const HeroSection = () => {
               asChild
               variant="outline"
               size="lg"
-              className="bg-transparent font-body text-base tracking-[0.08em] uppercase px-8 border-white/50 text-white hover:bg-white/10 hover:border-white/70 transition-all duration-300"
+              className="w-full sm:w-auto bg-transparent font-body text-sm sm:text-base tracking-[0.08em] uppercase px-6 sm:px-8 border-white/50 text-white hover:bg-white/10 hover:border-white/70 transition-all duration-300"
             >
               <Link to="/assinatura">Clube de Assinatura</Link>
             </Button>
@@ -108,7 +108,7 @@ const HeroSection = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2"
       >
         <span className="text-[10px] font-body tracking-[0.2em] uppercase text-white/50">Scroll</span>
         <motion.div

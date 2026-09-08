@@ -25,7 +25,7 @@ const ScrollToTop = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-20 left-6 lg:bottom-6 z-40 w-11 h-11 bg-card border border-cream-400 text-brown rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:border-gold/40 hover:text-gold transition-all"
+          className="fixed left-4 sm:left-6 lg:bottom-6 z-40 w-11 h-11 bg-card border border-cream-400 text-brown rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:border-gold/40 hover:text-gold transition-all bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))]"
           aria-label="Voltar ao topo"
         >
           <ArrowUp className="w-4 h-4" />

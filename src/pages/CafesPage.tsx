@@ -176,13 +176,13 @@ const CafesPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome, nota sensorial, origem..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 font-body" />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="font-body relative" onClick={() => setShowFilters(!showFilters)}>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="font-body relative flex-1 sm:flex-none min-h-11" onClick={() => setShowFilters(!showFilters)}>
               <SlidersHorizontal className="w-4 h-4 mr-2" /> Filtros
               {activeFilterCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{activeFilterCount}</span>}
             </Button>
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-[160px] font-body"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="flex-1 sm:flex-none sm:w-[160px] min-h-11 font-body"><SelectValue /></SelectTrigger>
               <SelectContent>{SORT_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value} className="font-body">{o.label}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -194,7 +194,7 @@ const CafesPage = () => {
               <h3 className="font-display text-lg font-semibold">Filtrar por</h3>
               {activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-xs">Limpar filtros</Button>}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Categoria</label>
                 <div className="flex flex-wrap gap-2">
@@ -255,7 +255,7 @@ const CafesPage = () => {
         <p className="text-sm text-muted-foreground font-body mb-6">{filtered.length} {filtered.length === 1 ? "café encontrado" : "cafés encontrados"}</p>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-card rounded-xl border border-cream-400 animate-pulse">
                 <div className="aspect-[3/4] bg-cream-200 rounded-t-xl" />
@@ -271,7 +271,7 @@ const CafesPage = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.slice(0, visibleCount).map((produto, i) => <ProductCard key={produto.id} produto={produto} index={i} onQuickView={() => setQuickViewProduct(produto)} />)}
             </div>
             {visibleCount < filtered.length && (
