@@ -29,7 +29,7 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
-          className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-40 lg:hidden bg-cream-50/98 backdrop-blur-lg border-t border-cream-400 px-4 py-3"
+          className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-40 lg:hidden bg-cream-50/98 backdrop-blur-lg border-t border-cream-400 px-4 py-3"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">

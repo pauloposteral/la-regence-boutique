@@ -405,7 +405,7 @@ const ProdutoPage = () => {
         {related.length > 0 && (
           <section className="mt-20 pt-12 border-t border-border">
             <h2 className="font-display text-2xl lg:text-3xl font-light mb-8 text-center">Você também vai <span className="italic font-medium">gostar</span></h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {related.map((p) => (
                 <Link key={p.id} to={`/cafe/${p.slug}`} className="group block bg-card rounded-lg overflow-hidden border border-border hover:border-gold/25 hover:shadow-lg hover:shadow-gold/5 transition-all duration-500">
                   <div className="aspect-[3/4] bg-secondary flex items-center justify-center relative">
