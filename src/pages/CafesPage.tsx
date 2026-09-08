@@ -124,7 +124,10 @@ const CafesPage = () => {
       case "nome": result.sort((a, b) => a.nome.localeCompare(b.nome)); break;
       default: result.sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
     }
+    // Esgotados sempre no fim da vitrine, qualquer que seja a ordenação
+    result.sort((a, b) => (a.estoque > 0 ? 0 : 1) - (b.estoque > 0 ? 0 : 1));
     return result;
+
   }, [produtos, debouncedSearch, selectedCategoria, selectedNotas, selectedTorra, scaMin, sort, priceRange, priceFilterActive]);
 
   const activeFilterCount = [selectedCategoria, selectedTorra, scaMin, selectedNotas.length > 0, priceFilterActive].filter(Boolean).length;

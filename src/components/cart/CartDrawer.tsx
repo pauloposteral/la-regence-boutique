@@ -184,11 +184,23 @@ const CartDrawer = () => {
             {items.length > 0 && (
               <div className="border-t border-cream-400 p-4 pb-safe space-y-3 bg-cream-50 shadow-[0_-8px_24px_-12px_rgba(60,40,20,0.15)]">
                 {!cupom ? (
-                  <div className="flex gap-2">
-                    <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
-                    <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 h-11 px-4">Aplicar</Button>
+                  <div className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
+                      <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 h-11 px-4">Aplicar</Button>
+                    </div>
+                    {subtotal >= 80 && (
+                      <button
+                        type="button"
+                        onClick={() => setCupomInput("PRIMEIRACOMPRA10")}
+                        className="text-[11px] font-body text-gold hover:text-gold-dark transition-colors"
+                      >
+                        Primeira compra? Use PRIMEIRACOMPRA10 e ganhe 10%
+                      </button>
+                    )}
                   </div>
                 ) : (
+
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
                     <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
                     <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
