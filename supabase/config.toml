@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.subscriptions-reconcile]
 verify_jwt = false
+
+[functions.order-track]
+verify_jwt = false
+
+[functions.order-ship]
+verify_jwt = true
