@@ -105,12 +105,9 @@ const AdminPedidos = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
     toast.success("Status atualizado");
     if (detailOrder?.id === id) loadStatusHistory(id);
-    // Send transactional email on key status transitions
+    // E-mail transacional (o envio tem fluxo próprio, com rastreio obrigatório)
     try {
-      const emailType =
-        status === "enviado" ? "order_shipped" :
-        status === "entregue" ? "order_delivered" :
-        null;
+      const emailType = status === "entregue" ? "order_delivered" : null;
       if (emailType) {
         const order = (pedidos || []).find((p: any) => p.id === id);
         const to = order?.email_visitante as string | undefined;
