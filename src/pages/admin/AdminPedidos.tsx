@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Eye, Package, Download, Bell, Clock, Printer, TrendingUp, ShoppingCart, Award } from "lucide-react";
+import { Search, Eye, Package, Download, Bell, Clock, Printer, TrendingUp, ShoppingCart, Award, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -30,6 +30,12 @@ const AdminPedidos = () => {
   const [detailOrder, setDetailOrder] = useState<any>(null);
   const [statusHistory, setStatusHistory] = useState<any[]>([]);
   const [nota, setNota] = useState("");
+  // Envio: rastreio é obrigatório e o e-mail sai no mesmo clique.
+  const [shipOrder, setShipOrder] = useState<any>(null);
+  const [transportadora, setTransportadora] = useState("");
+  const [codigoRastreio, setCodigoRastreio] = useState("");
+  const [urlRastreio, setUrlRastreio] = useState("");
+  const [shipping, setShipping] = useState(false);
 
   const { data: pedidos = [] } = useQuery({
     queryKey: ["admin-pedidos"],
@@ -85,17 +91,23 @@ const AdminPedidos = () => {
   const { page, totalPages, paginated, next, prev, goTo, total } = usePagination(filtered, 20);
 
   const updateStatus = async (id: string, status: StatusPedido) => {
+    // "Enviado" passa pelo diálogo — sem rastreio o cliente fica no escuro.
+    if (status === "enviado") {
+      const order = (pedidos as any[]).find((p: any) => p.id === id);
+      setShipOrder(order || { id });
+      setTransportadora("");
+      setCodigoRastreio((order?.codigo_rastreamento as string) || "");
+      setUrlRastreio("");
+      return;
+    }
     await supabase.from("pedidos").update({ status }).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
     queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
     toast.success("Status atualizado");
     if (detailOrder?.id === id) loadStatusHistory(id);
-    // Send transactional email on key status transitions
+    // E-mail transacional (o envio tem fluxo próprio, com rastreio obrigatório)
     try {
-      const emailType =
-        status === "enviado" ? "order_shipped" :
-        status === "entregue" ? "order_delivered" :
-        null;
+      const emailType = status === "entregue" ? "order_delivered" : null;
       if (emailType) {
         const order = (pedidos || []).find((p: any) => p.id === id);
         const to = order?.email_visitante as string | undefined;
@@ -121,6 +133,35 @@ const AdminPedidos = () => {
     await supabase.from("pedidos").update({ codigo_rastreamento: code }).eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
     toast.success("Rastreamento salvo");
+  };
+
+  const confirmarEnvio = async () => {
+    if (!transportadora.trim() || !codigoRastreio.trim()) {
+      toast.error("Informe transportadora e código de rastreio");
+      return;
+    }
+    setShipping(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("order-ship", {
+        body: {
+          pedidoId: shipOrder.id,
+          transportadora: transportadora.trim(),
+          codigoRastreio: codigoRastreio.trim(),
+          urlRastreio: urlRastreio.trim(),
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.emailed ? "Envio registrado e cliente avisado por e-mail" : "Envio registrado (cliente sem e-mail)");
+      setShipOrder(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
+      if (detailOrder?.id === shipOrder.id) loadStatusHistory(shipOrder.id);
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível registrar o envio");
+    } finally {
+      setShipping(false);
+    }
   };
 
   const formatOrderId = (p: any) => p.order_number ? `#${p.order_number}` : `#${p.id.slice(0, 8)}`;
@@ -307,6 +348,40 @@ const AdminPedidos = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Registrar envio com rastreio obrigatório */}
+      <Dialog open={!!shipOrder} onOpenChange={(o) => !o && setShipOrder(null)}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <Truck className="w-4 h-4 text-gold" /> Registrar envio {shipOrder && formatOrderId(shipOrder)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Transportadora *</Label>
+              <Input className="text-sm" value={transportadora} onChange={(e) => setTransportadora(e.target.value)} placeholder="Correios, Jadlog…" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Código de rastreio *</Label>
+              <Input className="text-sm" value={codigoRastreio} onChange={(e) => setCodigoRastreio(e.target.value)} placeholder="AA123456789BR" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Link de rastreio</Label>
+              <Input className="text-sm" value={urlRastreio} onChange={(e) => setUrlRastreio(e.target.value)} placeholder="https://…" />
+            </div>
+            <p className="font-body text-xs text-muted-foreground">
+              O pedido vira “Enviado” e o cliente recebe o e-mail com o rastreio assim que você confirmar.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" className="rounded-full font-body text-xs" onClick={() => setShipOrder(null)} disabled={shipping}>Cancelar</Button>
+            <Button className="rounded-full bg-gold text-white hover:bg-gold-dark font-body text-xs" onClick={confirmarEnvio} disabled={shipping}>
+              {shipping ? "Enviando…" : "Confirmar envio"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -385,7 +385,7 @@ serve(async (req) => {
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/pagamento-sucesso?pedido=${pedido.id}`,
-      cancel_url: `${origin}/checkout`,
+      cancel_url: `${origin}/pagamento-erro?pedido=${pedido.id}`,
       metadata: { pedido_id: pedido.id },
       payment_method_types: ["card"],
       customer_email: form.email,

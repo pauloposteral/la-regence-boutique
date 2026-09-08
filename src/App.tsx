@@ -33,6 +33,8 @@ const FavoritosPage = lazy(() => import("./pages/FavoritosPage"));
 const CompararPage = lazy(() => import("./pages/CompararPage"));
 const FAQPage = lazy(() => import("./pages/FAQPage"));
 const NewsletterConfirmPage = lazy(() => import("./pages/NewsletterConfirmPage"));
+const RastreioPage = lazy(() => import("./pages/RastreioPage"));
+const PagamentoErroPage = lazy(() => import("./pages/PagamentoErroPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -53,7 +55,7 @@ const LazyTermos = lazy(() => import("./pages/InstitucionalPages").then(m => ({ 
 const LazyFrete = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.FretePage })));
 const LazyTrocas = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.TrocasPage })));
 const LazyContato = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.ContatoPage })));
-const LazyRastreamento = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.RastreamentoPage })));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -101,6 +103,8 @@ const App = () => (
                   <Route path="/sobre" element={<SobrePage />} />
                   <Route path="/quiz" element={<QuizPage />} />
                   <Route path="/pagamento-sucesso" element={<PagamentoSucessoPage />} />
+                  <Route path="/pagamento-erro" element={<PagamentoErroPage />} />
+                  <Route path="/rastreio" element={<RastreioPage />} />
                   <Route path="/favoritos" element={<FavoritosPage />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/comparar" element={<CompararPage />} />
@@ -110,7 +114,7 @@ const App = () => (
                   <Route path="/termos" element={<LazyTermos />} />
                   <Route path="/frete" element={<LazyFrete />} />
                   <Route path="/trocas" element={<LazyTrocas />} />
-                  <Route path="/rastreamento" element={<LazyRastreamento />} />
+                  <Route path="/rastreamento" element={<RastreioPage />} />
                   <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="produtos" element={<AdminProdutos />} />

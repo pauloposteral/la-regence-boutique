@@ -22,7 +22,8 @@ type EmailType =
   | "subscription_shipped"
   | "admin_new_subscription"
   | "admin_notification_failed"
-  | "admin_reconciliation";
+  | "admin_reconciliation"
+  | "admin_ship_reminder";
 
 interface EmailRequest {
   type: EmailType;
@@ -236,6 +237,15 @@ function render(type: EmailType, d: Record<string, any>): { subject: string; htm
           "Resumo diário",
           `${h("Como estão as assinaturas hoje")}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9"><div><strong style="color:${C.brownDark}">Ativas:</strong> ${d.ativas ?? 0}</div><div><strong style="color:${C.brownDark}">Sem endereço:</strong> ${d.semEndereco ?? 0}</div><div><strong style="color:${C.brownDark}">A despachar:</strong> ${d.aDespachar ?? 0}</div><div><strong style="color:${C.brownDark}">Prazo vencido:</strong> ${d.vencidas ?? 0}</div><div><strong style="color:${C.brownDark}">E-mails reenviados:</strong> ${d.acoes ?? 0}</div></div>`)}${d.detalhes ? p(String(d.detalhes)) : ""}${btn(`${SITE}/admin/assinaturas`, "Abrir no admin")}`,
           "Resumo diário das assinaturas."
+        ),
+      };
+    case "admin_ship_reminder":
+      return {
+        subject: `⏰ Despachar amanhã: ${d.quantidade ?? 0} assinatura(s) vencem em ${d.prazo || ""}`,
+        html: shell(
+          "Prazo de despacho amanhã",
+          `${h("Amanhã é o último dia")}${p(`Estas entregas do Clube precisam sair até <strong>${d.prazo || "amanhã"}</strong>.`)}${box(`<div style="font-size:14px;color:${C.brown};line-height:1.9">${d.lista || "—"}</div>`)}${p("Ao registrar o despacho no painel, o cliente recebe o e-mail com o código de rastreio automaticamente.")}${btn(`${SITE}/admin/assinaturas`, "Registrar despacho")}`,
+          `${d.quantidade ?? 0} entrega(s) vencem amanhã`
         ),
       };
   }

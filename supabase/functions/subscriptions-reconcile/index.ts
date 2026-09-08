@@ -212,6 +212,35 @@ serve(async (req) => {
       .eq("status", "ready_to_ship")
       .lt("despachar_ate", hoje);
 
+    // Véspera do prazo: avisa o admin um dia antes de estourar.
+    const amanha = new Date(new Date(`${hoje}T12:00:00Z`).getTime() + 86400000)
+      .toISOString()
+      .slice(0, 10);
+    const { data: vencemAmanha } = await supabase
+      .from("assinatura_ciclos")
+      .select("id, user_id, assinatura_id")
+      .eq("status", "ready_to_ship")
+      .eq("despachar_ate", amanha);
+
+    if (vencemAmanha && vencemAmanha.length > 0) {
+      const linhas: string[] = [];
+      for (const c of vencemAmanha as any[]) {
+        const customer = await getCustomer(c.user_id);
+        const a = lista.find((x) => x.id === c.assinatura_id);
+        linhas.push(
+          `<div>${customer.nome || customer.email || "Cliente"} — ${a ? planLabel(a.tipo) : "Clube"}</div>`
+        );
+      }
+      await notifyAdmins("admin_ship_reminder", {
+        prazo: formatShipBy(amanha),
+        quantidade: vencemAmanha.length,
+        lista: linhas.join(""),
+      });
+      acoes++;
+      detalhes.push(`${vencemAmanha.length} entrega(s) vencem amanhã — lembrete enviado.`);
+    }
+
+
     await notifyAdmins("admin_reconciliation", {
       data: hoje.split("-").reverse().join("/"),
       ativas: lista.length,
