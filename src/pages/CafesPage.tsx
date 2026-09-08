@@ -315,6 +315,8 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
   const comparing = isComparing(produto.id);
+  const { data: ratings } = useProdutoRatings();
+  const rating = ratings?.[produto.id];
   const soldOut = produto.estoque <= 0;
   const lowStock = produto.estoque > 0 && produto.estoque <= 5;
 
@@ -371,6 +373,21 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
         <div className="p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
           <h3 className="font-display text-xl font-semibold mt-1 text-brown-dark group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
+          <div className="flex items-center gap-1.5 mt-1.5 min-h-[16px]">
+            {rating && rating.total > 0 ? (
+              <>
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star key={n} className={`w-3 h-3 ${n <= Math.round(rating.media) ? "fill-gold text-gold" : "text-cream-400"}`} />
+                  ))}
+                </div>
+                <span className="font-mono text-[10px] text-brown-light">{rating.media.toFixed(1)}</span>
+                <span className="font-body text-[10px] text-muted-foreground">({rating.total})</span>
+              </>
+            ) : (
+              <span className="font-body text-[10px] text-muted-foreground">Seja o primeiro a avaliar</span>
+            )}
+          </div>
           {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-brown-light border border-cream-500 px-2 py-0.5 rounded-full hover:border-gold hover:text-gold transition-colors">{nota}</span>)}
