@@ -97,6 +97,13 @@ const CoffeeCarousel = () => {
                           SCA {coffee.sca_score}
                         </div>
                       )}
+                      {coffee.estoque <= 0 && (
+                        <div className="absolute inset-0 bg-brown-deep/45 flex items-center justify-center">
+                          <span className="bg-cream-50 text-brown-dark text-[10px] font-body font-semibold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full">
+                            Esgotado
+                          </span>
+                        </div>
+                      )}
                       {lowStock && (
                         <div className="absolute bottom-3 left-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded-full flex items-center gap-1">
                           <AlertTriangle className="w-3 h-3" />
