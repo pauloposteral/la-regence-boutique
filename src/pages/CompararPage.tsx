@@ -152,7 +152,7 @@ const CompararPage = () => {
             <Button asChild><Link to="/cafes">Ver Cafés</Link></Button>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-x-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr>

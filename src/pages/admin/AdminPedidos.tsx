@@ -204,7 +204,7 @@ const AdminPedidos = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Total filtrado</p><p className="font-display text-lg font-bold flex items-center gap-1"><ShoppingCart className="w-3.5 h-3.5 text-accent" /> {filtered.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Receita filtrada</p><p className="font-display text-lg font-bold flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-green-600" /> {fmt(summaryRevenue)}</p></CardContent></Card>
         <Card><CardContent className="pt-4 pb-3 px-4"><p className="font-body text-[10px] text-muted-foreground">Ticket médio</p><p className="font-display text-lg font-bold flex items-center gap-1"><Award className="w-3.5 h-3.5 text-blue-600" /> {fmt(summaryTicket)}</p></CardContent></Card>

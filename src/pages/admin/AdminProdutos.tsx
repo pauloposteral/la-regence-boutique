@@ -405,17 +405,17 @@ const AdminProdutos = () => {
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar Produto" : "Novo Produto"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label className="font-body text-xs">Nome *</Label><Input value={form.nome} onChange={(e) => set("nome", e.target.value)} className={!form.nome.trim() ? "border-destructive/50" : ""} /></div>
               <div><Label className="font-body text-xs">Slug</Label><Input value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="auto-gerado" /></div>
             </div>
             <div><Label className="font-body text-xs">Descrição</Label><Textarea value={form.descricao} onChange={(e) => set("descricao", e.target.value)} rows={3} /></div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label className="font-body text-xs">Preço (R$) *</Label><Input type="number" step="0.01" value={form.preco} onChange={(e) => set("preco", +e.target.value)} className={form.preco <= 0 ? "border-destructive/50" : ""} /></div>
               <div><Label className="font-body text-xs">Preço promocional</Label><Input type="number" step="0.01" value={form.preco_promocional ?? ""} onChange={(e) => set("preco_promocional", e.target.value ? +e.target.value : null)} /></div>
               <div><Label className="font-body text-xs">Peso padrão (g)</Label><Input type="number" value={form.peso_padrao} onChange={(e) => set("peso_padrao", +e.target.value)} /></div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label className="font-body text-xs">Estoque</Label><Input type="number" value={form.estoque} onChange={(e) => set("estoque", +e.target.value)} /></div>
               <div><Label className="font-body text-xs">Estoque mínimo</Label><Input type="number" value={form.estoque_minimo} onChange={(e) => set("estoque_minimo", +e.target.value)} /></div>
               <div>
@@ -426,23 +426,23 @@ const AdminProdutos = () => {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label className="font-body text-xs">Origem</Label><Input value={form.origem} onChange={(e) => set("origem", e.target.value)} /></div>
               <div><Label className="font-body text-xs">Variedade</Label><Input value={form.variedade} onChange={(e) => set("variedade", e.target.value)} /></div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label className="font-body text-xs">Processo</Label><Input value={form.processo} onChange={(e) => set("processo", e.target.value)} /></div>
               <div><Label className="font-body text-xs">Altitude</Label><Input value={form.altitude} onChange={(e) => set("altitude", e.target.value)} /></div>
               <div><Label className="font-body text-xs">Safra</Label><Input value={form.safra} onChange={(e) => set("safra", e.target.value)} /></div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label className="font-body text-xs">SKU</Label><Input value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="LR-001" /></div>
               <div><Label className="font-body text-xs">Intensidade (1-10)</Label><Input type="number" min={1} max={10} value={form.intensidade ?? ""} onChange={(e) => set("intensidade", e.target.value ? +e.target.value : null)} /></div>
               <div><Label className="font-body text-xs">SCA Score</Label><Input type="number" value={form.sca_score ?? ""} onChange={(e) => set("sca_score", e.target.value ? +e.target.value : null)} /></div>
             </div>
             <div><Label className="font-body text-xs">Notas sensoriais (separar por vírgula)</Label><Input value={notasInput} onChange={(e) => setNotasInput(e.target.value)} placeholder="Chocolate, Caramelo, Frutas vermelhas" /></div>
             <div><Label className="font-body text-xs">Descrição sensorial</Label><Textarea value={form.descricao_sensorial} onChange={(e) => set("descricao_sensorial", e.target.value)} rows={2} /></div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div><Label className="font-body text-xs">Acidez (1-10)</Label><Input type="number" min={1} max={10} value={form.acidez ?? ""} onChange={(e) => set("acidez", e.target.value ? +e.target.value : null)} /></div>
               <div><Label className="font-body text-xs">Corpo (1-10)</Label><Input type="number" min={1} max={10} value={form.corpo ?? ""} onChange={(e) => set("corpo", e.target.value ? +e.target.value : null)} /></div>
               <div><Label className="font-body text-xs">Doçura (1-10)</Label><Input type="number" min={1} max={10} value={form.docura ?? ""} onChange={(e) => set("docura", e.target.value ? +e.target.value : null)} /></div>
@@ -478,7 +478,7 @@ const AdminProdutos = () => {
                 <Button variant="outline" size="sm" className="font-body text-xs h-7" onClick={addVariante}><Plus className="w-3 h-3 mr-1" /> Variante</Button>
               </div>
               {variantes.filter((v) => !v._delete).map((v, idx) => (
-                <div key={idx} className="grid grid-cols-5 gap-2 mb-2 items-end">
+                <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2 items-end">
                   <div>
                     <Label className="font-body text-[10px]">Moagem</Label>
                     <Select value={v.moagem} onValueChange={(val) => updateVariante(idx, "moagem", val)}>
