@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import Layout from "@/components/layout/Layout";
 import { useProdutos, useCategorias, type Produto } from "@/hooks/useProdutos";
+import { useProdutoRatings } from "@/hooks/useProdutoRatings";
 import SEOHead from "@/components/SEOHead";
 import SEOBreadcrumb from "@/components/SEOBreadcrumb";
 import { useDebounce } from "@/hooks/useDebounce";
