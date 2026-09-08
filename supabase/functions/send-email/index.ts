@@ -22,7 +22,8 @@ type EmailType =
   | "subscription_shipped"
   | "admin_new_subscription"
   | "admin_notification_failed"
-  | "admin_reconciliation";
+  | "admin_reconciliation"
+  | "admin_ship_reminder";
 
 interface EmailRequest {
   type: EmailType;

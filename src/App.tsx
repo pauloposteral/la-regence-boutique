@@ -55,7 +55,7 @@ const LazyTermos = lazy(() => import("./pages/InstitucionalPages").then(m => ({ 
 const LazyFrete = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.FretePage })));
 const LazyTrocas = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.TrocasPage })));
 const LazyContato = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.ContatoPage })));
-const LazyRastreamento = lazy(() => import("./pages/InstitucionalPages").then(m => ({ default: m.RastreamentoPage })));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
