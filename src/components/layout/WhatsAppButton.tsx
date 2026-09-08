@@ -13,7 +13,7 @@ const WhatsAppButton = () => {
       href={`https://wa.me/${PHONE}?text=${MESSAGE}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-20 right-6 lg:bottom-6 z-40 flex items-center gap-2"
+      className="fixed right-4 sm:right-6 z-40 flex items-center gap-2 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:bottom-6"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 1, type: "spring", stiffness: 200 }}

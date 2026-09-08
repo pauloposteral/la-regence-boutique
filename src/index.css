@@ -67,9 +67,18 @@
     @apply border-border;
   }
 
+  html {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-size: max(14px, 1em);
+    overflow-x: clip;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -204,7 +213,7 @@
 
   /* Bottom nav spacer */
   .mb-bottom-nav {
-    margin-bottom: 4.5rem;
+    margin-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
   }
   @media (min-width: 1024px) {
     .mb-bottom-nav {
