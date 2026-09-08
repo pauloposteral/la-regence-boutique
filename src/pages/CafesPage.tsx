@@ -315,6 +315,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
   const comparing = isComparing(produto.id);
+  const soldOut = produto.estoque <= 0;
   const lowStock = produto.estoque > 0 && produto.estoque <= 5;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
@@ -353,6 +354,13 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
           {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
           {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {soldOut && (
+            <div className="absolute inset-0 bg-brown-deep/45 flex items-center justify-center">
+              <span className="bg-cream-50 text-brown-dark text-[10px] font-body font-semibold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full">
+                Esgotado
+              </span>
+            </div>
+          )}
           {lowStock && (
             <div className="absolute bottom-3 right-3 bg-destructive text-destructive-foreground text-[10px] font-body font-semibold px-2 py-1 rounded-full flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" />
@@ -387,11 +395,12 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           <div className="flex gap-2 mt-3">
             <Button
               size="sm"
-              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300"
+              disabled={soldOut}
+              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 disabled:opacity-60"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
-              Adicionar
+              {soldOut ? "Esgotado" : "Adicionar"}
             </Button>
             <Button
               variant="outline"
