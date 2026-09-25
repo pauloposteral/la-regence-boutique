@@ -1,9 +1,14 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import heroVideoAsset from "@/assets/hero-cinematic.mp4.asset.json";
 
 const HeroSection = () => {
+  const prefersReducedMotion = useReducedMotion();
+  const [canPlayVideo, setCanPlayVideo] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const HERO_BASE = "https://uuuaylqjllxqjjmvdybm.supabase.co/storage/v1/render/image/public/public-assets/hero-coffee-1773501394497.png";
   const heroSrc = `${HERO_BASE}?width=1440&quality=75&format=webp`;
   const heroSrcSet = [
@@ -11,6 +16,11 @@ const HeroSection = () => {
     `${HERO_BASE}?width=1080&quality=72&format=webp 1080w`,
     `${HERO_BASE}?width=1920&quality=78&format=webp 1920w`,
   ].join(", ");
+
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    setCanPlayVideo(!prefersReducedMotion && !connection?.saveData);
+  }, [prefersReducedMotion]);
 
   return (
     <section className="relative min-h-[75vh] min-h-[75dvh] lg:min-h-[80vh] lg:min-h-[80dvh] flex items-center overflow-hidden bg-brown-deep py-20 lg:py-24">
@@ -25,6 +35,22 @@ const HeroSection = () => {
         loading="eager"
         className="absolute inset-0 w-full h-full object-cover parallax-bg scale-105"
       />
+      {canPlayVideo && (
+        <video
+          className={`absolute inset-0 h-full w-full object-cover scale-105 transition-opacity duration-1000 ${videoReady ? "opacity-100" : "opacity-0"}`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster={heroSrc}
+          aria-hidden="true"
+          onCanPlay={() => setVideoReady(true)}
+          onError={() => setCanPlayVideo(false)}
+        >
+          <source src={heroVideoAsset.url} type="video/mp4" />
+        </video>
+      )}
       {/* Warm cinematic overlay (brown-deep, on-brand) */}
       <div className="absolute inset-0 bg-gradient-to-r from-brown-deep/80 via-brown-deep/45 to-brown-deep/10" />
 
