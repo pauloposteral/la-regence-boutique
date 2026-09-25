@@ -1,28 +1,28 @@
-const notes = [
-  { icon: "🍫", label: "Chocolate" },
-  { icon: "🍒", label: "Frutado" },
-  { icon: "🥜", label: "Castanhas" },
-  { icon: "🌸", label: "Floral" },
-  { icon: "🍮", label: "Caramelo" },
-  { icon: "🍯", label: "Mel" },
-  { icon: "🍊", label: "Cítrico" },
-  { icon: "🌶️", label: "Especiarias" },
+const curiosities = [
+  "Café recém-torrado libera CO₂ por vários dias",
+  "Aroma representa grande parte da percepção de sabor",
+  "Altitude elevada costuma favorecer maior complexidade",
+  "Torra clara revela mais a origem do grão",
+  "Moer na hora preserva os compostos aromáticos",
+  "Café especial começa acima de 80 pontos SCA",
 ];
 
 const SensoryNotesBanner = () => {
-  const items = [...notes, ...notes, ...notes];
-
   return (
-    <section className="bg-white border-y border-border py-5 overflow-hidden">
-      <div className="flex animate-marquee whitespace-nowrap items-center" style={{ width: 'max-content' }}>
-        {items.map((note, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-2 mx-6 text-base font-body font-medium shrink-0 text-muted-foreground"
-          >
-            <span className="text-lg">{note.icon}</span>
-            {note.label}
-          </span>
+    <section className="bg-card border-y border-border py-4 overflow-hidden" aria-label="Curiosidades sobre café">
+      <div className="flex w-max animate-marquee items-center motion-reduce:animate-none">
+        {[false, true].map((duplicate) => (
+          <div key={String(duplicate)} className="flex shrink-0 items-center" aria-hidden={duplicate}>
+            {curiosities.map((curiosity) => (
+              <span
+                key={`${duplicate}-${curiosity}`}
+                className="inline-flex shrink-0 items-center gap-5 px-5 sm:px-8 font-body text-xs sm:text-sm font-medium text-muted-foreground"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden="true" />
+                {curiosity}
+              </span>
+            ))}
+          </div>
         ))}
       </div>
     </section>
