@@ -157,7 +157,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const prod = prodMap.get(item.produtoId);
           const variant = item.varianteId ? varMap.get(item.varianteId) : null;
           const newPreco = variant?.preco ?? prod?.preco ?? item.preco;
-          const newPromo = prod?.preco_promocional ?? undefined;
+          // Promoção é proporcional ao preço base — escala para a variante
+          const newPromo = prod?.preco_promocional != null && prod?.preco
+            ? Math.round(newPreco * (prod.preco_promocional / prod.preco) * 100) / 100
+            : undefined;
           if (newPreco !== item.preco || newPromo !== item.precoPromocional) {
             updated = true;
             return { ...item, preco: newPreco, precoPromocional: newPromo };

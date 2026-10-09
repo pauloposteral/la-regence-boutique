@@ -182,12 +182,18 @@ serve(async (req) => {
       let stock: number;
       let pesoKg: number = Number(produto.peso_padrao) || PESO_PADRAO_KG;
 
+      // Promoção é proporcional ao preço base — aplica o mesmo desconto à variante
+      const promoRatio = produto.preco_promocional != null && Number(produto.preco) > 0
+        ? Number(produto.preco_promocional) / Number(produto.preco)
+        : null;
+
       if (item.varianteId) {
         const variante = varMap.get(item.varianteId);
         if (!variante || !variante.ativo) {
           throw new Error(`Variante indisponível para "${produto.nome}"`);
         }
         unitPrice = Number(variante.preco);
+        if (promoRatio != null) unitPrice = round2(unitPrice * promoRatio);
         stock = variante.estoque;
         if (variante.peso) pesoKg = Number(variante.peso);
       } else {
