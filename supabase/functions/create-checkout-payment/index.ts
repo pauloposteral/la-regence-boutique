@@ -385,7 +385,13 @@ serve(async (req) => {
       }
     }
 
-    const origin = req.headers.get("origin") || "https://lojalaregence.lovable.app";
+    const FALLBACK_ORIGIN = "https://www.cafelaregence.com.br";
+    const reqOrigin = req.headers.get("origin") || "";
+    const allowedOrigin =
+      /^https:\/\/(www\.)?cafelaregence\.com\.br$/.test(reqOrigin) ||
+      /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(reqOrigin) ||
+      /^http:\/\/localhost(:\d+)?$/.test(reqOrigin);
+    const origin = allowedOrigin ? reqOrigin : FALLBACK_ORIGIN;
 
     const sessionConfig: any = {
       line_items: lineItems,
@@ -393,7 +399,8 @@ serve(async (req) => {
       success_url: `${origin}/pagamento-sucesso?pedido=${pedido.id}`,
       cancel_url: `${origin}/pagamento-erro?pedido=${pedido.id}`,
       metadata: { pedido_id: pedido.id },
-      payment_method_types: ["card"],
+      payment_method_types: isPix ? ["pix"] : ["card"],
+      ...(isPix ? { payment_method_options: { pix: { expires_after_seconds: 3600 } } } : {}),
       customer_email: form.email,
     };
 
