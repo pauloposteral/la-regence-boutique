@@ -64,7 +64,13 @@ const ProdutoPage = () => {
   }, [produto, selectedMoagem, selectedPeso]);
 
   const currentPrice = selectedVariant?.preco || produto?.preco || 0;
-  const pixPrice = produto?.preco_promocional ? produto.preco_promocional * 0.9 : currentPrice * 0.9;
+  // Promoção é proporcional ao preço base — escala para a variante selecionada
+  const promoRatio = produto?.preco_promocional && produto?.preco ? produto.preco_promocional / produto.preco : null;
+  const currentPromoPrice = promoRatio != null
+    ? Math.round(currentPrice * promoRatio * 100) / 100
+    : undefined;
+  const effectivePrice = currentPromoPrice ?? currentPrice;
+  const pixPrice = effectivePrice * 0.9;
 
   const related = useMemo(() => {
     if (!produto) return [];
@@ -163,7 +169,7 @@ const ProdutoPage = () => {
     offers: {
       "@type": "Offer",
       url: `https://lojalaregence.lovable.app/cafe/${produto.slug}`,
-      price: (produto.preco_promocional ?? currentPrice).toFixed(2),
+      price: effectivePrice.toFixed(2),
       priceCurrency: "BRL",
       priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
       itemCondition: "https://schema.org/NewCondition",
@@ -190,7 +196,7 @@ const ProdutoPage = () => {
       toast.error(`Estoque insuficiente. Disponível: ${estoqueDisponivel} unidades.`);
       return;
     }
-    addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: produto.preco_promocional || undefined, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
+    addItem({ produtoId: produto.id, varianteId: selectedVariant?.id, nome: produto.nome, moagem: selectedMoagem || undefined, peso: selectedPeso || undefined, preco: currentPrice, precoPromocional: currentPromoPrice, quantidade, imagemUrl: produto.imagens?.[0]?.url, slug: produto.slug });
     toast.success(
       <div className="flex items-center gap-3">
         {mainImg && <img src={mainImg} alt="" className="w-10 h-10 rounded object-cover shrink-0" />}
@@ -260,10 +266,10 @@ const ProdutoPage = () => {
             {/* Price */}
             <div className="bg-card border border-border rounded-lg p-5">
               <div className="flex items-end gap-3">
-                {produto.preco_promocional ? (
+                {currentPromoPrice != null ? (
                   <>
-                    <span className="text-sm text-muted-foreground font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-display text-4xl font-bold text-foreground">R$ {(selectedVariant?.preco ? selectedVariant.preco * (produto.preco_promocional / produto.preco) : produto.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                    <span className="text-sm text-muted-foreground font-body line-through">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-display text-4xl font-bold text-foreground">R$ {currentPromoPrice.toFixed(2).replace(".", ",")}</span>
                   </>
                 ) : (
                   <span className="font-display text-4xl font-bold text-foreground">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
@@ -274,7 +280,7 @@ const ProdutoPage = () => {
                   <span className="text-gold font-semibold">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
                 </div>
                 <p className="text-xs text-muted-foreground font-body">
-                  ou 12x de R$ {(currentPrice / 12).toFixed(2).replace(".", ",")} sem juros
+                  ou 12x de R$ {(effectivePrice / 12).toFixed(2).replace(".", ",")} sem juros
                 </p>
               </div>
               {produto.preco_promocional && (
