@@ -163,10 +163,16 @@ serve(async (req) => {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
         const pedidoId = session.metadata?.pedido_id;
         if (!pedidoId) break;
+        // Pix e outros métodos assíncronos: só marca pago quando o Stripe confirma
+        if (session.payment_status !== "paid") {
+          console.log(`⏳ Pedido ${pedidoId} aguardando pagamento (${session.payment_status})`);
+          break;
+        }
 
         // Idempotency: skip if already processed
         const { data: existing } = await supabaseAdmin
@@ -287,6 +293,7 @@ serve(async (req) => {
         break;
       }
 
+      case "checkout.session.async_payment_failed":
       case "checkout.session.expired": {
         const session = event.data.object as Stripe.Checkout.Session;
         const pedidoId = session.metadata?.pedido_id;

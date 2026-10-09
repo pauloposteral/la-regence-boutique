@@ -8,43 +8,61 @@ import { Label } from "@/components/ui/label";
 import Layout from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { translateAuthError, MIN_PASSWORD_LENGTH } from "@/lib/authRules";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
+    if (hash.includes("type=recovery")) setIsRecovery(true);
+    // Formato atual do link: o evento oficial de recuperação chega após trocar o código pela sessão
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setIsRecovery(true);
+    });
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("code")) {
+      supabase.auth.getSession().then(({ data }) => { if (data.session) setIsRecovery(true); });
     }
+    const timer = window.setTimeout(() => setChecking(false), 1500);
+    return () => { subscription.unsubscribe(); window.clearTimeout(timer); };
   }, []);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      toast.error(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`);
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error.message));
     } else {
       toast.success("Senha alterada com sucesso!");
       navigate("/conta");
     }
   };
 
+  if (!isRecovery && checking) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20 text-center font-body text-muted-foreground animate-pulse">Validando link…</div>
+      </Layout>
+    );
+  }
+
   if (!isRecovery) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center">
           <p className="font-display text-2xl mb-4">Link inválido ou expirado</p>
-          <Button variant="outline" onClick={() => navigate("/auth")}>Voltar ao login</Button>
+          <Button variant="outline" className="rounded-full" onClick={() => navigate("/auth")}>Voltar ao login</Button>
         </div>
       </Layout>
     );
@@ -69,11 +87,12 @@ const ResetPasswordPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 font-body"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
+                  autoComplete="new-password"
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full font-body bg-gold text-primary-foreground hover:bg-gold-light rounded-none tracking-wider uppercase" disabled={loading}>
+            <Button type="submit" className="w-full font-body bg-gold text-primary-foreground hover:bg-gold-dark rounded-full tracking-wider uppercase" disabled={loading}>
               {loading ? "Aguarde..." : <>Alterar Senha <ArrowRight className="w-4 h-4 ml-2" /></>}
             </Button>
           </form>

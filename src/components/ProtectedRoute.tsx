@@ -1,8 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -12,7 +13,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to={`/auth?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
 
   return <>{children}</>;
 };
