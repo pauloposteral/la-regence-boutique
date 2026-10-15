@@ -16,6 +16,19 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("TV playback", () => {
+  it('shows all fourteen sources once before restarting the cycle', () => {
+    const list=Array.from({length:14},(_,i)=>({...videos[0],id:`clip-${i}`,url:`https://example.com/clip-${i}.mp4`,sort_order:i}));
+    render(<TVPlayer videos={list} />);
+    const shown:string[]=[];
+    for(let i=0;i<14;i++) {
+      const media=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+      shown.push(media.src);
+      fireEvent.ended(media);
+    }
+    expect(shown).toEqual(list.map(v=>v.url));
+    expect(new Set(shown).size).toBe(14);
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toBe(list[0].url);
+  });
   it('does not repeat an already shown video when the admin reorders the playlist', () => {
     const list=[...videos,{...videos[0],id:'terceiro',title:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2}];
     const view=render(<TVPlayer videos={list} />);

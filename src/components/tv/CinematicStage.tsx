@@ -11,10 +11,10 @@ interface DeckProps {
 }
 const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, ref) {
   const media = useRef<HTMLVideoElement>(null);
-  const primarySource = fileSourceUrl(props.video.url);
-  const [source, setSource] = useState(primarySource);
+  // A source-keyed deck retains playback across catalog aliases. Preserve media
+  // fragments in its initial URL; deduplication alone ignores the fragment.
+  const [source, setSource] = useState(() => fileSourceUrl(props.video.url));
   const usedFallback = useRef(false);
-  useEffect(() => { usedFallback.current = false; setSource(primarySource); }, [primarySource]);
   const callbacks = useRef(props); callbacks.current = props;
   const wasSelected = useRef(props.selected);
   const finished = useRef(false);

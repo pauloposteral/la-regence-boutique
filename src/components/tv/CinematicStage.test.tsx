@@ -8,6 +8,11 @@ const second = { ...first, id:'two', url:'https://example.com/2.mp4' };
 const callbacks = () => ({onReady:vi.fn(),onPaused:vi.fn(),onProgress:vi.fn(),onEnded:vi.fn(),onError:vi.fn(),onBlocked:vi.fn()});
 beforeEach(() => { vi.spyOn(HTMLMediaElement.prototype,'load').mockImplementation(() => {}); vi.spyOn(HTMLMediaElement.prototype,'pause').mockImplementation(() => {}); vi.spyOn(HTMLMediaElement.prototype,'play').mockResolvedValue(); });
 afterEach(() => { cleanup(); delete window.YT; vi.restoreAllMocks(); vi.useRealTimers(); });
+it('preserves a media start fragment in the native playback source', () => {
+ const events=callbacks();
+ render(<CinematicStage video={{...first,url:'https://EXAMPLE.com:443/1.mp4#t=30'}} paused={false} muted {...events} />);
+ expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toBe('https://example.com/1.mp4#t=30');
+});
 it('holds the outgoing frame until incoming playback and ignores outgoing events', () => {
  const events=callbacks();
  const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
