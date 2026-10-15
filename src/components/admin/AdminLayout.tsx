@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Package, ShoppingCart, Tag, Image, FolderTree,
-  Users, FileText, Coffee, Menu, X, LogOut, ChevronRight, Layers, Clock, Truck,
+  Users, FileText, Coffee, Menu, X, LogOut, ChevronRight, Layers, Clock, Truck, MonitorPlay,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { to: "/admin/clientes", icon: Users, label: "Clientes" },
   { to: "/admin/blog", icon: FileText, label: "Blog" },
   { to: "/admin/colecoes", icon: Layers, label: "Coleções" },
+  { to: "/video/enviar", icon: MonitorPlay, label: "TV e vídeos" },
 ];
 
 const BREADCRUMB_LABELS: Record<string, string> = {

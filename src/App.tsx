@@ -35,6 +35,8 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const NewsletterConfirmPage = lazy(() => import("./pages/NewsletterConfirmPage"));
 const RastreioPage = lazy(() => import("./pages/RastreioPage"));
 const PagamentoErroPage = lazy(() => import("./pages/PagamentoErroPage"));
+const VideoPage = lazy(() => import("./pages/VideoPage"));
+const VideoUploadPage = lazy(() => import("./pages/VideoUploadPage"));
 
 // Lazy: admin (heavy)
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
@@ -89,6 +91,8 @@ const App = () => (
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/video" element={<VideoPage />} />
+                  <Route path="/video/enviar" element={<VideoUploadPage />} />
                   <Route path="/cafes" element={<CafesPage />} />
                   <Route path="/cafe/:slug" element={<ProdutoPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />

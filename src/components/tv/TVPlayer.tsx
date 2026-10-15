@@ -1,0 +1,170 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { nextVideoId, playableVideos, type TVVideo } from "@/lib/tvPlaylist";
+
+type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
+
+export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
+  const playlist = useMemo(() => playableVideos(videos), [videos]);
+  const stage = useRef<HTMLDivElement>(null);
+  const media = useRef<HTMLVideoElement>(null);
+  const lastProgress = useRef(Date.now());
+  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [failed, setFailed] = useState(new Set<string>());
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenHint, setFullscreenHint] = useState("");
+  const current = playlist.find(v => v.id === currentId && !failed.has(v.id))
+    ?? playlist.find(v => !failed.has(v.id));
+  const currentUrl = current?.url;
+  const selectedId = current?.id;
+
+  const showControls = useCallback(() => {
+    setControlsVisible(true);
+    clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setControlsVisible(false), 4500);
+  }, []);
+
+  const play = useCallback(() => {
+    const promise = media.current?.play();
+    promise?.then(() => setBlocked(false)).catch(error => {
+      if (error.name === "NotAllowedError") setBlocked(true);
+      // Aborted playback during a source change is expected; media errors use onError/watchdog.
+    });
+  }, []);
+
+  const advance = useCallback((broken = false) => {
+    const excluded = new Set(failed);
+    if (broken && current) excluded.add(current.id);
+    if (broken) setFailed(excluded);
+    const next = nextVideoId(playlist, current?.id ?? null, excluded);
+    setCurrentId(next);
+    if (next && next === current?.id && media.current) {
+      media.current.currentTime = 0;
+      play();
+    }
+    lastProgress.current = Date.now();
+  }, [current, failed, playlist, play]);
+
+  useEffect(() => {
+    lastProgress.current = Date.now();
+    setBlocked(false);
+    if (currentUrl) media.current?.load();
+  }, [currentUrl, selectedId]);
+
+  useEffect(() => {
+    if (paused) media.current?.pause();
+    else if (currentUrl) play();
+  }, [currentUrl, selectedId, paused, play]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (current && !paused && !blocked && Date.now() - lastProgress.current > 30_000) advance(true);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [advance, current, paused, blocked]);
+
+  useEffect(() => {
+    if (current || !playlist.length) return;
+    const timer = setTimeout(() => { setFailed(new Set()); setCurrentId(null); }, 30_000);
+    return () => clearTimeout(timer);
+  }, [current, playlist.length]);
+
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    stage.current?.focus();
+    showControls();
+    const update = () => setFullscreen(Boolean(document.fullscreenElement ||
+      (document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement));
+    document.addEventListener("fullscreenchange", update);
+    document.addEventListener("webkitfullscreenchange", update);
+    return () => {
+      document.body.style.overflow = previous;
+      clearTimeout(hideTimer.current);
+      document.removeEventListener("fullscreenchange", update);
+      document.removeEventListener("webkitfullscreenchange", update);
+    };
+  }, [showControls]);
+
+  // Best-effort screen wake lock, reacquired after switching back to the TV tab.
+  useEffect(() => {
+    let lock: WakeLockSentinel | undefined;
+    let cancelled = false;
+    const acquire = async () => {
+      if (document.visibilityState !== "visible" || !("wakeLock" in navigator) || lock && !lock.released) return;
+      try {
+        const acquired = await navigator.wakeLock.request("screen");
+        if (cancelled) await acquired.release(); else lock = acquired;
+      } catch { /* Older TVs and power-saving mode may deny wake locks. */ }
+    };
+    void acquire();
+    document.addEventListener("visibilitychange", acquire);
+    return () => { cancelled = true; void lock?.release(); document.removeEventListener("visibilitychange", acquire); };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    setFullscreenHint("");
+    try {
+      if (document.fullscreenElement) { await document.exitFullscreen(); return; }
+      const element = stage.current as WebkitElement | null;
+      if (element?.requestFullscreen) await element.requestFullscreen({ navigationUI: "hide" });
+      else if (element?.webkitRequestFullscreen) element.webkitRequestFullscreen();
+      else { setFullscreenHint("Use o modo tela cheia do navegador da TV."); return; }
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
+      void orientation?.lock?.("landscape").catch(() => {});
+    } catch { setFullscreenHint("Use o botão de tela cheia do navegador da TV."); }
+    play();
+  };
+
+  const togglePause = () => {
+    setPaused(value => !value);
+  };
+
+  const buttonClass = "rounded-full border border-white/25 bg-brown-deep/85 p-3 text-white hover:bg-gold focus-visible:ring-2 focus-visible:ring-gold transition-colors";
+
+  return (
+    <div ref={stage} tabIndex={0} aria-label="TV La Régence" className={`fixed inset-0 z-[150] h-[100dvh] w-screen overflow-hidden bg-brown-deep text-white outline-none ${controlsVisible || blocked ? "" : "cursor-none"}`}
+      onMouseMove={showControls} onPointerDown={showControls} onFocus={showControls}
+      onKeyDown={event => {
+        showControls();
+        if (event.target !== stage.current) return;
+        if (event.key === "Enter" || event.key.toLowerCase() === "f") { event.preventDefault(); void toggleFullscreen(); }
+        if (event.key === " ") { event.preventDefault(); togglePause(); }
+        if (event.key === "ArrowRight") { event.preventDefault(); advance(); }
+        if (event.key.toLowerCase() === "m") setMuted(value => !value);
+      }}>
+      {current ? (
+        <video ref={media} src={current.url} aria-label="Vídeo em exibição" autoPlay muted={muted} playsInline
+          preload="auto" controls={false} disablePictureInPicture
+          className="absolute inset-0 h-full w-full" style={{ objectFit: current.fit }}
+          onEnded={() => advance()} onError={() => advance(true)}
+          onTimeUpdate={() => { lastProgress.current = Date.now(); }} />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center gap-5 p-8 text-center">
+          <img src="/favicon.jpeg" alt="" className="h-24 w-24 rounded-full border border-gold/50 object-cover" />
+          <p className="font-display text-4xl lg:text-6xl">La Régence</p>
+          <p className="text-gold-light text-lg" role="status">{playlist.length ? "Tentando retomar a programação…" : "Nenhum vídeo ativo na programação."}</p>
+          <p className="text-white/60">{playlist.length ? "A reprodução será retomada automaticamente." : "Adicione vídeos em cafelaregence.com.br/video/enviar"}</p>
+        </div>
+      )}
+      {blocked && <div className="absolute inset-0 flex items-center justify-center bg-brown-deep/60">
+        <button className="rounded-full bg-gold px-8 py-5 text-lg text-white" onClick={() => { play(); setPaused(false); }} aria-label="Iniciar reprodução"><Play className="mr-3 inline h-6 w-6" />Iniciar reprodução</button>
+      </div>}
+      <div className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p></div>
+        {current && <>
+          <button className={buttonClass} onClick={togglePause} aria-label={paused ? "Reproduzir" : "Pausar"}>{paused ? <Play /> : <Pause />}</button>
+          <button className={buttonClass} onClick={() => advance()} aria-label="Próximo vídeo"><SkipForward /></button>
+          <button className={buttonClass} onClick={() => setMuted(value => !value)} aria-label={muted ? "Ativar som" : "Silenciar"}>{muted ? <VolumeX /> : <Volume2 />}</button>
+        </>}
+        <button className={buttonClass} onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}>{fullscreen ? <Minimize /> : <Maximize />}</button>
+        {fullscreenHint && <p className="w-full text-right text-sm" role="status">{fullscreenHint}</p>}
+      </div>
+    </div>
+  );
+}
