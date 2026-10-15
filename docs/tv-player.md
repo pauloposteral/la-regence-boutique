@@ -8,7 +8,7 @@ with server uploads controlled from a phone or computer.
 - Storage: public `tv-videos`, MP4/WebM, 50 MiB per file, server-enforced MIME/size limit.
 - Catalog: `tv_videos`, public SELECT only for active, unarchived rows; admin INSERT/UPDATE.
 - The actual existing brand video seeds the playlist. All uploaded files are stored remotely.
-- Ordering uses `sort_order`, then ID for deterministic ties. Playlist refreshes every minute.
+- Ordering uses `sort_order`, then ID for deterministic ties. Playlist refreshes every 15 seconds.
 - Archiving removes a video from the playlist but preserves the source object.
 - Video framing defaults to contain. Cover intentionally crops and never stretches.
 - Muted autoplay and viewport fill work immediately. Browser fullscreen and audio may need
@@ -94,3 +94,11 @@ O painel oferece busca local sem acentos, filtros Todos/Ativos/Pausados/Arquivad
 Contrato de UI do escopo: forms seguem campos nativos com validação inline/noValidate; enquadramento e filtros usam select nativo; confirmação pertence a AlertDialog; feedback pertence a Sonner; CRUD administra somente `tv_videos` com a autorização existente; arquivar preserva o arquivo e restaurar não reativa automaticamente. Scroll fica no documento do painel e no viewport exclusivo da TV. Cores/tipografia continuam nos tokens existentes de DESIGN.md,src/index.css,tailwind.config.ts. A busca e os filtros do painel são transitórios nesta ferramenta de uma página.
 
 O proprietário escolheu "4K automático" para os dez novos clipes. A origem escolhida é Pexels com arquivos MP4 públicos e referência/crédito por item; não são apresentados como vídeos virais nem como downloads do Instagram. A resolução real foi verificada com ffprobe, porque alguns URLs chamados4K entregaram1440p e foram rejeitados. Os originais têm15segundos ou mais; a janela programada será15s por item. O Tornado arquivado pelo proprietário permanece arquivado.
+
+## Publicação e conferência da auditoria — 15/10/2026
+
+PR #3 integrado em `ffc4130569557cb7757458cb25a154ea2642791d`. Publicação única no Lovable: `c8f7088b-0a80-4f4a-9ac8-21a8294ac47f`. O domínio retornou HTTP200, esse deployment no cabeçalho e entry `index-CiiqbgOW.js`, igual ao build validado. São64 testes aprovados; TypeScript, lint do escopo e build aprovados.
+
+Os dez itens novos foram ativados após publicar, todos com janela15s, origem/crédito Pexels e fallback1080p. Total:14ativos e1arquivado; o Tornado arquivado pelo proprietário não foi reativado.
+
+No navegador público, a sequência avançou sem interação do filme da marca para os arquivos enviados e para os novos clipes. O primeiro novo vídeo reproduziu4096×2160; foi pausado em15,002s (duração original15,516s), entrando o próximo3840×2160. Mais adiante, o clipe de extração original22,856s foi pausado em15,046s e entrou o seguinte4096×2160, ordinal11de14. Os decks mostraram opacidades0/1 e fusão CSS900ms. Screenshot de evidência: `TV-4K-auditoria.jpg`. A sessão administrativa autenticada e o aparelho físico da televisão não foram exercitados; cobertura administrativa por testes de componentes e autorização existente preservada.
