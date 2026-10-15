@@ -1226,9 +1226,11 @@ export type Database = {
           fit: string
           id: string
           sort_order: number
+          source_type: string
           storage_path: string | null
           title: string
           url: string
+          youtube_id: string | null
         }
         Insert: {
           active?: boolean
@@ -1237,9 +1239,11 @@ export type Database = {
           fit?: string
           id?: string
           sort_order?: number
+          source_type?: string
           storage_path?: string | null
           title: string
           url: string
+          youtube_id?: string | null
         }
         Update: {
           active?: boolean
@@ -1248,9 +1252,11 @@ export type Database = {
           fit?: string
           id?: string
           sort_order?: number
+          source_type?: string
           storage_path?: string | null
           title?: string
           url?: string
+          youtube_id?: string | null
         }
         Relationships: []
       }
