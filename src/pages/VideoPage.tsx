@@ -14,6 +14,6 @@ export default function VideoPage() {
         <p role="status">{isLoading ? "Preparando a programação…" : "Não foi possível carregar a programação. Verifique a conexão da TV."}</p>
         {isError && <button className="rounded-full bg-gold px-6 py-3" onClick={() => void refetch()}>Tentar novamente</button>}
       </div>
-    ) : <TVPlayer videos={data ?? []} initialId={params.get("iniciar")} onRefresh={() => void refetch()} refreshing={isFetching} />}
+    ) : <TVPlayer videos={data ?? []} initialId={params.get("iniciar")} onRefresh={async () => { await refetch({throwOnError:true}); }} refreshing={isFetching} />}
   </>;
 }

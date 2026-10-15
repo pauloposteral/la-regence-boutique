@@ -6,7 +6,7 @@ import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
-export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null }: { videos: TVVideo[]; onRefresh?: () => void; refreshing?: boolean; initialId?: string | null }) {
+export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
   const media = useRef<PlaybackHandle>(null);
@@ -22,9 +22,19 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const [fullscreenHint, setFullscreenHint] = useState("");
   const [playback, setPlayback] = useState({seconds:0, duration:0});
   const [notice, setNotice] = useState("");
-  useEffect(() => {
-    if (!refreshing && notice === "Atualizando a programação…") setNotice("Programação atualizada.");
-  }, [refreshing, notice]);
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const refreshProgramming = async () => {
+    if (!onRefresh || refreshing || manualRefreshing) return;
+    setManualRefreshing(true);
+    setNotice("Atualizando a programação…");
+    try {
+      await onRefresh();
+      setFailed(new Set());
+      setNotice("Programação atualizada.");
+    } catch {
+      setNotice("Não foi possível atualizar. Confira a conexão e tente novamente.");
+    } finally { setManualRefreshing(false); }
+  };
   const playlistKey = playlist.map(v => `${v.id}:${v.url}`).join("|");
   useEffect(() => { setFailed(new Set()); }, [playlistKey]);
   const current = playlist.find(v => v.id === currentId && !failed.has(v.id))
@@ -163,7 +173,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
           <button className={buttonClass} onClick={() => advance()} aria-label="Próximo vídeo"><SkipForward /></button>
           <button className={buttonClass} onClick={() => setMuted(value => !value)} aria-label={muted ? "Ativar som" : "Silenciar"}>{muted ? <VolumeX /> : <Volume2 />}</button>
         </>}
-        {onRefresh && <button className={buttonClass} disabled={refreshing} onClick={() => { setFailed(new Set()); onRefresh(); setNotice("Atualizando a programação…"); }} aria-label="Atualizar programação"><RotateCcw className={refreshing ? "animate-spin" : ""} /></button>}
+        {onRefresh && <button className={buttonClass} disabled={refreshing || manualRefreshing} onClick={() => void refreshProgramming()} aria-label="Atualizar programação"><RotateCcw className={refreshing || manualRefreshing ? "animate-spin" : ""} /></button>}
         <button className={buttonClass} onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}>{fullscreen ? <Minimize /> : <Maximize />}</button>
         {notice && <p className="w-full text-sm text-white/70" role="status">{notice}</p>}
         {fullscreenHint && <p className="w-full text-right text-sm" role="status">{fullscreenHint}</p>}

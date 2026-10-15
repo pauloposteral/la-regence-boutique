@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTVVideos } from "@/hooks/useTVVideos";
 import { inspectVideo, uploadTVVideo } from "@/lib/tvUpload";
+import { nextUploadOrder } from "@/lib/tvPlaylist";
 import { parseYouTubeUrl } from "@/lib/youtube";
 import { TV_BUCKET, validateVideoFile, type TVVideo } from "@/lib/tvPlaylist";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -156,7 +157,7 @@ export default function VideoManager() {
       uploadedPath = result.path;
       if (controller.current.signal.aborted) throw new DOMException("Envio cancelado", "AbortError");
       setPhase("Adicionando à programação…");
-      const nextOrder = Math.max(0, ...videos.map(v => v.sort_order)) + 1;
+      const nextOrder = nextUploadOrder(videos);
       const { error } = await supabase.from("tv_videos").insert({ title: title.trim(), url: result.url, storage_path: result.path, active, sort_order: nextOrder, fit: "contain" });
       if (error) throw error;
       registered = true;
@@ -235,7 +236,7 @@ function YouTubeForm({ videos, refresh, disabled }: { videos: TVVideo[]; refresh
     try {
       const { error: insertError } = await supabase.from("tv_videos").insert({
         title: title.trim(), url: parsed.url, source_type: "youtube", youtube_id: parsed.id,
-        storage_path: null, fit: "contain", active, sort_order: Math.min(999999, Math.max(0, ...videos.map(v => v.sort_order)) + 1),
+        storage_path: null, fit: "contain", active, sort_order: nextUploadOrder(videos),
       });
       if (insertError) throw insertError;
       await refresh(); setUrl(""); setTitle("");
