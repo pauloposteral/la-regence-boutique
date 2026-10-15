@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, Film, MonitorPlay, Pause, Play, RefreshCw, UploadCloud } from "lucide-react";
+import { Archive, ArchiveRestore, Check, ChevronDown, Film, MonitorPlay, Pause, Play, RefreshCw, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTVVideos } from "@/hooks/useTVVideos";
-import { inspectVideo, uploadTVVideo } from "@/lib/tvUpload";
+import { inspectVideo, uploadTVPoster, uploadTVVideo } from "@/lib/tvUpload";
 import { nextUploadOrder } from "@/lib/tvPlaylist";
 import { parseYouTubeUrl } from "@/lib/youtube";
 import { TV_BUCKET, validateVideoFile, type TVVideo } from "@/lib/tvPlaylist";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const actionClass = "inline-flex items-center justify-center gap-2 rounded-full border border-gold/35 px-5 py-3 text-sm text-brown-dark transition-colors hover:bg-gold/10 disabled:opacity-50";
+import VideoThumbnail from "./VideoThumbnail";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+const rowActionClass = "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/30 px-3 py-2 text-xs text-brown-dark hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-50";
 const PAGE_SIZE = 12;
 const searchableTitle = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 type PlaylistFilter = "all" | "active" | "paused" | "archived";
@@ -26,12 +30,14 @@ function safeSourceUrl(value?: string | null): string | null {
   } catch { return null; }
 }
 
-function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<void> }) {
+export function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<void> }) {
   const [title, setTitle] = useState(video.title);
   const [order, setOrder] = useState(video.sort_order);
   const [fit, setFit] = useState(video.fit);
   const [duration, setDuration] = useState(video.max_duration_seconds?.toString() ?? "");
   const [showPreview, setShowPreview] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const editTrigger = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(false);
   const archived = !!video.archived_at;
   const sourceUrl = safeSourceUrl(video.source_url);
@@ -44,7 +50,8 @@ function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<v
       if (error) throw error;
       await refresh();
       toast.success("Programação atualizada. A TV receberá a alteração em até 15 segundos.");
-    } catch { toast.error("Não foi possível salvar. Confira sua conexão e tente novamente."); }
+      return true;
+    } catch { toast.error("Não foi possível salvar. Confira sua conexão e tente novamente."); return false; }
     finally { setBusy(false); }
   };
   const save = (event: FormEvent<HTMLFormElement>) => {
@@ -61,41 +68,49 @@ function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<v
       return;
     }
     setFormError("");
-    void update({ title: title.trim(), sort_order: order, fit, max_duration_seconds: maxDuration });
+    void update({ title: title.trim(), sort_order: order, fit, max_duration_seconds: maxDuration }).then(saved => { if (saved) {setEditing(false);editTrigger.current?.focus();} });
   };
-  return <article aria-label={video.title} className={`overflow-hidden rounded-xl border bg-white ${video.active && !archived ? "border-gold/30" : "border-border"}`}>
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-      <h3 className="min-w-0 break-words text-sm font-medium">{video.title}</h3>
-      <span className="rounded-full bg-cream px-3 py-1 text-xs text-muted-foreground">{video.source_type === "youtube" ? "YouTube · " : "Arquivo · "}{archived ? "Arquivado" : video.active ? "Na programação" : "Pausado"}</span>
-    </div>
-    {(sourceUrl || video.credit) && <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 pt-3 text-xs text-muted-foreground">
-      {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-brown-dark underline decoration-gold/60 underline-offset-4 hover:text-gold-dark">Ver origem do vídeo</a>}
-      {video.credit && <p className="break-words">Crédito: {video.credit}</p>}
-    </div>}
-    <form noValidate onSubmit={save} className="space-y-3 p-4">
-      <label className="block space-y-2 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => setTitle(e.target.value)} /></label>
-      <div className="grid grid-cols-[80px_1fr] gap-3">
-        <label className="space-y-2 text-xs text-muted-foreground"><span>Ordem</span><input name="order" className={inputClass} type="number" min={0} max={999999} required value={order} onChange={e => setOrder(Number(e.target.value))} /></label>
-        <label className="space-y-2 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => setFit(e.target.value as TVVideo["fit"])}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
+  const cancelEdit = () => {
+    setTitle(video.title); setOrder(video.sort_order); setFit(video.fit);
+    setDuration(video.max_duration_seconds?.toString() ?? ""); setFormError(""); setEditing(false); editTrigger.current?.focus();
+  };
+  return <Collapsible open={editing} onOpenChange={setEditing} asChild>
+    <article aria-label={video.title} className={`overflow-hidden rounded-xl border bg-white ${video.active && !archived ? "border-gold/30" : "border-border"}`}>
+      <div className="flex items-center gap-3 p-3">
+        <button type="button" className="aspect-video w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-brown-deep ring-gold hover:ring-2 focus-visible:outline-none focus-visible:ring-2 sm:w-32" aria-label={`Ver prévia de ${video.title}`} aria-expanded={showPreview} onClick={() => setShowPreview(value => !value)}><VideoThumbnail video={video} /></button>
+        <div className="min-w-0 flex-1">
+          <h3 className="break-words text-sm font-medium leading-snug">{video.title}</h3>
+          <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground"><span>Ordem {video.sort_order}</span><span>{video.source_type === "youtube" ? "YouTube" : "Arquivo"}</span><span>{video.max_duration_seconds ? `${video.max_duration_seconds} s` : "Vídeo inteiro"}</span></p>
+          <span className="mt-1.5 inline-block rounded-full bg-cream px-2 py-0.5 text-[10px] font-medium">{archived ? "Arquivado" : video.active ? "Na programação" : "Pausado"}</span>
+        </div>
       </div>
-      <div className="space-y-2 text-xs text-muted-foreground"><label htmlFor={`video-duration-input-${video.id}`} className="block">Tempo na TV (segundos, opcional)</label><input id={`video-duration-input-${video.id}`} name="duration" className={inputClass} type="number" min={1} max={3600} step={1} value={duration} placeholder="Vídeo inteiro" aria-describedby={`video-duration-${video.id}`} onChange={event => setDuration(event.target.value)} /><span id={`video-duration-${video.id}`} className="block leading-relaxed">Em branco, toca o vídeo inteiro. Para passar ao próximo após 15 segundos, informe 15.</span></div>
-      {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
-      <div className="flex flex-wrap gap-2">
-        <button type="submit" disabled={busy} className={actionClass}><Check size={16} />Salvar</button>
-        {archived ? <button type="button" disabled={busy} className={actionClass} onClick={() => void update({ active: false, archived_at: null })}><ArchiveRestore size={16} />Restaurar como pausado</button> : <>
-          <button type="button" disabled={busy} className={actionClass} onClick={() => void update({ active: !video.active })}>{video.active ? <Pause size={16} /> : <Play size={16} />}{video.active ? "Pausar na TV" : "Ativar na TV"}</button>
-          {video.active && <a href={`/video?iniciar=${encodeURIComponent(video.id)}`} target="_blank" rel="noopener noreferrer" className={actionClass}><MonitorPlay size={16} />Ver na TV</a>}
-          <AlertDialog><AlertDialogTrigger asChild><button type="button" disabled={busy} className={actionClass} aria-label={`Arquivar ${video.title}`}><Archive size={16} />Arquivar</button></AlertDialogTrigger>
+      <div className="flex flex-wrap items-center gap-1.5 px-3 pb-3">
+        <CollapsibleTrigger asChild><button ref={editTrigger} type="button" disabled={busy} className={rowActionClass}><ChevronDown size={14} className={editing ? "rotate-180" : ""} />{editing ? "Fechar edição" : "Editar"}</button></CollapsibleTrigger>
+        {archived ? <button type="button" disabled={busy} className={rowActionClass} onClick={() => void update({ active: false, archived_at: null })}><ArchiveRestore size={14} />Restaurar como pausado</button> : <>
+          <button type="button" disabled={busy} className={rowActionClass} onClick={() => void update({ active: !video.active })}>{video.active ? <Pause size={14} /> : <Play size={14} />}{video.active ? "Pausar na TV" : "Ativar na TV"}</button>
+          {video.active && <a href={`/video?iniciar=${encodeURIComponent(video.id)}`} target="_blank" rel="noopener noreferrer" className={rowActionClass}><MonitorPlay size={14} />Ver na TV</a>}
+          <AlertDialog><AlertDialogTrigger asChild><button type="button" disabled={busy} className={`${rowActionClass} ml-auto`} aria-label={`Arquivar ${video.title}`}><Archive size={14} />Arquivar</button></AlertDialogTrigger>
             <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Arquivar este vídeo?</AlertDialogTitle><AlertDialogDescription>“{video.title}” sairá da programação. O arquivo será preservado e poderá ser restaurado como pausado na lista de arquivados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel className="rounded-full">Cancelar</AlertDialogCancel><AlertDialogAction className="rounded-full" onClick={() => void update({ active: false, archived_at: new Date().toISOString() })}>Arquivar vídeo</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
           </AlertDialog>
         </>}
-        <button type="button" className={actionClass} aria-expanded={showPreview} aria-controls={`video-preview-${video.id}`} onClick={() => setShowPreview(value => !value)}>{showPreview ? "Fechar prévia" : "Mostrar prévia"}</button>
+        <button type="button" className={rowActionClass} aria-expanded={showPreview} aria-controls={`video-preview-${video.id}`} onClick={() => setShowPreview(value => !value)}>{showPreview ? "Fechar prévia" : "Mostrar prévia"}</button>
       </div>
-    </form>
-    {showPreview && <div id={`video-preview-${video.id}`} className="aspect-video bg-brown-deep">
-      {video.source_type === "youtube" ? <iframe title={`Prévia: ${video.title}`} src={`https://www.youtube.com/embed/${video.youtube_id}`} className="h-full w-full" loading="lazy" allow="encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <video src={video.url} controls playsInline preload="none" className="h-full w-full object-contain" aria-label={`Prévia: ${video.title}`} />}
-    </div>}
-  </article>;
+      <CollapsibleContent className="border-t border-border">
+        {(sourceUrl || video.credit) && <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 pt-3 text-xs text-muted-foreground">{sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-brown-dark underline decoration-gold/60 underline-offset-4 hover:text-gold-dark">Ver origem do vídeo</a>}{video.credit && <p className="break-words">Crédito: {video.credit}</p>}</div>}
+        <form noValidate onSubmit={save} className="space-y-3 p-3">
+          <label className="block space-y-1 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => setTitle(e.target.value)} /></label>
+          <div className="grid grid-cols-[80px_1fr] gap-3">
+            <label className="space-y-1 text-xs text-muted-foreground"><span>Ordem</span><input name="order" className={inputClass} type="number" min={0} max={999999} required value={order} onChange={e => setOrder(Number(e.target.value))} /></label>
+            <label className="space-y-1 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => setFit(e.target.value as TVVideo["fit"])}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
+          </div>
+          <div className="space-y-1 text-xs text-muted-foreground"><label htmlFor={`video-duration-input-${video.id}`} className="block">Tempo na TV (segundos, opcional)</label><input id={`video-duration-input-${video.id}`} name="duration" className={inputClass} type="number" min={1} max={3600} step={1} value={duration} placeholder="Vídeo inteiro" aria-describedby={`video-duration-${video.id}`} onChange={event => setDuration(event.target.value)} /><span id={`video-duration-${video.id}`} className="block leading-relaxed">Em branco, toca o vídeo inteiro. Para passar ao próximo após 15 segundos, informe 15.</span></div>
+          {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
+          <div className="flex gap-2"><button type="submit" disabled={busy} className={rowActionClass}><Check size={14} />Salvar</button><button type="button" disabled={busy} className={rowActionClass} onClick={cancelEdit}>Cancelar</button></div>
+        </form>
+      </CollapsibleContent>
+      {showPreview && <div id={`video-preview-${video.id}`} className="aspect-video bg-brown-deep">{video.source_type === "youtube" ? <iframe title={`Prévia: ${video.title}`} src={`https://www.youtube.com/embed/${video.youtube_id}`} className="h-full w-full" loading="lazy" allow="encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <video src={video.url} controls playsInline preload="none" className="h-full w-full object-contain" aria-label={`Prévia: ${video.title}`} />}</div>}
+    </article>
+  </Collapsible>;
 }
 
 export default function VideoManager() {
@@ -149,6 +164,7 @@ export default function VideoManager() {
     setBusy(true); setValidation(""); setProgress(0); setPhase("Verificando vídeo…");
     controller.current = new AbortController();
     let uploadedPath: string | undefined;
+    let posterPath: string | undefined;
     let registered = false;
     try {
       await inspectVideo(file);
@@ -156,9 +172,19 @@ export default function VideoManager() {
       const result = await uploadTVVideo(file, controller.current.signal, value => { if (mounted.current) setProgress(value); });
       uploadedPath = result.path;
       if (controller.current.signal.aborted) throw new DOMException("Envio cancelado", "AbortError");
+      setPhase("Gerando capa…");
+      let posterUrl: string | null = null;
+      try {
+        const poster = await uploadTVPoster(file, result.path, controller.current.signal);
+        posterPath = poster.path; posterUrl = poster.url;
+      } catch (error) {
+        if (controller.current.signal.aborted) throw error;
+        toast.message("A capa não pôde ser gerada. O vídeo será salvo normalmente.");
+      }
+      if (controller.current.signal.aborted) throw new DOMException("Envio cancelado", "AbortError");
       setPhase("Adicionando à programação…");
       const nextOrder = nextUploadOrder(videos);
-      const { error } = await supabase.from("tv_videos").insert({ title: title.trim(), url: result.url, storage_path: result.path, active, sort_order: nextOrder, fit: "contain" });
+      const { error } = await supabase.from("tv_videos").insert({ title: title.trim(), url: result.url, storage_path: result.path, poster_url:posterUrl, active, sort_order: nextOrder, fit: "contain" });
       if (error) throw error;
       registered = true;
       await refresh();
@@ -167,7 +193,7 @@ export default function VideoManager() {
         setFile(null); setTitle(""); if (input.current) input.current.value = "";
       }
     } catch (error) {
-      if (uploadedPath && !registered) await supabase.storage.from(TV_BUCKET).remove([uploadedPath]);
+      if (uploadedPath && !registered) void supabase.storage.from(TV_BUCKET).remove(posterPath ? [uploadedPath,posterPath] : [uploadedPath]).catch(()=>{});
       if (mounted.current) setValidation(error instanceof Error ? error.message : "Não foi possível enviar o vídeo. Tente novamente.");
     } finally { if (mounted.current) { setBusy(false); setPhase(""); } }
   };
@@ -212,7 +238,7 @@ export default function VideoManager() {
         </div>
         {isLoading ? <p role="status">Carregando vídeos…</p> : isError ? <div role="alert"><p>Não foi possível carregar os vídeos.</p><button className={`${actionClass} mt-3`} onClick={() => void refreshList()}>Tentar novamente</button></div> : filteredVideos.length ? <>
           <p role="status" className="mb-3 text-xs text-muted-foreground">{filteredVideos.length} {filteredVideos.length === 1 ? "vídeo encontrado" : "vídeos encontrados"} · Página {currentPage} de {pageCount}</p>
-          <div className="grid gap-4 xl:grid-cols-2">{pageVideos.map(video => <VideoRow key={video.id} video={video} refresh={refresh} />)}</div>
+          <div className="space-y-2">{pageVideos.map(video => <VideoRow key={video.id} video={video} refresh={refresh} />)}</div>
           {pageCount > 1 && <nav aria-label="Páginas da programação" className="mt-5 flex items-center justify-between gap-3"><button type="button" className={actionClass} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Anterior</button><span className="text-xs text-muted-foreground">Página {currentPage} de {pageCount}</span><button type="button" className={actionClass} disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Próxima</button></nav>}
         </> : <div className="rounded-xl border border-dashed border-gold/30 p-8 text-center"><Film className="mx-auto mb-4 h-9 w-9 text-gold" /><p>{videos.length ? "Nenhum vídeo encontrado para esta busca ou filtro." : "Nenhum vídeo na programação. Envie o primeiro ao lado."}</p>{(search || filter !== "all") && <button type="button" className={`${actionClass} mt-4`} onClick={() => { setSearch(""); setFilter("all"); setPage(1); }}>Mostrar todos</button>}</div>}
 

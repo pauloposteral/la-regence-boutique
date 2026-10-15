@@ -3,10 +3,11 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import VideoManager from './VideoManager';
 import type { TVVideo } from '@/lib/tvPlaylist';
-const { insert, update, eq, single, refresh, refetch, playlist } = vi.hoisted(() => ({
+const { insert, update, eq, single, refresh, refetch, playlist, uploadPoster } = vi.hoisted(() => ({
  insert:vi.fn(), update:vi.fn(), eq:vi.fn(), single:vi.fn(),
  refresh:vi.fn().mockResolvedValue(undefined), refetch:vi.fn().mockResolvedValue({error:null}),
  playlist:{videos:[] as TVVideo[]},
+ uploadPoster:vi.fn(),
 }));
 vi.mock('@/integrations/supabase/client', () => ({supabase:{from:() => ({insert, update})}}));
 vi.mock('@/hooks/useTVVideos', () => ({useTVVideos:() => ({data:playlist.videos,isLoading:false,isError:false,refetch})}));
@@ -14,12 +15,53 @@ vi.mock('@tanstack/react-query', () => ({useQueryClient:() => ({invalidateQuerie
 vi.mock('@/lib/tvUpload', () => ({
  inspectVideo:vi.fn().mockResolvedValue(undefined),
  uploadTVVideo:vi.fn().mockResolvedValue({path:'new.mp4',url:'https://example.com/new.mp4'}),
+ uploadTVPoster:uploadPoster,
 }));
 const video = (id: string, values: Partial<TVVideo> = {}): TVVideo => ({
  id, title:`Vídeo ${id}`, url:`https://example.com/${id}.mp4`, storage_path:`${id}.mp4`,
  sort_order:0, active:true, archived_at:null, fit:'contain', source_type:'file', max_duration_seconds:null, ...values,
 });
 const showManager = () => render(<MemoryRouter><VideoManager /></MemoryRouter>);
+it('shows a lightweight poster and keeps editing fields collapsed until requested', () => {
+ playlist.videos=[video('coffee',{poster_url:'https://example.com/coffee.jpg'})];
+ showManager();
+ const row=within(screen.getByRole('article',{name:'Vídeo coffee'}));
+ expect(row.getByRole('img',{name:'Capa: Vídeo coffee'})).toHaveAttribute('src','https://example.com/coffee.jpg');
+ expect(row.queryByLabelText('Nome do vídeo')).not.toBeInTheDocument();
+ expect(document.querySelector('video')).not.toBeInTheDocument();
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ expect(row.getByLabelText('Nome do vídeo')).toHaveValue('Vídeo coffee');
+ fireEvent.change(row.getByLabelText('Nome do vídeo'),{target:{value:'Rascunho'}});
+ fireEvent.click(row.getByRole('button',{name:'Cancelar'}));
+ expect(row.queryByLabelText('Nome do vídeo')).not.toBeInTheDocument();
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ expect(row.getByLabelText('Nome do vídeo')).toHaveValue('Vídeo coffee');
+ expect(update).not.toHaveBeenCalled();
+});
+it('identifies YouTube with its thumbnail without mounting the iframe', () => {
+ playlist.videos=[video('youtube',{source_type:'youtube',youtube_id:'M7lc1UVf-VE'})];
+ showManager();
+ expect(screen.getByRole('img',{name:'Capa: Vídeo youtube'})).toHaveAttribute('src','https://i.ytimg.com/vi/M7lc1UVf-VE/mqdefault.jpg');
+ expect(document.querySelector('iframe')).not.toBeInTheDocument();
+});
+it('shows an honest placeholder when a poster fails', () => {
+ playlist.videos=[video('coffee',{poster_url:'https://example.com/coffee.jpg'})];
+ showManager();
+ fireEvent.error(screen.getByRole('img',{name:'Capa: Vídeo coffee'}));
+ expect(screen.getByText('Sem capa')).toBeInTheDocument();
+ expect(document.querySelector('video')).not.toBeInTheDocument();
+});
+it('returns keyboard focus to Edit after a pending save completes', async () => {
+ let finish!: (value:{error:null})=>void;
+ single.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+ playlist.videos=[video('coffee')];showManager();
+ const row=within(screen.getByRole('article',{name:'Vídeo coffee'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ const save=row.getByRole('button',{name:'Salvar'});save.focus();fireEvent.click(save);
+ await waitFor(()=>expect(single).toHaveBeenCalled());
+ finish({error:null});
+ await waitFor(()=>expect(row.getByRole('button',{name:'Editar'})).toHaveFocus());
+});
 it.each([
  {archived:true, expected:11},
  {archived:false, expected:999999},
@@ -48,8 +90,27 @@ beforeEach(() => {
  update.mockReturnValue({eq});
  eq.mockReturnValue({select:() => ({single})});
  single.mockResolvedValue({error:null});
+ uploadPoster.mockResolvedValue({path:'new.jpg',url:'https://example.com/new.jpg'});
 });
 afterEach(() => {cleanup();vi.clearAllMocks();});
+it('saves the generated poster with a new uploaded video', async () => {
+ insert.mockResolvedValue({error:null});
+ showManager();
+ const file=new File(['video'],'cafe.mp4',{type:'video/mp4'});
+ fireEvent.change(document.getElementById('tv-video-file')!,{target:{files:[file]}});
+ fireEvent.click(screen.getByRole('button',{name:'Enviar vídeo'}));
+ await waitFor(()=>expect(insert).toHaveBeenCalledWith(expect.objectContaining({poster_url:'https://example.com/new.jpg'})));
+ expect(uploadPoster).toHaveBeenCalledWith(file,'new.mp4',expect.any(AbortSignal));
+});
+it('still saves the video when optional poster generation fails', async () => {
+ uploadPoster.mockRejectedValue(new Error('canvas unavailable'));
+ insert.mockResolvedValue({error:null});
+ showManager();
+ fireEvent.change(document.getElementById('tv-video-file')!,{target:{files:[new File(['video'],'cafe.mp4',{type:'video/mp4'})]}});
+ fireEvent.click(screen.getByRole('button',{name:'Enviar vídeo'}));
+ await waitFor(()=>expect(insert).toHaveBeenCalledWith(expect.objectContaining({url:'https://example.com/new.mp4',poster_url:null})));
+ await waitFor(()=>expect(refresh).toHaveBeenCalled());
+});
 it('validates YouTube links then saves a canonical source into the shared programming', async () => {
  insert.mockResolvedValue({error:null});
  render(<MemoryRouter><VideoManager /></MemoryRouter>);
@@ -141,13 +202,15 @@ it('saves an optional 15-second limit and clears it back to the whole video', as
  playlist.videos = [video('coffee')];
  showManager();
  const row = within(screen.getByRole('article', {name:'Vídeo coffee'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
  const duration = row.getByLabelText('Tempo na TV (segundos, opcional)');
  fireEvent.change(duration, {target:{value:'15'}});
  fireEvent.click(row.getByRole('button', {name:'Salvar'}));
  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
  expect(update).toHaveBeenLastCalledWith(expect.objectContaining({max_duration_seconds:15}));
- await waitFor(() => expect(row.getByRole('button', {name:'Salvar'})).toBeEnabled());
- fireEvent.change(duration, {target:{value:''}});
+ await waitFor(() => expect(row.getByRole('button', {name:'Editar'})).toBeEnabled());
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ fireEvent.change(row.getByLabelText('Tempo na TV (segundos, opcional)'), {target:{value:''}});
  fireEvent.click(row.getByRole('button', {name:'Salvar'}));
  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(2));
  expect(update).toHaveBeenLastCalledWith(expect.objectContaining({max_duration_seconds:null}));
@@ -157,6 +220,7 @@ it.each(['0', '3601', '1.5'])('rejects an invalid per-video limit of %s seconds'
  playlist.videos = [video('coffee')];
  showManager();
  const row = within(screen.getByRole('article', {name:'Vídeo coffee'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
  fireEvent.change(row.getByLabelText('Tempo na TV (segundos, opcional)'), {target:{value:invalid}});
  fireEvent.click(row.getByRole('button', {name:'Salvar'}));
  expect(row.getByRole('alert')).toHaveTextContent('entre 1 e 3600 segundos');
@@ -180,6 +244,7 @@ it('shows an HTTPS source link and plain-text credit without altering saved meta
  playlist.videos = [video('source', {source_url:'https://www.pexels.com/video/123/', credit:'Autor no Pexels'})];
  showManager();
  const row = within(screen.getByRole('article', {name:'Vídeo source'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
  const link = row.getByRole('link', {name:'Ver origem do vídeo'});
  expect(link).toHaveAttribute('href', 'https://www.pexels.com/video/123/');
  expect(link).toHaveAttribute('target', '_blank');
@@ -193,6 +258,7 @@ it.each(['javascript:alert(1)', 'http://example.com/video', 'not a URL', 'https:
  playlist.videos = [video('source', {source_url, credit:'Autor'})];
  showManager();
  const row = within(screen.getByRole('article', {name:'Vídeo source'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
  expect(row.queryByRole('link', {name:'Ver origem do vídeo'})).not.toBeInTheDocument();
  expect(row.getByText('Crédito: Autor')).toBeInTheDocument();
 });

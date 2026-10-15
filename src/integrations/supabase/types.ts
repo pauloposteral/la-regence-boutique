@@ -1220,6 +1220,7 @@ export type Database = {
       }
       tv_videos: {
         Row: {
+          poster_url: string | null
           fallback_url: string | null
           max_duration_seconds: number | null
           source_url: string | null
@@ -1237,6 +1238,7 @@ export type Database = {
           youtube_id: string | null
         }
         Insert: {
+          poster_url?: string | null
           fallback_url?: string | null
           max_duration_seconds?: number | null
           source_url?: string | null
@@ -1254,6 +1256,7 @@ export type Database = {
           youtube_id?: string | null
         }
         Update: {
+          poster_url?: string | null
           fallback_url?: string | null
           max_duration_seconds?: number | null
           source_url?: string | null
