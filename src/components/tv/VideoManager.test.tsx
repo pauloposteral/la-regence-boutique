@@ -1,0 +1,33 @@
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import VideoManager from './VideoManager';
+const { insert, refresh } = vi.hoisted(() => ({insert:vi.fn(),refresh:vi.fn().mockResolvedValue(undefined)}));
+vi.mock('@/integrations/supabase/client', () => ({supabase:{from:() => ({insert})}}));
+vi.mock('@/hooks/useTVVideos', () => ({useTVVideos:() => ({data:[],isLoading:false,isError:false,refetch:vi.fn()})}));
+vi.mock('@tanstack/react-query', () => ({useQueryClient:() => ({invalidateQueries:refresh})}));
+afterEach(() => {cleanup();vi.clearAllMocks();});
+it('validates YouTube links then saves a canonical source into the shared programming', async () => {
+ insert.mockResolvedValue({error:null});
+ render(<MemoryRouter><VideoManager /></MemoryRouter>);
+ const form=within(screen.getByRole('form',{name:'Adicionar YouTube'}));
+ fireEvent.change(form.getByLabelText('Link do YouTube'),{target:{value:'https://youtube.com.evil.test/watch?v=M7lc1UVf-VE'}});
+ fireEvent.click(form.getByRole('button',{name:'Adicionar à programação'}));
+ expect(form.getByRole('alert')).toHaveTextContent('link válido'); expect(insert).not.toHaveBeenCalled();
+ fireEvent.change(form.getByLabelText('Link do YouTube'),{target:{value:'https://youtu.be/M7lc1UVf-VE?si=abc'}});
+ fireEvent.change(form.getByLabelText('Nome para a programação'),{target:{value:' Nosso café '}});
+ fireEvent.click(form.getByRole('button',{name:'Adicionar à programação'}));
+ await waitFor(() => expect(refresh).toHaveBeenCalled());
+ expect(insert).toHaveBeenCalledWith(expect.objectContaining({title:'Nosso café',url:'https://www.youtube.com/watch?v=M7lc1UVf-VE',youtube_id:'M7lc1UVf-VE',source_type:'youtube',storage_path:null,fit:'contain',active:true}));
+ expect(form.getByLabelText('Link do YouTube')).toHaveValue('');
+});
+it('keeps the input when saving fails so an admin can retry', async () => {
+ insert.mockResolvedValue({error:new Error('offline')});
+ render(<MemoryRouter><VideoManager /></MemoryRouter>);
+ const form=within(screen.getByRole('form',{name:'Adicionar YouTube'}));
+ fireEvent.change(form.getByLabelText('Link do YouTube'),{target:{value:'https://youtu.be/M7lc1UVf-VE'}});
+ fireEvent.change(form.getByLabelText('Nome para a programação'),{target:{value:'Café'}});
+ fireEvent.click(form.getByRole('button',{name:'Adicionar à programação'}));
+ await waitFor(() => expect(form.getByRole('alert')).toHaveTextContent('Não foi possível'));
+ expect(form.getByLabelText('Link do YouTube')).toHaveValue('https://youtu.be/M7lc1UVf-VE');
+});
