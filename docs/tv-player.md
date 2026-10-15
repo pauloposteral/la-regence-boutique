@@ -39,9 +39,13 @@ Permission and data lifecycle rules originate in the migration, not client-side 
 - Anonymous Storage upload is rejected by row-level security.
 - Database transactions verify admin INSERT/read/UPDATE and deny customer INSERT/UPDATE;
   all test changes were rolled back. RLS and the real Storage bucket are configured.
-- No real administrative video upload has been performed, and no physical TV/browser
-  playback was verified. Local Chromium installation failed; the cloud browser cannot
-  reach localhost. These are explicit verification limits, not claims of success.
+- Public browser playback was verified after deployment: 1920×1080 brand film,
+  muted autoplay, readyState 4, no media errors, no page scrolling, repeated looping
+  beyond the 8-second film duration, and pause/resume preserving position.
+- `/video/enviar` correctly redirects signed-out visitors to
+  `/auth?next=%2Fvideo%2Fenviar`. No real administrative video upload or physical
+  television test has been performed. The cloud browser declined native fullscreen;
+  the player displayed its fallback instruction to use browser fullscreen.
 - Full-repository lint reports 304 existing errors and 20 existing warnings; the new
   feature code is clean. Existing build warnings concern the old Browserslist dataset
   and large unrelated app bundles.
@@ -51,3 +55,14 @@ Permission and data lifecycle rules originate in the migration, not client-side 
   (America/Sao_Paulo), the user approved publishing the code to the public GitHub
   repository and deploying through Lovable. The GitHub connector confirms admin/push
   access for account `pauloposteral`.
+
+## Published release
+
+- Public player: https://cafelaregence.com.br/video
+- Upload entry point: https://cafelaregence.com.br/video/enviar
+- GitHub pull request: https://github.com/pauloposteral/la-regence-boutique/pull/1 (merged)
+- Deployed source revision: `d272ab99e4324cef2b8e5fa20a95d69a2a9bdccf`.
+- Lovable deployment: `5e08f309-bfc8-40bc-98c0-784922cfd703`, confirmed by the
+  custom domain's `x-deployment-id` response header and live route behavior.
+- Browser verification: 15 October 2026, approximately 09:00 America/Sao_Paulo.
+- Screenshot of the actual published player: `evidence/tv-live-1792065651745.jpg`.
