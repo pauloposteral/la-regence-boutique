@@ -18,6 +18,18 @@ export interface TVVideo {
 export const TV_BUCKET = "tv-videos";
 export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
+export function fileSourceUrl(url: string): string {
+  let source = url.trim().split("#")[0];
+  try { source = new URL(source).href; } catch { /* Relative brand asset. */ }
+  return source;
+}
+
+/** Source identity, independent of catalog row, title or presentation order. */
+export function videoSourceKey(video: TVVideo): string {
+  if (video.source_type === "youtube" && video.youtube_id) return `youtube:${video.youtube_id}`;
+  return `file:${fileSourceUrl(video.url)}`;
+}
+
 export function validateVideoFile(file: Pick<File, "name" | "type" | "size">): string | null {
   if (!file.size) return "O arquivo está vazio.";
   if (file.size > MAX_VIDEO_BYTES) return "Cada vídeo pode ter até 50 MB.";
@@ -29,8 +41,14 @@ export function validateVideoFile(file: Pick<File, "name" | "type" | "size">): s
 }
 
 export function playableVideos(videos: TVVideo[]): TVVideo[] {
+  const sources = new Set<string>();
   return videos.filter(video => video.active && !video.archived_at)
-    .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id));
+    .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
+    .filter(video => {
+      const key = videoSourceKey(video);
+      if (sources.has(key)) return false;
+      sources.add(key); return true;
+    });
 }
 
 export function nextUploadOrder(videos: TVVideo[]): number {
@@ -38,14 +56,15 @@ export function nextUploadOrder(videos: TVVideo[]): number {
   return Math.min(999999, highest + 1);
 }
 
-export function nextVideoId(videos: TVVideo[], currentId: string | null, failed = new Set<string>()): string | null {
+export function nextVideoId(videos: TVVideo[], currentId: string | null, failed = new Set<string>(), seen = new Set<string>()): string | null {
   const playlist = playableVideos(videos);
   const start = playlist.findIndex(video => video.id === currentId);
+  const candidates: TVVideo[] = [];
   for (let offset = 1; offset <= playlist.length; offset++) {
     const candidate = playlist[(start + offset) % playlist.length];
-    if (!failed.has(candidate.id)) return candidate.id;
+    if (!failed.has(candidate.id)) candidates.push(candidate);
   }
-  return null;
+  return (candidates.find(video => !seen.has(videoSourceKey(video))) ?? candidates[0])?.id ?? null;
 }
 
 /** A finite native duration wins unless the operator sets a shorter TV slot. */

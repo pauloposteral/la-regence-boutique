@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { TVVideo } from '@/lib/tvPlaylist';
-import { playbackDuration } from '@/lib/tvPlaylist';
+import { fileSourceUrl, playbackDuration, videoSourceKey } from '@/lib/tvPlaylist';
 import { loadYouTubeAPI, type YouTubePlayer } from '@/lib/youtubePlayer';
 import './cinema.css';
 
@@ -11,9 +11,10 @@ interface DeckProps {
 }
 const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, ref) {
   const media = useRef<HTMLVideoElement>(null);
-  const [source, setSource] = useState(props.video.url);
+  const primarySource = fileSourceUrl(props.video.url);
+  const [source, setSource] = useState(primarySource);
   const usedFallback = useRef(false);
-  useEffect(() => { usedFallback.current = false; setSource(props.video.url); }, [props.video.url]);
+  useEffect(() => { usedFallback.current = false; setSource(primarySource); }, [primarySource]);
   const callbacks = useRef(props); callbacks.current = props;
   const wasSelected = useRef(props.selected);
   const finished = useRef(false);
@@ -124,7 +125,7 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
 
 type StageProps = Omit<DeckProps, 'selected'>;
 export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(props, ref) {
-  const key = `${props.video.id}:${props.video.url}`;
+  const key = videoSourceKey(props.video);
   const [decks, setDecks] = useState([props.video]);
   const [front, setFront] = useState<string | null>(null);
   const visibleKey = useRef(front); visibleKey.current = front;
@@ -132,8 +133,8 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
   const selected = useRef(key); selected.current = key;
   useEffect(() => {
     setDecks(previous => {
-      const visible = previous.find(video => `${video.id}:${video.url}` === visibleKey.current);
-      return visible && `${visible.id}:${visible.url}` !== key ? [visible, props.video] : [props.video];
+      const visible = previous.find(video => videoSourceKey(video) === visibleKey.current);
+      return visible && videoSourceKey(visible) !== key ? [visible, props.video] : [props.video];
     });
     // Keep the last visible frame until the requested source actually starts.
   }, [key, props.video]);
@@ -144,7 +145,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
   }));
   return <div className="absolute inset-0 overflow-hidden">
     {decks.map(video => {
-      const id = `${video.id}:${video.url}`;
+      const id = videoSourceKey(video);
       const isSelected = id === key;
       const visible = front === id;
       const Deck = video.source_type === 'youtube' ? YouTubeDeck : FileDeck;

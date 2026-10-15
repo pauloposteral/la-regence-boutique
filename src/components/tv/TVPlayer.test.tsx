@@ -16,6 +16,75 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("TV playback", () => {
+  it('does not repeat an already shown video when the admin reorders the playlist', () => {
+    const list=[...videos,{...videos[0],id:'terceiro',title:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2}];
+    const view=render(<TVPlayer videos={list} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
+    view.rerender(<TVPlayer videos={list.map(v=>({...v,sort_order:v.id==='produto'?0:v.id==='cafe'?1:2}))} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('terceiro.mp4');
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
+  });
+  it('selects an unseen video when the currently playing row is removed', () => {
+    const third={...videos[0],id:'terceiro',title:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2};
+    const view=render(<TVPlayer videos={[...videos,third]} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    view.rerender(<TVPlayer videos={[videos[0],third]} />);
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('terceiro.mp4');
+  });
+  it('keeps the current source when a new video is inserted ahead of it', () => {
+    const view=render(<TVPlayer videos={videos} />);
+    const first=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+    first.currentTime=3;
+    const added={...videos[0],id:'novo',url:'https://example.com/novo.mp4',sort_order:-1};
+    view.rerender(<TVPlayer videos={[added,...videos]} />);
+    expect(screen.getByLabelText('Vídeo em exibição')).toBe(first);
+    expect(first.currentTime).toBe(3);
+  });
+  it('skips duplicate sources in the public sequence', () => {
+    render(<TVPlayer videos={[videos[0],{...videos[0],id:'copy',sort_order:0.5},videos[1]]} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
+    expect(screen.getByText(/2 de 2 · Sequência automática/)).toBeInTheDocument();
+  });
+  it.each(['https://example.com/cafe.mp4', 'https://EXAMPLE.com:443/cafe.mp4#preview'])('does not restart an equivalent source when its representative changes: %s', url => {
+    const copy={...videos[0],id:'copy',sort_order:2,url};
+    const view=render(<TVPlayer videos={[...videos,copy]} />);
+    const media=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+    media.currentTime=3;
+    view.rerender(<TVPlayer videos={[...videos,{...copy,sort_order:-1}]} />);
+    expect(screen.getByLabelText('Vídeo em exibição')).toBe(media);
+    expect(media.currentTime).toBe(3);
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
+  });
+  it('keeps the cycle history after a manual refresh', async () => {
+    const third={...videos[0],id:'terceiro',title:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2};
+    const refresh=vi.fn().mockResolvedValue(undefined);
+    const view=render(<TVPlayer videos={[...videos,third]} onRefresh={refresh} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Atualizar programação'}));});
+    view.rerender(<TVPlayer videos={[{...videos[1],sort_order:0},{...videos[0],sort_order:1},third]} onRefresh={refresh} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('terceiro.mp4');
+  });
+  it('includes a newly added source before repeating sources from the current cycle', () => {
+    const view=render(<TVPlayer videos={videos} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    const added={...videos[0],id:'novo',url:'https://example.com/novo.mp4',sort_order:-1};
+    view.rerender(<TVPlayer videos={[added,...videos]} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('novo.mp4');
+  });
+  it('does not reselect a failed source ahead of unseen healthy sources after an update', () => {
+    const third={...videos[0],id:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2};
+    const view=render(<TVPlayer videos={[...videos,third]} />);
+    fireEvent.error(screen.getByLabelText('Vídeo em exibição'));
+    view.rerender(<TVPlayer videos={[{...videos[1],sort_order:0},{...videos[0],sort_order:1},third]} />);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('terceiro.mp4');
+  });
   it("starts muted and advances/wraps when videos end", () => {
     render(<TVPlayer videos={videos} />);
     const media = screen.getByLabelText("Vídeo em exibição") as HTMLVideoElement;

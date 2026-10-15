@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw } from "lucide-react";
-import { nextVideoId, playableVideos, type TVVideo } from "@/lib/tvPlaylist";
+import { nextVideoId, playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
 
 import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
@@ -13,6 +13,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const lastProgress = useRef(Date.now());
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const [currentId, setCurrentId] = useState<string | null>(initialId);
+  const seen = useRef(new Set<string>());
   const [failed, setFailed] = useState(new Set<string>());
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -37,10 +38,23 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   };
   const playlistKey = playlist.map(v => `${v.id}:${v.url}`).join("|");
   useEffect(() => { setFailed(new Set()); }, [playlistKey]);
-  const current = playlist.find(v => v.id === currentId && !failed.has(v.id))
+  const requested = videos.find(v => v.id === currentId && v.active && !v.archived_at);
+  const requestedKey = requested && videoSourceKey(requested);
+  const retained = playlist.find(v => !failed.has(v.id) && (v.id === currentId || videoSourceKey(v) === requestedKey));
+  const current = retained
+    ?? playlist.find(v => !failed.has(v.id) && !seen.current.has(videoSourceKey(v)))
     ?? playlist.find(v => !failed.has(v.id));
   const currentUrl = current?.url;
   const selectedId = current?.id;
+  const selectedKey = current && videoSourceKey(current);
+  const retainedId = retained?.id;
+  useEffect(() => {
+    if (!selectedId || !selectedKey) return;
+    if (!retainedId && seen.current.has(selectedKey)) seen.current.clear();
+    seen.current.add(selectedKey);
+    // Retain the first selection across background refreshes and insertions.
+    setCurrentId(selectedId);
+  }, [selectedId, selectedKey, retainedId]);
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -57,7 +71,14 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     const excluded = new Set(failed);
     if (broken && current) excluded.add(current.id);
     if (broken) { setFailed(excluded); setNotice("Um vídeo não respondeu. Seguindo a programação."); } else setNotice("");
-    const next = nextVideoId(playlist, current?.id ?? null, excluded);
+    const next = nextVideoId(playlist, current?.id ?? null, excluded, seen.current);
+    const nextVideo = playlist.find(video => video.id === next);
+    if (nextVideo) {
+      const key = videoSourceKey(nextVideo);
+      // All usable sources have had a turn: start another cycle.
+      if (seen.current.has(key)) seen.current.clear();
+      seen.current.add(key);
+    }
     setCurrentId(next);
     if (next && next === current?.id && media.current) {
       media.current.restart();
