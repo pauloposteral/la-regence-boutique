@@ -1220,6 +1220,10 @@ export type Database = {
       }
       tv_videos: {
         Row: {
+          fallback_url: string | null
+          max_duration_seconds: number | null
+          source_url: string | null
+          credit: string | null
           active: boolean
           archived_at: string | null
           created_at: string
@@ -1233,6 +1237,10 @@ export type Database = {
           youtube_id: string | null
         }
         Insert: {
+          fallback_url?: string | null
+          max_duration_seconds?: number | null
+          source_url?: string | null
+          credit?: string | null
           active?: boolean
           archived_at?: string | null
           created_at?: string
@@ -1246,6 +1254,10 @@ export type Database = {
           youtube_id?: string | null
         }
         Update: {
+          fallback_url?: string | null
+          max_duration_seconds?: number | null
+          source_url?: string | null
+          credit?: string | null
           active?: boolean
           archived_at?: string | null
           created_at?: string

@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw } from "lucide-react";
 import { nextVideoId, playableVideos, type TVVideo } from "@/lib/tvPlaylist";
 
 import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
-export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
+export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null }: { videos: TVVideo[]; onRefresh?: () => void; refreshing?: boolean; initialId?: string | null }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
   const media = useRef<PlaybackHandle>(null);
   const lastProgress = useRef(Date.now());
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
-  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(initialId);
   const [failed, setFailed] = useState(new Set<string>());
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -20,6 +20,13 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [fullscreenHint, setFullscreenHint] = useState("");
+  const [playback, setPlayback] = useState({seconds:0, duration:0});
+  const [notice, setNotice] = useState("");
+  useEffect(() => {
+    if (!refreshing && notice === "Atualizando a programação…") setNotice("Programação atualizada.");
+  }, [refreshing, notice]);
+  const playlistKey = playlist.map(v => `${v.id}:${v.url}`).join("|");
+  useEffect(() => { setFailed(new Set()); }, [playlistKey]);
   const current = playlist.find(v => v.id === currentId && !failed.has(v.id))
     ?? playlist.find(v => !failed.has(v.id));
   const currentUrl = current?.url;
@@ -36,9 +43,10 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   }, []);
 
   const advance = useCallback((broken = false) => {
+    if (broken && media.current?.recover?.()) { lastProgress.current = Date.now(); setNotice("Usando a versão compatível deste vídeo."); return; }
     const excluded = new Set(failed);
     if (broken && current) excluded.add(current.id);
-    if (broken) setFailed(excluded);
+    if (broken) { setFailed(excluded); setNotice("Um vídeo não respondeu. Seguindo a programação."); } else setNotice("");
     const next = nextVideoId(playlist, current?.id ?? null, excluded);
     setCurrentId(next);
     if (next && next === current?.id && media.current) {
@@ -50,6 +58,7 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   useEffect(() => {
     lastProgress.current = Date.now();
     setBlocked(false);
+    setPlayback({seconds:0,duration:0});
   }, [currentUrl, selectedId]);
 
   useEffect(() => {
@@ -134,7 +143,7 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
         <CinematicStage ref={media} video={current} paused={paused} muted={muted}
           onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); lastProgress.current = Date.now(); }}
           onBlocked={() => setBlocked(true)} onEnded={() => advance()} onError={() => advance(true)}
-          onProgress={() => { lastProgress.current = Date.now(); }} />
+          onProgress={(seconds = 0, duration = 0) => { lastProgress.current = Date.now(); setPlayback({seconds,duration}); }} />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-5 p-8 text-center">
           <img src="/favicon.jpeg" alt="" className="h-24 w-24 rounded-full border border-gold/50 object-cover" />
@@ -146,14 +155,17 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
       {blocked && <div className="absolute inset-0 flex items-center justify-center bg-brown-deep/60">
         <button className="rounded-full bg-gold px-8 py-5 text-lg text-white" onClick={() => { play(); setPaused(false); }} aria-label="Iniciar reprodução"><Play className="mr-3 inline h-6 w-6" />Iniciar reprodução</button>
       </div>}
+      {playback.duration > 0 && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" aria-hidden="true"><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
       <div className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p></div>
+        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.findIndex(v => v.id === current.id) + 1} de ${playlist.length} · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Sequência automática"}` : ""}{playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p></div>
         {current && <>
           <button className={buttonClass} onClick={togglePause} aria-label={paused ? "Reproduzir" : "Pausar"}>{paused ? <Play /> : <Pause />}</button>
           <button className={buttonClass} onClick={() => advance()} aria-label="Próximo vídeo"><SkipForward /></button>
           <button className={buttonClass} onClick={() => setMuted(value => !value)} aria-label={muted ? "Ativar som" : "Silenciar"}>{muted ? <VolumeX /> : <Volume2 />}</button>
         </>}
+        {onRefresh && <button className={buttonClass} disabled={refreshing} onClick={() => { setFailed(new Set()); onRefresh(); setNotice("Atualizando a programação…"); }} aria-label="Atualizar programação"><RotateCcw className={refreshing ? "animate-spin" : ""} /></button>}
         <button className={buttonClass} onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}>{fullscreen ? <Minimize /> : <Maximize />}</button>
+        {notice && <p className="w-full text-sm text-white/70" role="status">{notice}</p>}
         {fullscreenHint && <p className="w-full text-right text-sm" role="status">{fullscreenHint}</p>}
       </div>
     </div>

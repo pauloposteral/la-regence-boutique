@@ -69,3 +69,35 @@ it('seeks a retained YouTube source to zero without playing while paused', async
  expect(players[0].playVideo).toHaveBeenCalledTimes(count);
  expect(players[0].pauseVideo).toHaveBeenCalled();
 });
+
+it('advances when the browser reaches the end without emitting ended', () => {
+ vi.useFakeTimers(); const events=callbacks();
+ render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const v=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+ Object.defineProperty(v,'duration',{configurable:true,value:5}); v.currentTime=5;
+ act(() => {vi.advanceTimersByTime(1000);});
+ expect(events.onEnded).toHaveBeenCalledTimes(1);
+ fireEvent.ended(v); expect(events.onEnded).toHaveBeenCalledTimes(1);
+});
+it('does not report progress for repeated timeupdate events at a stuck position', () => {
+ const events=callbacks(); render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const v=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+ v.currentTime=2; fireEvent.timeUpdate(v); fireEvent.timeUpdate(v); fireEvent.timeUpdate(v);
+ expect(events.onProgress).toHaveBeenCalledTimes(1);
+});
+it('enforces a 15-second slot without waiting for the full file and respects pause', () => {
+ vi.useFakeTimers(); const events=callbacks();
+ const video={...first,max_duration_seconds:15};
+ const view=render(<CinematicStage video={video} paused muted {...events} />);
+ const v=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+ Object.defineProperty(v,'duration',{configurable:true,value:60}); v.currentTime=15;
+ act(() => {vi.advanceTimersByTime(1000);}); expect(events.onEnded).not.toHaveBeenCalled();
+ view.rerender(<CinematicStage video={video} paused={false} muted {...events} />);
+ act(() => {vi.advanceTimersByTime(500);}); expect(events.onEnded).toHaveBeenCalledTimes(1);
+});
+it('tries the compatible source once on decode error before skipping', () => {
+ const events=callbacks(); render(<CinematicStage video={{...first,fallback_url:'https://example.com/hd.mp4'}} paused={false} muted {...events} />);
+ const v=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+ fireEvent.error(v); expect(v.src).toBe('https://example.com/hd.mp4'); expect(events.onError).not.toHaveBeenCalled();
+ fireEvent.error(v); expect(events.onError).toHaveBeenCalledTimes(1);
+});

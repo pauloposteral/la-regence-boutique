@@ -1,4 +1,8 @@
 export interface TVVideo {
+  fallback_url?: string | null;
+  max_duration_seconds?: number | null;
+  source_url?: string | null;
+  credit?: string | null;
   source_type?: "file" | "youtube";
   youtube_id?: string | null;
   id: string;
@@ -37,4 +41,11 @@ export function nextVideoId(videos: TVVideo[], currentId: string | null, failed 
     if (!failed.has(candidate.id)) return candidate.id;
   }
   return null;
+}
+
+/** A finite native duration wins unless the operator sets a shorter TV slot. */
+export function playbackDuration(video: TVVideo, nativeDuration: number): number {
+  const natural = Number.isFinite(nativeDuration) && nativeDuration > 0 ? nativeDuration : 0;
+  const limit = video.max_duration_seconds;
+  return limit && limit > 0 ? (natural ? Math.min(natural, limit) : limit) : natural;
 }

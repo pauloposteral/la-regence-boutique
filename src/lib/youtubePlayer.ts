@@ -1,6 +1,6 @@
 export interface YouTubePlayer {
   playVideo(): void; pauseVideo(): void; seekTo(seconds: number, allowSeekAhead: boolean): void;
-  mute(): void; unMute(): void; destroy(): void; getCurrentTime(): number;
+  mute(): void; unMute(): void; destroy(): void; getCurrentTime(): number; getDuration?(): number;
 }
 export interface YouTubeAPI {
   Player: new (element: HTMLElement, options: {
