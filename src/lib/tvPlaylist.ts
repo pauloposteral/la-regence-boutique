@@ -19,7 +19,7 @@ export const TV_BUCKET = "tv-videos";
 export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 export function fileSourceUrl(url: string): string {
-  let source = url.trim().split("#")[0];
+  let source = url.trim();
   try { source = new URL(source).href; } catch { /* Relative brand asset. */ }
   return source;
 }
@@ -27,7 +27,7 @@ export function fileSourceUrl(url: string): string {
 /** Source identity, independent of catalog row, title or presentation order. */
 export function videoSourceKey(video: TVVideo): string {
   if (video.source_type === "youtube" && video.youtube_id) return `youtube:${video.youtube_id}`;
-  return `file:${fileSourceUrl(video.url)}`;
+  return `file:${fileSourceUrl(video.url).split("#")[0]}`;
 }
 
 export function validateVideoFile(file: Pick<File, "name" | "type" | "size">): string | null {
