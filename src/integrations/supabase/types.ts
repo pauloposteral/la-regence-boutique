@@ -14,6 +14,40 @@ export type Database = {
   }
   public: {
     Tables: {
+      tv_videos: {
+        Row: {
+          id: string
+          title: string
+          url: string
+          storage_path: string | null
+          sort_order: number
+          active: boolean
+          archived_at: string | null
+          fit: "contain" | "cover"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          url: string
+          storage_path?: string | null
+          sort_order?: number
+          active?: boolean
+          archived_at?: string | null
+          fit?: "contain" | "cover"
+          created_at?: string
+        }
+        Update: {
+          title?: string
+          url?: string
+          storage_path?: string | null
+          sort_order?: number
+          active?: boolean
+          archived_at?: string | null
+          fit?: "contain" | "cover"
+        }
+        Relationships: []
+      }
       action_tokens: {
         Row: {
           assinatura_id: string | null
