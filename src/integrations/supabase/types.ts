@@ -10,44 +10,10 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
-      tv_videos: {
-        Row: {
-          id: string
-          title: string
-          url: string
-          storage_path: string | null
-          sort_order: number
-          active: boolean
-          archived_at: string | null
-          fit: "contain" | "cover"
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          url: string
-          storage_path?: string | null
-          sort_order?: number
-          active?: boolean
-          archived_at?: string | null
-          fit?: "contain" | "cover"
-          created_at?: string
-        }
-        Update: {
-          title?: string
-          url?: string
-          storage_path?: string | null
-          sort_order?: number
-          active?: boolean
-          archived_at?: string | null
-          fit?: "contain" | "cover"
-        }
-        Relationships: []
-      }
       action_tokens: {
         Row: {
           assinatura_id: string | null
@@ -1249,6 +1215,42 @@ export type Database = {
           uf?: string | null
           updated_at?: string
           valor_minimo?: number
+        }
+        Relationships: []
+      }
+      tv_videos: {
+        Row: {
+          active: boolean
+          archived_at: string | null
+          created_at: string
+          fit: string
+          id: string
+          sort_order: number
+          storage_path: string | null
+          title: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          archived_at?: string | null
+          created_at?: string
+          fit?: string
+          id?: string
+          sort_order?: number
+          storage_path?: string | null
+          title: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          archived_at?: string | null
+          created_at?: string
+          fit?: string
+          id?: string
+          sort_order?: number
+          storage_path?: string | null
+          title?: string
+          url?: string
         }
         Relationships: []
       }
