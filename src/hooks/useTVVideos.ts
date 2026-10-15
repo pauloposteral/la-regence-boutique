@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TVVideo } from "@/lib/tvPlaylist";
 
 export function useTVVideos(admin = false, enabled = true) {
   return useQuery({
@@ -10,7 +11,10 @@ export function useTVVideos(admin = false, enabled = true) {
       if (!admin) query = query.eq("active", true);
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return (data ?? []).map((video): TVVideo => ({
+        ...video,
+        fit: video.fit === "cover" ? "cover" : "contain",
+      }));
     },
     enabled,
     refetchInterval: admin ? false : 60_000,
