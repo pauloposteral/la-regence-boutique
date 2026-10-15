@@ -1,46 +1,81 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { TVVideo } from '@/lib/tvPlaylist';
+import { playbackDuration } from '@/lib/tvPlaylist';
 import { loadYouTubeAPI, type YouTubePlayer } from '@/lib/youtubePlayer';
 import './cinema.css';
 
-export interface PlaybackHandle { play(): void; restart(): void }
+export interface PlaybackHandle { play(): void; restart(): void; recover?(): boolean }
 interface DeckProps {
   video: TVVideo; paused: boolean; muted: boolean; selected: boolean;
-  onReady(): void; onPaused?(): void; onProgress(): void; onEnded(): void; onError(): void; onBlocked(): void;
+  onReady(): void; onPaused?(): void; onProgress(seconds?: number, duration?: number): void; onEnded(): void; onError(): void; onBlocked(): void;
 }
 const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, ref) {
   const media = useRef<HTMLVideoElement>(null);
+  const [source, setSource] = useState(props.video.url);
+  const usedFallback = useRef(false);
+  useEffect(() => { usedFallback.current = false; setSource(props.video.url); }, [props.video.url]);
   const callbacks = useRef(props); callbacks.current = props;
   const wasSelected = useRef(props.selected);
-  useEffect(() => {
-    if (props.selected && !wasSelected.current && media.current) media.current.currentTime = 0;
-    wasSelected.current = props.selected;
-  }, [props.selected]);
+  const finished = useRef(false);
+  const previousTime = useRef(-1);
+  const reset = () => { finished.current = false; previousTime.current = -1; };
+  const finish = () => {
+    if (!callbacks.current.selected || callbacks.current.paused || finished.current) return;
+    finished.current = true; callbacks.current.onEnded();
+  };
+  const report = () => {
+    const video = media.current;
+    const state = callbacks.current;
+    if (!video || !state.selected || state.paused || finished.current) return;
+    const duration = playbackDuration(state.video, video.duration);
+    if (video.currentTime > previousTime.current) {
+      previousTime.current = video.currentTime;
+      state.onProgress(video.currentTime, duration);
+    }
+    if (video.ended || duration > 0 && video.currentTime >= duration - 0.05) finish();
+  };
+  const recover = () => {
+    const fallback = callbacks.current.video.fallback_url;
+    if (!fallback || usedFallback.current) return false;
+    usedFallback.current = true; setSource(fallback); return true;
+  };
   const play = () => {
     void media.current?.play()?.catch((error: Error) => {
       if (error.name === 'NotAllowedError') callbacks.current.onBlocked();
     });
   };
-  useImperativeHandle(ref, () => ({ play, restart: () => { if (media.current) media.current.currentTime = 0; play(); } }));
-  useEffect(() => { media.current?.load(); }, [props.video.url]);
-  useEffect(() => { if (props.paused) media.current?.pause(); else play(); }, [props.paused, props.video.url]);
-  return <video ref={media} src={props.video.url} aria-label={props.selected ? 'Vídeo em exibição' : undefined}
-    aria-hidden={!props.selected} muted={props.muted} playsInline preload="auto" controls={false} disablePictureInPicture
+  useEffect(() => {
+    if (props.selected && !wasSelected.current && media.current) { reset(); media.current.currentTime = 0; }
+    wasSelected.current = props.selected;
+  }, [props.selected]);
+  useImperativeHandle(ref, () => ({ play, recover, restart: () => { reset(); if (media.current) media.current.currentTime = 0; play(); } }));
+  useEffect(() => { reset(); media.current?.load(); }, [source]);
+  useEffect(() => { if (props.paused) media.current?.pause(); else play(); }, [props.paused, source]);
+  const reportRef = useRef(report); reportRef.current = report;
+  useEffect(() => {
+    const timer = setInterval(() => reportRef.current(), 500);
+    return () => clearInterval(timer);
+  }, []);
+  return <video ref={media} src={source} aria-label={props.selected ? 'Vídeo em exibição' : undefined}
+    aria-hidden={!props.selected} autoPlay={props.selected && !props.paused} muted={props.muted} playsInline preload="auto" controls={false} disablePictureInPicture
     className="h-full w-full" style={{ objectFit: props.video.fit }} onPlaying={props.onReady}
-    onTimeUpdate={props.onProgress} onEnded={props.onEnded} onError={props.onError} />;
+    onCanPlay={() => { if (callbacks.current.selected && !callbacks.current.paused) play(); }}
+    onPause={() => { if (callbacks.current.selected && !callbacks.current.paused && media.current && !media.current.ended && media.current.readyState >= 2) play(); }}
+    onTimeUpdate={report} onEnded={finish} onError={() => { if (!callbacks.current.selected) return; if (!recover()) callbacks.current.onError(); }} />;
 });
 
 const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(props, ref) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<YouTubePlayer>();
   const ready = useRef(false);
+  const finished = useRef(false);
   const wasSelected = useRef(props.selected);
   useEffect(() => {
-    if (props.selected && !wasSelected.current && ready.current) player.current?.seekTo(0, true);
+    if (props.selected && !wasSelected.current && ready.current) { finished.current = false; player.current?.seekTo(0, true); }
     wasSelected.current = props.selected;
   }, [props.selected]);
   const callbacks = useRef(props); callbacks.current = props;
-  useImperativeHandle(ref, () => ({ play: () => player.current?.playVideo(), restart: () => { player.current?.seekTo(0, true); player.current?.playVideo(); } }));
+  useImperativeHandle(ref, () => ({ play: () => player.current?.playVideo(), restart: () => { finished.current = false; player.current?.seekTo(0, true); player.current?.playVideo(); } }));
   useEffect(() => {
     let cancelled = false;
     let instance: YouTubePlayer | undefined;
@@ -50,7 +85,11 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
       if (callbacks.current.muted) instance.mute(); else instance.unMute();
       if (callbacks.current.paused) instance.pauseVideo(); else instance.playVideo();
     };
-    ready.current = false;
+    ready.current = false; finished.current = false;
+    const finish = () => {
+      if (finished.current || callbacks.current.paused || !callbacks.current.selected) return;
+      finished.current = true; callbacks.current.onEnded();
+    };
     void loadYouTubeAPI().then(api => {
       if (cancelled || !host.current) return;
       const target = document.createElement('div'); host.current.appendChild(target);
@@ -59,7 +98,7 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
         playerVars: { autoplay: 0, playsinline: 1, origin: window.location.origin, controls: 1, rel: 0 },
         events: {
           onReady: () => { ready.current = true; apply(); },
-          onStateChange: ({ data }) => { if (data === 1) callbacks.current.onReady(); if (data === 2 && !callbacks.current.paused) callbacks.current.onPaused?.(); if (data === 0) callbacks.current.onEnded(); },
+          onStateChange: ({ data }) => { if (data === 1) callbacks.current.onReady(); if (data === 2 && !callbacks.current.paused) callbacks.current.onPaused?.(); if (data === 0) finish(); },
           onError: () => callbacks.current.onError(), onAutoplayBlocked: () => callbacks.current.onBlocked(),
         },
       });
@@ -68,7 +107,9 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
     const timer = setInterval(() => {
       if (!ready.current || !instance) return;
       const time = instance.getCurrentTime();
-      if (time > previousTime) callbacks.current.onProgress();
+      const duration = playbackDuration(callbacks.current.video, instance.getDuration?.() ?? 0);
+      if (time > previousTime && !callbacks.current.paused && callbacks.current.selected) callbacks.current.onProgress(time, duration);
+      if (duration > 0 && time >= duration - 0.05) finish();
       previousTime = time;
     }, 1000);
     return () => { cancelled = true; ready.current = false; clearInterval(timer); instance?.destroy(); player.current = undefined; };
@@ -99,6 +140,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
   useImperativeHandle(ref, () => ({
     play: () => handles.current.get(selected.current)?.play(),
     restart: () => handles.current.get(selected.current)?.restart(),
+    recover: () => handles.current.get(selected.current)?.recover?.() ?? false,
   }));
   return <div className="absolute inset-0 overflow-hidden">
     {decks.map(video => {
@@ -111,7 +153,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
           video={video} selected={isSelected} paused={!isSelected || props.paused} muted={!isSelected || props.muted}
           onReady={() => { if (selected.current === id) { setFront(id); props.onReady(); } }}
           onPaused={() => { if (selected.current === id) props.onPaused?.(); }}
-          onProgress={() => { if (selected.current === id) props.onProgress(); }}
+          onProgress={(time, duration) => { if (selected.current === id) props.onProgress(time, duration); }}
           onEnded={() => { if (selected.current === id) props.onEnded(); }}
           onError={() => { if (selected.current === id) props.onError(); }}
           onBlocked={() => { if (selected.current === id) props.onBlocked(); }} />

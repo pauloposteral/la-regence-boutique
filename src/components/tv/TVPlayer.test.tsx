@@ -67,3 +67,12 @@ describe("TV playback", () => {
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
   });
 });
+  it('starts the requested active item for the admin preview link', () => {
+    render(<TVPlayer videos={videos} initialId="produto" />);
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
+    expect(screen.getByText(/2 de 2 · Sequência automática/)).toBeInTheDocument();
+  });
+  it('offers a manual playlist refresh without reloading the entire site', () => {
+    const refresh=vi.fn(); render(<TVPlayer videos={videos} onRefresh={refresh} />);
+    fireEvent.click(screen.getByRole('button',{name:'Atualizar programação'})); expect(refresh).toHaveBeenCalledTimes(1);
+  });

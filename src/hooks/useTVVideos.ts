@@ -6,9 +6,9 @@ export function useTVVideos(admin = false, enabled = true) {
   return useQuery({
     queryKey: ["tv-videos", admin ? "admin" : "public"],
     queryFn: async () => {
-      let query = supabase.from("tv_videos").select("*").is("archived_at", null)
+      let query = supabase.from("tv_videos").select("*")
         .order("sort_order").order("id");
-      if (!admin) query = query.eq("active", true);
+      if (!admin) query = query.eq("active", true).is("archived_at", null);
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map((video): TVVideo => ({
@@ -18,7 +18,8 @@ export function useTVVideos(admin = false, enabled = true) {
       }));
     },
     enabled,
-    refetchInterval: admin ? false : 60_000,
+    refetchInterval: admin ? false : 15_000,
+    refetchIntervalInBackground: !admin,
     refetchOnReconnect: true,
   });
 }
