@@ -1,4 +1,6 @@
 export interface TVVideo {
+  source_type?: "file" | "youtube";
+  youtube_id?: string | null;
   id: string;
   title: string;
   url: string;

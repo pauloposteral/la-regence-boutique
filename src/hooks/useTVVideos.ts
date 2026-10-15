@@ -13,6 +13,7 @@ export function useTVVideos(admin = false, enabled = true) {
       if (error) throw error;
       return (data ?? []).map((video): TVVideo => ({
         ...video,
+        source_type: video.source_type === "youtube" ? "youtube" : "file",
         fit: video.fit === "cover" ? "cover" : "contain",
       }));
     },

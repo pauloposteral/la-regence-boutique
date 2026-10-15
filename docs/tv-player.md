@@ -66,3 +66,15 @@ Permission and data lifecycle rules originate in the migration, not client-side 
   custom domain's `x-deployment-id` response header and live route behavior.
 - Browser verification: 15 October 2026, approximately 09:00 America/Sao_Paulo.
 - Screenshot of the actual published player: `evidence/tv-live-1792065651745.jpg`.
+
+## YouTube e transições — 15/10/2026
+
+O painel `/video/enviar` agora aceita arquivos e links do YouTube na mesma programação. Links watch, youtu.be, Shorts, embed e live são normalizados para um ID de 11 caracteres; playlists e outros domínios são recusados. A migração `20261015122324_tv_youtube_sources.sql` mantém os vídeos antigos como `file`, valida as fontes no banco e preserva as políticas administrativas existentes.
+
+O player usa a IFrame API oficial do YouTube, com origem do site, som inicialmente desligado, término/erro e bloqueio de autoplay tratados. Não baixa vídeos do YouTube. Conteúdo indisponível, incorporação bloqueada ou sem progresso é pulado; anúncios e controles pertencem ao YouTube. Vídeos ao vivo continuam até terminar ou o operador avançar. O enquadramento do YouTube permanece inteiro.
+
+A troca mantém o quadro anterior até o próximo conteúdo começar e faz uma fusão de 900 ms. Arquivos têm aproximação discreta de 1,8%; a preferência por movimento reduzido remove a animação. O watchdog de 30 segundos, recuperação, controles e proteção administrativa permanecem.
+
+Mídias de teste: os dois MP4 enviados pelo proprietário foram importados para `tv-videos/importados/`, ordens 10 e 20. O anúncio Tornado Del Leche foi composto em Higgsedit com imagem ilustrativa baseada no cardápio, título Playfair Display, ingredientes DM Sans, fundo espresso/dourado, entrada do produto/texto e saída suave. Exportação: 10,000 s, 1920×1080, 30 fps, H.264/yuv420p, sem áudio, MP4 faststart (~3,7 MB). Ingredientes: blend de sorvetes, doce de leite e Ovomaltine. Sem preço.
+
+Validação local: parser de URLs, cadastro/salvamento/repetição após erro, mistura das fontes, contrato da API oficial, manutenção do quadro anterior, descarte de eventos antigos, loop, erro, autoplay, pausa e watchdog. A validação física do navegador da televisão continua sendo necessária para suas restrições específicas de fullscreen/autoplay.

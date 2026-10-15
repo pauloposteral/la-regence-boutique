@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTVVideos } from "@/hooks/useTVVideos";
 import { inspectVideo, uploadTVVideo } from "@/lib/tvUpload";
+import { parseYouTubeUrl } from "@/lib/youtube";
 import { TV_BUCKET, validateVideoFile, type TVVideo } from "@/lib/tvPlaylist";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -41,14 +42,14 @@ function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<v
   };
   return <article className={`overflow-hidden rounded-xl border bg-white ${video.active ? "border-gold/30" : "border-border"}`}>
     <div className="relative aspect-video bg-brown-deep">
-      <video src={video.url} controls playsInline preload="none" className="h-full w-full object-contain" aria-label={`Prévia: ${video.title}`} />
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-brown-deep/90 px-3 py-1 text-xs text-white">{video.active ? "Na programação" : "Pausado"}</span>
+      {video.source_type === "youtube" ? <iframe title={`Prévia: ${video.title}`} src={`https://www.youtube.com/embed/${video.youtube_id}`} className="h-full w-full" loading="lazy" allow="encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <video src={video.url} controls playsInline preload="none" className="h-full w-full object-contain" aria-label={`Prévia: ${video.title}`} />}
+      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-brown-deep/90 px-3 py-1 text-xs text-white">{video.source_type === "youtube" ? "YouTube · " : "Arquivo · "}{video.active ? "Na programação" : "Pausado"}</span>
     </div>
     <form noValidate onSubmit={save} className="space-y-4 p-5">
       <label className="block space-y-2 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => setTitle(e.target.value)} /></label>
       <div className="grid grid-cols-[80px_1fr] gap-3">
         <label className="space-y-2 text-xs text-muted-foreground"><span>Ordem</span><input name="order" className={inputClass} type="number" min={0} max={999999} required value={order} onChange={e => setOrder(Number(e.target.value))} /></label>
-        <label className="space-y-2 text-xs text-muted-foreground"><span>Enquadramento</span><select className={inputClass} value={fit} onChange={e => setFit(e.target.value as TVVideo["fit"])}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
+        <label className="space-y-2 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => setFit(e.target.value as TVVideo["fit"])}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
       </div>
       {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
       <div className="flex flex-wrap gap-2">
@@ -146,6 +147,7 @@ export default function VideoManager() {
           </div>}
           {validation && <p id="upload-error" role="alert" className="mt-4 text-sm text-destructive">{validation}</p>}
         </form>
+        <YouTubeForm videos={videos} refresh={refresh} disabled={isLoading || isError} />
         <div className="rounded-xl bg-brown-deep p-6 text-white"><MonitorPlay className="mb-3 text-gold-light" /><h2 className="text-lg">Na televisão</h2><p className="mt-3 break-all text-sm text-gold-light">cafelaregence.com.br/video</p><p className="mt-3 text-xs leading-relaxed text-white/75">Abra o endereço no navegador da TV e selecione Tela cheia. Os controles somem sozinhos. O som começa desligado e pode ser ativado no player.</p></div>
       </aside>
       <section aria-label="Programação de vídeos">
@@ -155,4 +157,39 @@ export default function VideoManager() {
       </section>
     </div>
   </div>;
+}
+
+function YouTubeForm({ videos, refresh, disabled }: { videos: TVVideo[]; refresh(): Promise<void>; disabled: boolean }) {
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [active, setActive] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busy || disabled) return;
+    const parsed = parseYouTubeUrl(url);
+    if (!parsed || !title.trim()) { setError(!parsed ? "Cole um link válido de vídeo do YouTube." : "Dê um nome ao vídeo."); return; }
+    setBusy(true); setError("");
+    try {
+      const { error: insertError } = await supabase.from("tv_videos").insert({
+        title: title.trim(), url: parsed.url, source_type: "youtube", youtube_id: parsed.id,
+        storage_path: null, fit: "contain", active, sort_order: Math.min(999999, Math.max(0, ...videos.map(v => v.sort_order)) + 1),
+      });
+      if (insertError) throw insertError;
+      await refresh(); setUrl(""); setTitle("");
+      toast.success(active ? "YouTube adicionado. Aparecerá na TV em até 1 minuto." : "YouTube salvo como pausado.");
+    } catch { setError("Não foi possível adicionar. Confira sua conexão e tente novamente."); }
+    finally { setBusy(false); }
+  };
+  return <form noValidate onSubmit={submit} className="space-y-4 rounded-xl border border-gold/25 bg-white p-5 sm:p-6" aria-label="Adicionar YouTube">
+    <h2 className="text-xl">Adicionar do YouTube</h2>
+    <p className="text-xs leading-relaxed text-muted-foreground">Cole o link e inclua o vídeo na mesma programação dos arquivos enviados.</p>
+    <label className="block space-y-2 text-xs"><span>Link do YouTube</span><input className={inputClass} type="url" value={url} maxLength={2048} onChange={e => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" disabled={busy} /></label>
+    <label className="block space-y-2 text-xs"><span>Nome para a programação</span><input className={inputClass} value={title} maxLength={120} onChange={e => setTitle(e.target.value)} disabled={busy} /></label>
+    <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} disabled={busy} className="h-4 w-4 accent-gold" />Exibir na TV ao adicionar</label>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    <button type="submit" className={`${actionClass} w-full`} disabled={busy || disabled}>{busy ? "Adicionando…" : "Adicionar à programação"}</button>
+    <p className="text-xs leading-relaxed text-muted-foreground">O YouTube mantém seus controles e pode exibir anúncios. Vídeos com incorporação bloqueada serão pulados. Para uma exibição contínua, prefira seus arquivos MP4.</p>
+  </form>;
 }

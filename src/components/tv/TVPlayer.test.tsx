@@ -22,9 +22,9 @@ describe("TV playback", () => {
     expect(media.muted).toBe(true);
     expect(media.src).toBe("https://example.com/cafe.mp4");
     fireEvent.ended(media);
-    expect(media.src).toBe("https://example.com/produto.mp4");
-    fireEvent.ended(media);
-    expect(media.src).toBe("https://example.com/cafe.mp4");
+    expect((screen.getByLabelText("Vídeo em exibição") as HTMLVideoElement).src).toBe("https://example.com/produto.mp4");
+    fireEvent.ended(screen.getByLabelText("Vídeo em exibição"));
+    expect((screen.getByLabelText("Vídeo em exibição") as HTMLVideoElement).src).toBe("https://example.com/cafe.mp4");
   });
   it("skips a broken video and shows a recovery screen if none can play", () => {
     render(<TVPlayer videos={videos} />);

@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { nextVideoId, playableVideos, type TVVideo } from "@/lib/tvPlaylist";
 
+import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
+
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
 export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
-  const media = useRef<HTMLVideoElement>(null);
+  const media = useRef<PlaybackHandle>(null);
   const lastProgress = useRef(Date.now());
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -30,11 +32,7 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   }, []);
 
   const play = useCallback(() => {
-    const promise = media.current?.play();
-    promise?.then(() => setBlocked(false)).catch(error => {
-      if (error.name === "NotAllowedError") setBlocked(true);
-      // Aborted playback during a source change is expected; media errors use onError/watchdog.
-    });
+    media.current?.play();
   }, []);
 
   const advance = useCallback((broken = false) => {
@@ -44,22 +42,15 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
     const next = nextVideoId(playlist, current?.id ?? null, excluded);
     setCurrentId(next);
     if (next && next === current?.id && media.current) {
-      media.current.currentTime = 0;
-      play();
+      media.current.restart();
     }
     lastProgress.current = Date.now();
-  }, [current, failed, playlist, play]);
+  }, [current, failed, playlist]);
 
   useEffect(() => {
     lastProgress.current = Date.now();
     setBlocked(false);
-    if (currentUrl) media.current?.load();
   }, [currentUrl, selectedId]);
-
-  useEffect(() => {
-    if (paused) media.current?.pause();
-    else if (currentUrl) play();
-  }, [currentUrl, selectedId, paused, play]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -122,6 +113,7 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
   };
 
   const togglePause = () => {
+    lastProgress.current = Date.now();
     setPaused(value => !value);
   };
 
@@ -139,11 +131,10 @@ export default function TVPlayer({ videos }: { videos: TVVideo[] }) {
         if (event.key.toLowerCase() === "m") setMuted(value => !value);
       }}>
       {current ? (
-        <video ref={media} src={current.url} aria-label="Vídeo em exibição" autoPlay muted={muted} playsInline
-          preload="auto" controls={false} disablePictureInPicture
-          className="absolute inset-0 h-full w-full" style={{ objectFit: current.fit }}
-          onEnded={() => advance()} onError={() => advance(true)}
-          onTimeUpdate={() => { lastProgress.current = Date.now(); }} />
+        <CinematicStage ref={media} video={current} paused={paused} muted={muted}
+          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); lastProgress.current = Date.now(); }}
+          onBlocked={() => setBlocked(true)} onEnded={() => advance()} onError={() => advance(true)}
+          onProgress={() => { lastProgress.current = Date.now(); }} />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-5 p-8 text-center">
           <img src="/favicon.jpeg" alt="" className="h-24 w-24 rounded-full border border-gold/50 object-cover" />
