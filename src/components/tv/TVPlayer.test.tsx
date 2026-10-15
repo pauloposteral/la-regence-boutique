@@ -72,7 +72,26 @@ describe("TV playback", () => {
     expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
     expect(screen.getByText(/2 de 2 · Sequência automática/)).toBeInTheDocument();
   });
-  it('offers a manual playlist refresh without reloading the entire site', () => {
+  it('offers a manual playlist refresh without reloading the entire site', async () => {
     const refresh=vi.fn(); render(<TVPlayer videos={videos} onRefresh={refresh} />);
-    fireEvent.click(screen.getByRole('button',{name:'Atualizar programação'})); expect(refresh).toHaveBeenCalledTimes(1);
+    await act(async () => { fireEvent.click(screen.getByRole('button',{name:'Atualizar programação'})); }); expect(refresh).toHaveBeenCalledTimes(1);
+  });
+  it('keeps manual refresh pending until the request resolves', async () => {
+    let finish!: () => void;
+    const request = new Promise<void>(resolve => { finish = resolve; });
+    render(<TVPlayer videos={videos} onRefresh={() => request} />);
+    fireEvent.click(screen.getByRole('button', {name:'Atualizar programação'}));
+    expect(screen.getByRole('status')).toHaveTextContent('Atualizando a programação…');
+    expect(screen.getByRole('button', {name:'Atualizar programação'})).toBeDisabled();
+    await act(async () => { finish(); await request; });
+    expect(screen.getByRole('status')).toHaveTextContent('Programação atualizada.');
+    expect(screen.getByRole('button', {name:'Atualizar programação'})).toBeEnabled();
+  });
+  it('reports a failed refresh while keeping the current video', async () => {
+    render(<TVPlayer videos={videos} onRefresh={async () => { throw new Error('offline'); }} />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', {name:'Atualizar programação'})); });
+    expect(screen.getByRole('status')).toHaveTextContent('Não foi possível atualizar');
+    expect(screen.queryByText('Programação atualizada.')).not.toBeInTheDocument();
+    expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('cafe.mp4');
+    expect(screen.getByRole('button', {name:'Atualizar programação'})).toBeEnabled();
   });

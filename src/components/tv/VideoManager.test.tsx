@@ -11,11 +11,38 @@ const { insert, update, eq, single, refresh, refetch, playlist } = vi.hoisted(()
 vi.mock('@/integrations/supabase/client', () => ({supabase:{from:() => ({insert, update})}}));
 vi.mock('@/hooks/useTVVideos', () => ({useTVVideos:() => ({data:playlist.videos,isLoading:false,isError:false,refetch})}));
 vi.mock('@tanstack/react-query', () => ({useQueryClient:() => ({invalidateQueries:refresh})}));
+vi.mock('@/lib/tvUpload', () => ({
+ inspectVideo:vi.fn().mockResolvedValue(undefined),
+ uploadTVVideo:vi.fn().mockResolvedValue({path:'new.mp4',url:'https://example.com/new.mp4'}),
+}));
 const video = (id: string, values: Partial<TVVideo> = {}): TVVideo => ({
  id, title:`Vídeo ${id}`, url:`https://example.com/${id}.mp4`, storage_path:`${id}.mp4`,
  sort_order:0, active:true, archived_at:null, fit:'contain', source_type:'file', max_duration_seconds:null, ...values,
 });
 const showManager = () => render(<MemoryRouter><VideoManager /></MemoryRouter>);
+it.each([
+ {archived:true, expected:11},
+ {archived:false, expected:999999},
+])('uploads with a valid order when a maximum-order video is archived=$archived', async ({archived,expected}) => {
+ playlist.videos=[video('current',{sort_order:10}),video('maximum',{sort_order:999999,archived_at:archived?'2026-01-01':null})];
+ insert.mockResolvedValue({error:null});
+ showManager();
+ fireEvent.change(document.getElementById('tv-video-file')!,{target:{files:[new File(['video'],'cafe.mp4',{type:'video/mp4'})]}});
+ fireEvent.click(screen.getByRole('button',{name:'Enviar vídeo'}));
+ await waitFor(() => expect(insert).toHaveBeenCalledWith(expect.objectContaining({storage_path:'new.mp4',sort_order:expected})));
+ await waitFor(() => expect(refresh).toHaveBeenCalled());
+});
+it('ignores archived orders when adding a YouTube video', async () => {
+ playlist.videos=[video('current',{sort_order:10}),video('old',{sort_order:999999,archived_at:'2026-01-01'})];
+ insert.mockResolvedValue({error:null});
+ showManager();
+ const form=within(screen.getByRole('form',{name:'Adicionar YouTube'}));
+ fireEvent.change(form.getByLabelText('Link do YouTube'),{target:{value:'https://youtu.be/M7lc1UVf-VE'}});
+ fireEvent.change(form.getByLabelText('Nome para a programação'),{target:{value:'Café'}});
+ fireEvent.click(form.getByRole('button',{name:'Adicionar à programação'}));
+ await waitFor(() => expect(insert).toHaveBeenCalledWith(expect.objectContaining({source_type:'youtube',sort_order:11})));
+ await waitFor(() => expect(refresh).toHaveBeenCalled());
+});
 beforeEach(() => {
  playlist.videos = [];
  update.mockReturnValue({eq});

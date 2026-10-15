@@ -33,6 +33,11 @@ export function playableVideos(videos: TVVideo[]): TVVideo[] {
     .sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id));
 }
 
+export function nextUploadOrder(videos: TVVideo[]): number {
+  const highest = videos.reduce((order, video) => video.archived_at ? order : Math.max(order, video.sort_order), 0);
+  return Math.min(999999, highest + 1);
+}
+
 export function nextVideoId(videos: TVVideo[], currentId: string | null, failed = new Set<string>()): string | null {
   const playlist = playableVideos(videos);
   const start = playlist.findIndex(video => video.id === currentId);
