@@ -38,7 +38,9 @@ Use actual localized Portuguese copy rather than decorative marketing filler.
 ## Layout
 `/video`: viewport-owned landscape canvas, no store header/footer/scroll. Preserve the
 video's proportions with contain by default; optional cover is explicitly labelled as cropping.
-`/video/enviar`: document scrolling, upload column plus programming cards; stack on phones.
+`/video/enviar`: document scrolling, upload column plus compact programming rows; stack on phones. Each row shows a 16:9
+poster, title, source, duration and status. Editing and media preview open on demand;
+reuse shared Collapsible. Keep search, filters and pagination above the list.
 The signature is the full-screen moving product image, not a decorative dashboard.
 
 ## Elevation & Depth

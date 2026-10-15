@@ -118,3 +118,14 @@ Identidade: YouTube por youtube_id; arquivo por URL normalizada, sem fragmento e
 Regressões cobrem arquivo duplicado, mesmoIDYouTube com links diferentes, queries de arquivos distintos, reordenação sem repetição, remoção do atual, inserção sem reinício, duplicado na fila, troca do representante sem remontar/recarregar, preservação do ciclo no refresh, inserção antes de repetir e recuperação após falhas. Suite completa83testes aprovada; TypeScript, lint do escopo e build aprovados; revisão independente sem bloqueios. Sem alterações de banco ou cadastros nesta auditoria.
 
 Complemento da revisão automática: teste reproduziu perda de #t=30 no src, corrigida preservando o fragmento na reprodução inicial. Teste adicional percorre14fontes e confirma14URLs únicas antes do retorno ao primeiro. Publicação inicial da proteção: PR5, commit46b8c942fe50b48dbc4cde5c76a346128b20f06a, deployment190e4476-6208-4af4-9d68-a4a7eb1b489f, entryindex-Zm2JvMaW.js. Na conferência pública foram observadas trocas automáticas crescentes do4ºao13ºitem e retomada posterior do início, sem erros de mídia nos snapshots. A amostragem não capturou todos os itens na virada; a verificação completa de unicidade do ciclo é coberta pelo teste de componentes. Televisão física não exercitada.
+
+
+## Capas e lista compacta — 15/10/2026
+
+O painel exibe uma capa 16:9 por vídeo, com título, ordem, duração e estado em linhas compactas. Editar abre somente o formulário daquele item; a prévia de mídia só é montada ao solicitar. Busca, filtros, paginação de12itens, confirmação de arquivamento e restauração pausada permanecem. Salvar fecha o editor apenas após sucesso e devolve o foco ao botão Editar; falhas preservam o rascunho.
+
+Foram extraídos quadros reais dos15arquivos existentes em JPEG320×180, cerca de180KB no total, em public/tv-thumbnails. A coluna opcional poster_url referencia essas capas, inclusive a do Tornado arquivado. A atualização não altera a programação:14ativos e1arquivado. YouTube usa a miniatura oficial porID; capa ausente ou indisponível mostra fallback estável.
+
+Novos uploads capturam a capa localmente pelo navegador, com prazo de10s, e enviam JPEG ao bucket tv-videos com a sessão administrativa existente. O envio tem cancelamento efetivo e timeout15s; limpeza de objetos é best-effort e não prende a interface. Falha da capa permite salvar o vídeo sem capa. A migração20261015174500 adiciona poster_url com validação HTTPS/caminho local e permite image/jpeg no bucket, preservando limite50MB e RLS administrativa.
+
+Validação:95testes aprovados, incluindo lista compacta, imagens com erro, busca/filtros, edição, foco após salvamento assíncrono, geração de JPEG, cancelamento e timeout. TypeScript, lint dos arquivos do escopo e build aprovados. A interface administrativa autenticada não foi exercitada em navegador nesta sessão; comportamento coberto por testes de componentes.
