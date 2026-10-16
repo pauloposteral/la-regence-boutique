@@ -1220,54 +1220,54 @@ export type Database = {
       }
       tv_videos: {
         Row: {
-          poster_url: string | null
-          fallback_url: string | null
-          max_duration_seconds: number | null
-          source_url: string | null
-          credit: string | null
           active: boolean
           archived_at: string | null
           created_at: string
+          credit: string | null
+          fallback_url: string | null
           fit: string
           id: string
+          max_duration_seconds: number | null
+          poster_url: string | null
           sort_order: number
           source_type: string
+          source_url: string | null
           storage_path: string | null
           title: string
           url: string
           youtube_id: string | null
         }
         Insert: {
-          poster_url?: string | null
-          fallback_url?: string | null
-          max_duration_seconds?: number | null
-          source_url?: string | null
-          credit?: string | null
           active?: boolean
           archived_at?: string | null
           created_at?: string
+          credit?: string | null
+          fallback_url?: string | null
           fit?: string
           id?: string
+          max_duration_seconds?: number | null
+          poster_url?: string | null
           sort_order?: number
           source_type?: string
+          source_url?: string | null
           storage_path?: string | null
           title: string
           url: string
           youtube_id?: string | null
         }
         Update: {
-          poster_url?: string | null
-          fallback_url?: string | null
-          max_duration_seconds?: number | null
-          source_url?: string | null
-          credit?: string | null
           active?: boolean
           archived_at?: string | null
           created_at?: string
+          credit?: string | null
+          fallback_url?: string | null
           fit?: string
           id?: string
+          max_duration_seconds?: number | null
+          poster_url?: string | null
           sort_order?: number
           source_type?: string
+          source_url?: string | null
           storage_path?: string | null
           title?: string
           url?: string
