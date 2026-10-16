@@ -129,12 +129,18 @@ serve(async (req) => {
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   let event: Stripe.Event;
 
+  // WHY: fail-closed. Sem segredo ou sem assinatura, qualquer POST poderia
+  // forjar checkout.session.completed e marcar pedidos como "pago".
+  if (!webhookSecret || !sig) {
+    console.error("❌ Webhook rejeitado: STRIPE_WEBHOOK_SECRET ausente ou stripe-signature ausente");
+    return new Response(JSON.stringify({ error: "Invalid signature" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    if (webhookSecret && sig) {
-      event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
-    } else {
-      event = JSON.parse(body) as Stripe.Event;
-    }
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
   } catch (err: any) {
     console.error("❌ Webhook signature verification failed:", err.message);
     return new Response(JSON.stringify({ error: "Invalid signature" }), {
