@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, ChevronDown, Film, MonitorPlay, Pause, Play, RefreshCw, UploadCloud } from "lucide-react";
+import { Archive, ArchiveRestore, Check, ChevronDown, Film, ListOrdered, MonitorPlay, Pause, Play, RefreshCw, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTVVideos } from "@/hooks/useTVVideos";
@@ -13,12 +13,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const actionClass = "inline-flex items-center justify-center gap-2 rounded-full border border-gold/35 px-5 py-3 text-sm text-brown-dark transition-colors hover:bg-gold/10 disabled:opacity-50";
 import VideoThumbnail from "./VideoThumbnail";
+import PlaylistOrderEditor from "./PlaylistOrderEditor";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const rowActionClass = "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/30 px-3 py-2 text-xs text-brown-dark hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-50";
 const PAGE_SIZE = 12;
 const searchableTitle = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 type PlaylistFilter = "all" | "active" | "paused" | "archived";
+type VideoDraft = { title: string; fit: TVVideo["fit"]; duration: string; editing: boolean };
 
 const inputClass = "w-full rounded-lg border border-input bg-white px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 
@@ -30,35 +32,34 @@ function safeSourceUrl(value?: string | null): string | null {
   } catch { return null; }
 }
 
-export function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Promise<void> }) {
-  const [title, setTitle] = useState(video.title);
-  const [order, setOrder] = useState(video.sort_order);
-  const [fit, setFit] = useState(video.fit);
-  const [duration, setDuration] = useState(video.max_duration_seconds?.toString() ?? "");
+export function VideoRow({ video, refresh, position, draft, onDraftChange }: { video: TVVideo; refresh: () => Promise<void>; position?: number; draft?: VideoDraft; onDraftChange: (draft: VideoDraft | undefined) => void }) {
+  const title = draft?.title ?? video.title;
+  const fit = draft?.fit ?? video.fit;
+  const duration = draft?.duration ?? video.max_duration_seconds?.toString() ?? "";
+  const editing = draft?.editing ?? false;
+  const changeDraft = (changes: Partial<VideoDraft>) => onDraftChange({ title, fit, duration, editing, ...changes });
   const [showPreview, setShowPreview] = useState(false);
-  const [editing, setEditing] = useState(false);
   const editTrigger = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(false);
   const archived = !!video.archived_at;
   const sourceUrl = safeSourceUrl(video.source_url);
   const [formError, setFormError] = useState("");
-  useEffect(() => { setTitle(video.title); setOrder(video.sort_order); setFit(video.fit); setDuration(video.max_duration_seconds?.toString() ?? ""); }, [video]);
   const update = async (values: Partial<TVVideo>) => {
     setBusy(true);
     try {
       const { error } = await supabase.from("tv_videos").update(values).eq("id", video.id).select("id").single();
       if (error) throw error;
       await refresh();
-      toast.success("Programação atualizada. A TV receberá a alteração em até 15 segundos.");
+      toast.success("Alteração salva. A TV conectada atualiza a programação automaticamente.");
       return true;
     } catch { toast.error("Não foi possível salvar. Confira sua conexão e tente novamente."); return false; }
     finally { setBusy(false); }
   };
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!title.trim() || !Number.isInteger(order) || order < 0 || order > 999999) {
-      setFormError("Informe um nome e uma ordem inteira entre 0 e 999999.");
-      (event.currentTarget.elements.namedItem(!title.trim() ? "title" : "order") as HTMLInputElement)?.focus();
+    if (!title.trim()) {
+      setFormError("Informe um nome para o vídeo.");
+      (event.currentTarget.elements.namedItem("title") as HTMLInputElement)?.focus();
       return;
     }
     const maxDuration = duration.trim() ? Number(duration) : null;
@@ -68,19 +69,18 @@ export function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Pr
       return;
     }
     setFormError("");
-    void update({ title: title.trim(), sort_order: order, fit, max_duration_seconds: maxDuration }).then(saved => { if (saved) {setEditing(false);editTrigger.current?.focus();} });
+    void update({ title: title.trim(), fit, max_duration_seconds: maxDuration }).then(saved => { if (saved) {onDraftChange(undefined);editTrigger.current?.focus();} });
   };
   const cancelEdit = () => {
-    setTitle(video.title); setOrder(video.sort_order); setFit(video.fit);
-    setDuration(video.max_duration_seconds?.toString() ?? ""); setFormError(""); setEditing(false); editTrigger.current?.focus();
+    onDraftChange(undefined); setFormError(""); editTrigger.current?.focus();
   };
-  return <Collapsible open={editing} onOpenChange={setEditing} asChild>
+  return <Collapsible open={editing} onOpenChange={editing => changeDraft({ editing })} asChild>
     <article aria-label={video.title} className={`overflow-hidden rounded-xl border bg-white ${video.active && !archived ? "border-gold/30" : "border-border"}`}>
       <div className="flex items-center gap-3 p-3">
         <button type="button" className="aspect-video w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-brown-deep ring-gold hover:ring-2 focus-visible:outline-none focus-visible:ring-2 sm:w-32" aria-label={`Ver prévia de ${video.title}`} aria-expanded={showPreview} onClick={() => setShowPreview(value => !value)}><VideoThumbnail video={video} /></button>
         <div className="min-w-0 flex-1">
           <h3 className="break-words text-sm font-medium leading-snug">{video.title}</h3>
-          <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground"><span>Ordem {video.sort_order}</span><span>{video.source_type === "youtube" ? "YouTube" : "Arquivo"}</span><span>{video.max_duration_seconds ? `${video.max_duration_seconds} s` : "Vídeo inteiro"}</span></p>
+          <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">{!archived && <span>Posição {position ?? video.sort_order}</span>}<span>{video.source_type === "youtube" ? "YouTube" : "Arquivo"}</span><span>{video.max_duration_seconds ? `${video.max_duration_seconds} s` : "Vídeo inteiro"}</span></p>
           <span className="mt-1.5 inline-block rounded-full bg-cream px-2 py-0.5 text-[10px] font-medium">{archived ? "Arquivado" : video.active ? "Na programação" : "Pausado"}</span>
         </div>
       </div>
@@ -98,12 +98,9 @@ export function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Pr
       <CollapsibleContent className="border-t border-border">
         {(sourceUrl || video.credit) && <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 pt-3 text-xs text-muted-foreground">{sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-brown-dark underline decoration-gold/60 underline-offset-4 hover:text-gold-dark">Ver origem do vídeo</a>}{video.credit && <p className="break-words">Crédito: {video.credit}</p>}</div>}
         <form noValidate onSubmit={save} className="space-y-3 p-3">
-          <label className="block space-y-1 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => setTitle(e.target.value)} /></label>
-          <div className="grid grid-cols-[80px_1fr] gap-3">
-            <label className="space-y-1 text-xs text-muted-foreground"><span>Ordem</span><input name="order" className={inputClass} type="number" min={0} max={999999} required value={order} onChange={e => setOrder(Number(e.target.value))} /></label>
-            <label className="space-y-1 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => setFit(e.target.value as TVVideo["fit"])}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
-          </div>
-          <div className="space-y-1 text-xs text-muted-foreground"><label htmlFor={`video-duration-input-${video.id}`} className="block">Tempo na TV (segundos, opcional)</label><input id={`video-duration-input-${video.id}`} name="duration" className={inputClass} type="number" min={1} max={3600} step={1} value={duration} placeholder="Vídeo inteiro" aria-describedby={`video-duration-${video.id}`} onChange={event => setDuration(event.target.value)} /><span id={`video-duration-${video.id}`} className="block leading-relaxed">Em branco, toca o vídeo inteiro. Para passar ao próximo após 15 segundos, informe 15.</span></div>
+          <label className="block space-y-1 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => changeDraft({ title: e.target.value })} /></label>
+          <label className="block space-y-1 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => changeDraft({ fit: e.target.value as TVVideo["fit"] })}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
+          <div className="space-y-1 text-xs text-muted-foreground"><label htmlFor={`video-duration-input-${video.id}`} className="block">Tempo na TV (segundos, opcional)</label><input id={`video-duration-input-${video.id}`} name="duration" className={inputClass} type="number" min={1} max={3600} step={1} value={duration} placeholder="Vídeo inteiro" aria-describedby={`video-duration-${video.id}`} onChange={event => changeDraft({ duration: event.target.value })} /><span id={`video-duration-${video.id}`} className="block leading-relaxed">Em branco, toca o vídeo inteiro. Para passar ao próximo após 15 segundos, informe 15.</span></div>
           {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
           <div className="flex gap-2"><button type="submit" disabled={busy} className={rowActionClass}><Check size={14} />Salvar</button><button type="button" disabled={busy} className={rowActionClass} onClick={cancelEdit}>Cancelar</button></div>
         </form>
@@ -114,12 +111,24 @@ export function VideoRow({ video, refresh }: { video: TVVideo; refresh: () => Pr
 }
 
 export default function VideoManager() {
-  const { data: videos = [], isLoading, isError, refetch } = useTVVideos(true);
+  const { data: videos = [], isLoading, isError, refetch, dataUpdatedAt } = useTVVideos(true);
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<PlaylistFilter>("all");
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [organizing, setOrganizing] = useState(false);
+  // Rows unmount during pagination and organization; keep unfinished edits by ID.
+  const [drafts, setDrafts] = useState<Record<string, VideoDraft | undefined>>({});
+  const setVideoDraft = (id: string, draft: VideoDraft | undefined) => {
+    setDrafts(previous => {
+      const next = { ...previous };
+      if (draft) next[id] = draft;
+      else delete next[id];
+      return next;
+    });
+  };
+  const organizeTrigger = useRef<HTMLButtonElement>(null);
   const currentVideos = videos.filter(video => !video.archived_at);
   const filteredVideos = videos.filter(video => {
     const matchesStatus = filter === "archived" ? !!video.archived_at : !video.archived_at && (filter === "all" || (filter === "active" ? video.active : !video.active));
@@ -189,7 +198,7 @@ export default function VideoManager() {
       registered = true;
       await refresh();
       if (mounted.current) {
-        toast.success(active ? "Vídeo enviado. Aparecerá na TV em até 15 segundos." : "Vídeo enviado e salvo como pausado.");
+        toast.success(active ? "Vídeo enviado e incluído na programação. A TV conectada recebe a atualização automaticamente e toca o vídeo quando chegar sua vez." : "Vídeo enviado e salvo como pausado.");
         setFile(null); setTitle(""); if (input.current) input.current.value = "";
       }
     } catch (error) {
@@ -203,7 +212,7 @@ export default function VideoManager() {
       <div><p className="mb-3 text-[11px] uppercase tracking-[.3em] text-gold">La Régence · TV</p><h1 className="font-display text-3xl sm:text-5xl">Sua vitrine em movimento.</h1><p className="mt-3 max-w-xl text-sm text-muted-foreground">Envie os vídeos e escolha o que passa na televisão. A programação se repete automaticamente.</p></div>
       <div className="flex gap-3"><Link to="/admin" className={actionClass}>Painel</Link><a href="/video" target="_blank" rel="noopener noreferrer" className={`${actionClass} bg-gold text-white hover:bg-gold-dark`}><MonitorPlay size={18} />Abrir player</a></div>
     </header>
-    <div className="grid items-start gap-8 lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr]">
+    <div className="grid items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
       <aside className="space-y-5 lg:sticky lg:top-6">
         <form noValidate onSubmit={upload} className="rounded-xl border border-gold/25 bg-white p-5 sm:p-6">
           <h2 className="mb-5 text-xl">Enviar um vídeo</h2>
@@ -219,28 +228,34 @@ export default function VideoManager() {
             <label className="block space-y-2 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="upload-title" className={inputClass} maxLength={120} required value={title} disabled={busy} aria-invalid={!!validation && !title.trim()} aria-describedby={validation ? "upload-error" : undefined} onChange={event => setTitle(event.target.value)} /></label>
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={active} disabled={busy} onChange={event => setActive(event.target.checked)} className="h-4 w-4 accent-gold" />Exibir na TV após o envio</label>
             {busy && <div role="status"><div className="mb-2 flex justify-between text-xs"><span>{phase}</span><span>{progress}%</span></div><progress value={progress} max={100} aria-label="Progresso do envio" className="h-2 w-full accent-gold" /></div>}
-            <button type="submit" disabled={busy || isLoading || isError} className={`${actionClass} w-full bg-gold text-white hover:bg-gold-dark`}><UploadCloud size={17} />{busy ? "Enviando…" : "Enviar vídeo"}</button>
+            <button type="submit" disabled={busy || isLoading || isError || organizing} className={`${actionClass} w-full bg-gold text-white hover:bg-gold-dark`}><UploadCloud size={17} />{busy ? "Enviando…" : "Enviar vídeo"}</button>
             {busy && <button type="button" className={`${actionClass} w-full`} onClick={() => controller.current?.abort()}>Cancelar envio</button>}
           </div>}
           {validation && <p id="upload-error" role="alert" className="mt-4 text-sm text-destructive">{validation}</p>}
         </form>
-        <YouTubeForm videos={videos} refresh={refresh} disabled={isLoading || isError} />
+        <YouTubeForm videos={videos} refresh={refresh} disabled={isLoading || isError || organizing} />
         <div className="rounded-xl bg-brown-deep p-6 text-white"><MonitorPlay className="mb-3 text-gold-light" /><h2 className="text-lg">Na televisão</h2><p className="mt-3 break-all text-sm text-gold-light">cafelaregence.com.br/video</p><p className="mt-3 text-xs leading-relaxed text-white/75">Abra o endereço no navegador da TV e selecione Tela cheia. Os controles somem sozinhos. O som começa desligado e pode ser ativado no player.</p></div>
       </aside>
-      <section aria-label="Programação de vídeos">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl">Programação</h2><span className="rounded-full border border-gold/25 px-3 py-1 text-xs text-muted-foreground">{currentVideos.filter(v => v.active).length} ativos · {currentVideos.length} vídeos · {videos.length - currentVideos.length} arquivados</span></div>
-        <p className="mb-5 text-xs text-muted-foreground">Os menores números passam primeiro. Alterações chegam à TV em até 15 segundos. Ative um vídeo pausado para incluí-lo na sequência.</p>
+      <section aria-label="Programação de vídeos" className="min-w-0">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl">Programação</h2><span className="rounded-full border border-gold/25 px-3 py-1 text-xs text-muted-foreground">{currentVideos.filter(v => v.active).length} ativos · {currentVideos.length} vídeos · {videos.length - currentVideos.length} arquivados</span></div>
+        <p className="mb-3 text-sm leading-relaxed text-muted-foreground">Organize a sequência e envie novos vídeos por aqui. A TV conectada atualiza a programação automaticamente, mantendo o vídeo atual até a próxima troca.</p>
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <button ref={organizeTrigger} type="button" className={actionClass} disabled={organizing || busy || isLoading || isError || currentVideos.length < 2} onClick={() => setOrganizing(true)}><ListOrdered size={17} />Organizar ordem</button>
+          {!!dataUpdatedAt && <p className="text-xs text-muted-foreground">{isError ? "Sem atualização agora. Exibindo a última lista recebida." : `Lista conferida às ${new Date(dataUpdatedAt).toLocaleTimeString("pt-BR")}`}</p>}
+        </div>
+        {organizing ? <PlaylistOrderEditor videos={videos} refresh={refetch} onClose={() => { setOrganizing(false); requestAnimationFrame(() => organizeTrigger.current?.focus()); }} /> : <>
         <div className="mb-5 flex flex-wrap items-end gap-3">
           <label className="min-w-40 flex-1 space-y-2 text-xs text-muted-foreground"><span>Buscar por nome</span><input type="search" className={inputClass} value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} placeholder="Nome do vídeo" /></label>
           <label className="space-y-2 text-xs text-muted-foreground"><span>Filtrar vídeos</span><select className={inputClass} value={filter} onChange={event => { setFilter(event.target.value as PlaylistFilter); setPage(1); }}><option value="all">Todos</option><option value="active">Ativos</option><option value="paused">Pausados</option><option value="archived">Arquivados</option></select></label>
           <button type="button" className={actionClass} disabled={refreshing || isLoading} onClick={() => void refreshList()}><RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />{refreshing ? "Atualizando…" : "Atualizar lista"}</button>
           {search && <button type="button" className={actionClass} onClick={() => { setSearch(""); setPage(1); }}>Limpar busca</button>}
         </div>
-        {isLoading ? <p role="status">Carregando vídeos…</p> : isError ? <div role="alert"><p>Não foi possível carregar os vídeos.</p><button className={`${actionClass} mt-3`} onClick={() => void refreshList()}>Tentar novamente</button></div> : filteredVideos.length ? <>
+        {isLoading ? <p role="status">Carregando vídeos…</p> : isError && !videos.length ? <div role="alert"><p>Não foi possível carregar os vídeos.</p><button className={`${actionClass} mt-3`} onClick={() => void refreshList()}>Tentar novamente</button></div> : filteredVideos.length ? <>
           <p role="status" className="mb-3 text-xs text-muted-foreground">{filteredVideos.length} {filteredVideos.length === 1 ? "vídeo encontrado" : "vídeos encontrados"} · Página {currentPage} de {pageCount}</p>
-          <div className="space-y-2">{pageVideos.map(video => <VideoRow key={video.id} video={video} refresh={refresh} />)}</div>
+          <div className="space-y-2">{pageVideos.map(video => <VideoRow key={video.id} video={video} refresh={refresh} position={currentVideos.findIndex(item => item.id === video.id) + 1} draft={drafts[video.id]} onDraftChange={draft => setVideoDraft(video.id, draft)} />)}</div>
           {pageCount > 1 && <nav aria-label="Páginas da programação" className="mt-5 flex items-center justify-between gap-3"><button type="button" className={actionClass} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Anterior</button><span className="text-xs text-muted-foreground">Página {currentPage} de {pageCount}</span><button type="button" className={actionClass} disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Próxima</button></nav>}
         </> : <div className="rounded-xl border border-dashed border-gold/30 p-8 text-center"><Film className="mx-auto mb-4 h-9 w-9 text-gold" /><p>{videos.length ? "Nenhum vídeo encontrado para esta busca ou filtro." : "Nenhum vídeo na programação. Envie o primeiro ao lado."}</p>{(search || filter !== "all") && <button type="button" className={`${actionClass} mt-4`} onClick={() => { setSearch(""); setFilter("all"); setPage(1); }}>Mostrar todos</button>}</div>}
+        </>}
 
       </section>
     </div>
@@ -266,7 +281,7 @@ function YouTubeForm({ videos, refresh, disabled }: { videos: TVVideo[]; refresh
       });
       if (insertError) throw insertError;
       await refresh(); setUrl(""); setTitle("");
-      toast.success(active ? "YouTube adicionado. Aparecerá na TV em até 15 segundos." : "YouTube salvo como pausado.");
+      toast.success(active ? "YouTube incluído na programação. A TV conectada recebe a atualização automaticamente e toca o vídeo quando chegar sua vez." : "YouTube salvo como pausado.");
     } catch { setError("Não foi possível adicionar. Confira sua conexão e tente novamente."); }
     finally { setBusy(false); }
   };

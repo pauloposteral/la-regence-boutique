@@ -1388,6 +1388,10 @@ export type Database = {
           tipo: string
         }[]
       }
+      reorder_tv_videos: {
+        Args: { p_expected_ids: string[]; p_ordered_ids: string[] }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"

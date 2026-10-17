@@ -30,6 +30,30 @@ TV-specific components inherit runtime design tokens documented in `DESIGN.md`.
 Use the shared Sonner/AlertDialog primitives for feedback and archive confirmation.
 Permission and data lifecycle rules originate in the migration, not client-side UI checks.
 
+## Organizar ordem e sincronizar a TV — 17/10/2026
+
+No painel, **Organizar ordem** abre todos os vídeos não arquivados, incluindo os pausados, independentemente da busca, filtro ou página atual. Cada item tem capa, nome e posição. Use a alça para arrastar, as setas para subir/descer ou o seletor para ir diretamente a outra posição. **Salvar ordem** confirma a sequência inteira; **Cancelar organização** descarta o rascunho.
+
+A ordem é gravada em uma única transação pela função `reorder_tv_videos(p_ordered_ids, p_expected_ids)`. Ela exige o administrador existente, executa com os privilégios do chamador e conserva a RLS. O snapshot esperado evita sobrescrever uma sequência alterada por outro painel; IDs ausentes, repetidos ou arquivados são rejeitados. Somente `sort_order` recebe posições de 1 a N. A interface oferece **Recarregar ordem** quando há conflito. Editar nome, enquadramento ou tempo de exibição não altera mais a ordem; atualizações automáticas preservam o rascunho de metadados aberto.
+
+Arquivos e links adicionados com **Exibir na TV** marcado entram na programação após a confirmação do cadastro. A TV conectada recebe a mudança automaticamente. Isso não significa que o novo vídeo começa imediatamente: o atual continua e o novo toca quando chegar sua vez, preservando o ciclo de fontes já selecionadas.
+
+O hook observa eventos da tabela `tv_videos`, agrupa avisos por 250 ms e refaz a consulta autorizada completa. A assinatura inicial e cada reconexão também reconciliam a lista. TV e painel mantêm consulta de recuperação a cada 15 segundos, inclusive em segundo plano, além de atualização forçada ao voltar à aba ou à conexão. A publicação `supabase_realtime` recebe a tabela sem alterar as políticas de acesso.
+
+A última lista válida continua disponível se a consulta falhar. Eventos não substituem diretamente os registros no player, não desmontam a mídia e não zeram o histórico do ciclo. O polling cobre avisos perdidos e itens que deixam de ser legíveis após serem pausados ou arquivados. Uma TV sem internet ou com o navegador suspenso só recebe mudanças ao retomar a conexão/execução; o horário mostrado no painel é a última consulta daquele painel, não confirmação de reprodução na televisão.
+
+Referências técnicas: [Supabase Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes), [TanStack Query v5](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery), [PostgreSQL LOCK](https://www.postgresql.org/docs/17/sql-lock.html) e [Motion Reorder](https://motion.dev/docs/react-reorder). A pesquisa Context7 utilizou `/supabase/supabase` e `/tanstack/query/v5_84_1`.
+
+### Verificação da ordenação e sincronização
+
+- Suíte completa: **122 testes em 12 arquivos aprovados**, além de TypeScript, ESLint dos arquivos alterados, `git diff --check` e build de produção. A revisão independente foi concluída sem findings restantes após corrigir a preservação de rascunhos entre páginas e a recarga de conflitos. Permanecem apenas os avisos de build já existentes sobre Browserslist e tamanho dos bundles.
+- O teste de integração usa a cadeia real de componentes e QueryClient; simula somente Supabase e mídia nativa do JSDOM. Confirma que atualização, reordenação, novo item e falha de consulta conservam o elemento de vídeo, a posição, a pausa e o histórico de fontes selecionadas.
+- QA em navegador local: 20 verificações com 15 vídeos de fixture, em 390 × 844 e 1365 × 900. Arraste real com mouse e toque, teclado, setas, seletor, salvamento único, cancelamento, erro e conflito passaram. As capas ficaram visíveis no celular e um nome sem espaços de 107 caracteres não causou overflow. A fixture substituiu o cliente Supabase e bloqueou rede externa; as fontes de fallback foram usadas. Essa evidência não representa uma sessão administrativa real nem uma televisão física.
+- A migração e o script `supabase/tests/tv_playlist_order_sync.sql` passaram dentro de uma única transação revertida. Foram exercitados os papéis anônimo, autenticado sem administração e administrador, arrays inválidos, snapshot antigo, inclusão/arquivamento concorrentes modelados e preservação de todas as colunas fora da ordem. O isolamento observado foi `READ COMMITTED`; não foi realizado teste com duas conexões simultâneas.
+- A migração `20261017160902_tv_playlist_order_sync.sql` foi aplicada e registrada no banco. Função invoker, privilégios e publicação Realtime foram conferidos. O catálogo manteve 4 ativos e 12 arquivados; o digest de todos os registros permaneceu idêntico antes/depois da validação e da aplicação.
+
+Após publicar esta versão, uma página da TV que já estava aberta precisa ser recarregada uma vez para carregar o novo código. As próximas alterações da programação são recebidas automaticamente enquanto a página e a conexão estiverem ativas.
+
 ## Verified state — 2026-10-15
 
 - 23 unit/component tests pass, including playback looping, media failures, stall recovery,
