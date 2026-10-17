@@ -3,13 +3,14 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import VideoManager from './VideoManager';
 import type { TVVideo } from '@/lib/tvPlaylist';
-const { insert, update, eq, single, refresh, refetch, playlist, uploadPoster } = vi.hoisted(() => ({
+const { insert, update, eq, single, refresh, refetch, playlist, uploadPoster, rpc } = vi.hoisted(() => ({
  insert:vi.fn(), update:vi.fn(), eq:vi.fn(), single:vi.fn(),
  refresh:vi.fn().mockResolvedValue(undefined), refetch:vi.fn().mockResolvedValue({error:null}),
  playlist:{videos:[] as TVVideo[]},
  uploadPoster:vi.fn(),
+ rpc:vi.fn(),
 }));
-vi.mock('@/integrations/supabase/client', () => ({supabase:{from:() => ({insert, update})}}));
+vi.mock('@/integrations/supabase/client', () => ({supabase:{from:() => ({insert, update}), rpc}}));
 vi.mock('@/hooks/useTVVideos', () => ({useTVVideos:() => ({data:playlist.videos,isLoading:false,isError:false,refetch})}));
 vi.mock('@tanstack/react-query', () => ({useQueryClient:() => ({invalidateQueries:refresh})}));
 vi.mock('@/lib/tvUpload', () => ({
@@ -87,10 +88,12 @@ it('ignores archived orders when adding a YouTube video', async () => {
 });
 beforeEach(() => {
  playlist.videos = [];
+ refetch.mockImplementation(async () => ({data:playlist.videos,isError:false,error:null}));
  update.mockReturnValue({eq});
  eq.mockReturnValue({select:() => ({single})});
  single.mockResolvedValue({error:null});
  uploadPoster.mockResolvedValue({path:'new.jpg',url:'https://example.com/new.jpg'});
+ rpc.mockResolvedValue({data:null,error:null});
 });
 afterEach(() => {cleanup();vi.clearAllMocks();});
 it('saves the generated poster with a new uploaded video', async () => {
@@ -266,4 +269,159 @@ it('keeps public TV links hidden for paused items', () => {
  playlist.videos=[video('paused',{active:false})];
  showManager();
  expect(screen.queryByRole('link',{name:'Ver na TV'})).not.toBeInTheDocument();
+});
+
+it('organizes the complete unarchived catalog regardless of the current search and page', () => {
+ playlist.videos=Array.from({length:13},(_,index)=>video(String(index),{sort_order:index,active:index!==12}));
+ playlist.videos.push(video('archived',{archived_at:'2026-01-01',sort_order:50}));
+ showManager();
+ fireEvent.change(screen.getByLabelText('Buscar por nome'),{target:{value:'Vídeo 0'}});
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ const order=within(screen.getByRole('list',{name:'Ordem de exibição'}));
+ expect(order.getAllByRole('listitem')).toHaveLength(13);
+ expect(order.getByText('Vídeo 12')).toBeInTheDocument();
+ expect(order.queryByText('Vídeo archived')).not.toBeInTheDocument();
+ fireEvent.click(order.getByRole('button',{name:'Mover Vídeo 12 para cima'}));
+ expect(order.getAllByRole('listitem')[11]).toHaveTextContent('Vídeo 12');
+ expect(rpc).not.toHaveBeenCalled();
+});
+
+it('saves all positions in one call after choosing a new position', async () => {
+ playlist.videos=[video('a',{sort_order:0}),video('b',{sort_order:10}),video('c',{sort_order:20})];
+ showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ fireEvent.change(screen.getByLabelText('Posição de Vídeo c'),{target:{value:'1'}});
+ expect(within(screen.getByRole('list',{name:'Ordem de exibição'})).getAllByRole('listitem')[0]).toHaveTextContent('Vídeo c');
+ expect(rpc).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('button',{name:'Salvar ordem'}));
+ await waitFor(()=>expect(rpc).toHaveBeenCalledExactlyOnceWith('reorder_tv_videos',{p_ordered_ids:['c','a','b'],p_expected_ids:['a','b','c']}));
+ await waitFor(()=>expect(screen.queryByRole('list',{name:'Ordem de exibição'})).not.toBeInTheDocument());
+ expect(update).not.toHaveBeenCalled();
+});
+
+it('discards an order draft without changing the server', () => {
+ playlist.videos=[video('a',{sort_order:0}),video('b',{sort_order:10})];showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ fireEvent.change(screen.getByLabelText('Posição de Vídeo b'),{target:{value:'1'}});
+ fireEvent.click(screen.getByRole('button',{name:'Cancelar organização'}));
+ expect(rpc).not.toHaveBeenCalled();
+ expect(screen.queryByRole('list',{name:'Ordem de exibição'})).not.toBeInTheDocument();
+});
+
+it('keeps an unsaved order available after a server failure', async () => {
+ playlist.videos=[video('a',{sort_order:0}),video('b',{sort_order:10})];
+ rpc.mockResolvedValue({data:null,error:{message:'network failure'}});showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ fireEvent.change(screen.getByLabelText('Posição de Vídeo b'),{target:{value:'1'}});
+ fireEvent.click(screen.getByRole('button',{name:'Salvar ordem'}));
+ await waitFor(()=>expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível salvar a ordem'));
+ expect(screen.getByLabelText('Posição de Vídeo b')).toHaveValue('1');
+ expect(screen.getByRole('button',{name:'Salvar ordem'})).toBeEnabled();
+});
+
+it('requires reloading the order when a new upload arrives during organization', async () => {
+ playlist.videos=[video('a',{sort_order:0}),video('b',{sort_order:10})];
+ const view=showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ fireEvent.change(screen.getByLabelText('Posição de Vídeo b'),{target:{value:'1'}});
+ playlist.videos=[...playlist.videos,video('c',{sort_order:11})];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ expect(screen.getByRole('alert')).toHaveTextContent('A programação mudou');
+ expect(screen.getByRole('button',{name:'Salvar ordem'})).toBeDisabled();
+ expect(screen.getByLabelText('Posição de Vídeo b')).toHaveValue('1');
+ fireEvent.click(screen.getByRole('button',{name:'Recarregar ordem'}));
+ await waitFor(()=>expect(within(screen.getByRole('list',{name:'Ordem de exibição'})).getAllByRole('listitem')).toHaveLength(3));
+ expect(screen.getByLabelText('Posição de Vídeo b')).toHaveValue('2');
+ expect(rpc).not.toHaveBeenCalled();
+});
+
+it('keeps a metadata draft when automatic refresh brings another order', () => {
+ playlist.videos=[video('a',{sort_order:0})];const view=showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Editar'}));
+ fireEvent.change(screen.getByLabelText('Nome do vídeo'),{target:{value:'Meu novo nome'}});
+ playlist.videos=[video('a',{sort_order:10,title:'Nome remoto'})];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ expect(screen.getByLabelText('Nome do vídeo')).toHaveValue('Meu novo nome');
+});
+
+it('does not write the old sort order when saving a video name', async () => {
+ playlist.videos=[video('a',{sort_order:10})];showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Editar'}));
+ fireEvent.change(screen.getByLabelText('Nome do vídeo'),{target:{value:'Café novo'}});
+ fireEvent.click(screen.getByRole('button',{name:'Salvar'}));
+ await waitFor(()=>expect(update).toHaveBeenCalled());
+ expect(update.mock.calls[0][0]).not.toHaveProperty('sort_order');
+ expect(update.mock.calls[0][0]).toHaveProperty('title','Café novo');
+});
+
+it('preserves a metadata draft when a remote reorder moves its row to another page', async () => {
+ playlist.videos=Array.from({length:13},(_,index)=>video(String(index),{sort_order:index}));
+ const view=showManager();
+ const original=within(screen.getByRole('article',{name:'Vídeo 0'}));
+ fireEvent.click(original.getByRole('button',{name:'Editar'}));
+ fireEvent.change(original.getByLabelText('Nome do vídeo'),{target:{value:'Meu rascunho'}});
+ fireEvent.change(original.getByLabelText('Enquadramento'),{target:{value:'cover'}});
+ fireEvent.change(original.getByLabelText('Tempo na TV (segundos, opcional)'),{target:{value:'17'}});
+
+ const moved={...playlist.videos[0],title:'Nome remoto',sort_order:99,max_duration_seconds:40};
+ playlist.videos=[...playlist.videos.slice(1),moved];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ expect(screen.queryByRole('article',{name:'Nome remoto'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Próxima'}));
+
+ const restored=within(screen.getByRole('article',{name:'Nome remoto'}));
+ expect(restored.getByLabelText('Nome do vídeo')).toHaveValue('Meu rascunho');
+ expect(restored.getByLabelText('Enquadramento')).toHaveValue('cover');
+ expect(restored.getByLabelText('Tempo na TV (segundos, opcional)')).toHaveValue(17);
+ expect(update).not.toHaveBeenCalled();
+
+ fireEvent.click(restored.getByRole('button',{name:'Salvar'}));
+ await waitFor(()=>expect(restored.getByRole('button',{name:'Editar'})).toBeEnabled());
+ expect(update).toHaveBeenCalledWith({title:'Meu rascunho',fit:'cover',max_duration_seconds:17});
+ playlist.videos=[...playlist.videos.slice(0,-1),{...moved,title:'Título confirmado depois'}];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ const saved=within(screen.getByRole('article',{name:'Título confirmado depois'}));
+ fireEvent.click(saved.getByRole('button',{name:'Editar'}));
+ expect(saved.getByLabelText('Nome do vídeo')).toHaveValue('Título confirmado depois');
+});
+
+it('preserves a metadata draft across organizing and canceling the order until editing is explicitly canceled', () => {
+ playlist.videos=[video('coffee'),video('other',{sort_order:1})];
+ const view=showManager();
+ const original=within(screen.getByRole('article',{name:'Vídeo coffee'}));
+ fireEvent.click(original.getByRole('button',{name:'Editar'}));
+ fireEvent.change(original.getByLabelText('Nome do vídeo'),{target:{value:'Meu rascunho'}});
+ fireEvent.change(original.getByLabelText('Enquadramento'),{target:{value:'cover'}});
+ fireEvent.change(original.getByLabelText('Tempo na TV (segundos, opcional)'),{target:{value:'17'}});
+
+ fireEvent.click(screen.getByRole('button',{name:'Organizar ordem'}));
+ expect(screen.queryByRole('article',{name:'Vídeo coffee'})).not.toBeInTheDocument();
+ playlist.videos=[video('coffee',{title:'Nome remoto',max_duration_seconds:40}),video('other',{sort_order:1})];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ fireEvent.click(screen.getByRole('button',{name:'Cancelar organização'}));
+
+ const restored=within(screen.getByRole('article',{name:'Nome remoto'}));
+ expect(restored.getByLabelText('Nome do vídeo')).toHaveValue('Meu rascunho');
+ expect(restored.getByLabelText('Enquadramento')).toHaveValue('cover');
+ expect(restored.getByLabelText('Tempo na TV (segundos, opcional)')).toHaveValue(17);
+ expect(update).not.toHaveBeenCalled();
+ fireEvent.click(restored.getByRole('button',{name:'Cancelar'}));
+ fireEvent.click(restored.getByRole('button',{name:'Editar'}));
+ expect(restored.getByLabelText('Nome do vídeo')).toHaveValue('Nome remoto');
+ expect(restored.getByLabelText('Enquadramento')).toHaveValue('contain');
+ expect(restored.getByLabelText('Tempo na TV (segundos, opcional)')).toHaveValue(40);
+});
+
+it('preserves a metadata draft when editing is only collapsed during a refresh', () => {
+ playlist.videos=[video('coffee')];
+ const view=showManager();
+ fireEvent.click(screen.getByRole('button',{name:'Editar'}));
+ fireEvent.change(screen.getByLabelText('Nome do vídeo'),{target:{value:'Meu rascunho'}});
+ fireEvent.click(screen.getByRole('button',{name:'Fechar edição'}));
+ expect(screen.queryByLabelText('Nome do vídeo')).not.toBeInTheDocument();
+ playlist.videos=[video('coffee',{title:'Nome remoto'})];
+ view.rerender(<MemoryRouter><VideoManager /></MemoryRouter>);
+ fireEvent.click(screen.getByRole('button',{name:'Editar'}));
+ expect(screen.getByLabelText('Nome do vídeo')).toHaveValue('Meu rascunho');
+ expect(update).not.toHaveBeenCalled();
 });
