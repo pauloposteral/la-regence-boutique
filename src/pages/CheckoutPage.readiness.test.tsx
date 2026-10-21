@@ -32,9 +32,10 @@ async function reviewPix() {
 describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
   beforeEach(() => {
     vi.clearAllMocks(); window.location.hash = "";
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     mocks.validate.mockResolvedValue(false);
   });
-  afterEach(cleanup);
+  afterEach(() => { cleanup(); vi.restoreAllMocks(); });
   it.each([[62.91, true], [62.92, false]])("accepts exact cents only: gateway total %s", async (total, accepted) => {
     mocks.invoke.mockImplementation(async (name: string) => name === "calcular-frete"
       ? { data: { options: [{ id: "mock", company: "Mock", name: "Shipping", price: 0, free: true }] }, error: null }

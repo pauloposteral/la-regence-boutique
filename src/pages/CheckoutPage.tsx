@@ -1,4 +1,4 @@
-import { formatBRL, moneyValue, roundMoney } from "@/lib/money";
+import { formatBRL, moneyValue } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package, ArrowRight } from "lucide-react";
