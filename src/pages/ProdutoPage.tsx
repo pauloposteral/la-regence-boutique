@@ -280,7 +280,7 @@ const ProdutoPage = () => {
                   <span className="text-gold-ink font-semibold">{formatBRL(pixPrice)} no Pix (10% off)</span>
                 </div>
                 <p className="text-xs text-muted-foreground font-body">
-                  ou 12x de {formatBRL((effectivePrice / 12))} sem juros
+                  Consulte as condições no pagamento
                 </p>
               </div>
               {produto.preco_promocional && (

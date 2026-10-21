@@ -101,7 +101,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
                 {formatBRL(pixPrice)} no Pix (10% off)
               </p>
               <p className="text-[10px] text-muted-foreground font-body">
-                ou 12x de {formatBRL((displayPrice / 12))} sem juros
+                Consulte as condições no pagamento
               </p>
             </div>
 

@@ -145,7 +145,7 @@ const CoffeeCarousel = () => {
                         {formatBRL(basePrice)}
                       </p>
                       <p className="text-[11px] text-muted-foreground font-body mt-0.5">
-                        Em até 12x de {formatBRL(parcela)} s/ juros
+                        Consulte as condições no pagamento
                       </p>
 
                       <div className="mt-3 border border-gold/20 rounded-xl px-3 py-2 text-center bg-gold/[0.04]">

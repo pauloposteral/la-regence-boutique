@@ -411,7 +411,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
               <span className="text-[10px] text-gold-ink font-body font-medium">{formatBRL(pixPrice)} no Pix</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-body">
-              ou 12x de {formatBRL(((produto.preco_promocional ?? produto.preco) / 12))} sem juros
+              Consulte as condições no pagamento
             </p>
           </div>
           <div className="flex gap-2 mt-3">

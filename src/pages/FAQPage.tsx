@@ -9,7 +9,7 @@ const FAQ_SECTIONS = [
     title: "Pedidos & Pagamentos",
     items: [
       { q: "Quais formas de pagamento são aceitas?", a: "Aceitamos cartão de crédito (Visa, Mastercard, Amex) e Pix. Pagamentos via Pix têm 10% de desconto." },
-      { q: "Posso parcelar minha compra?", a: "Sim! Parcelamos em até 12x sem juros no cartão de crédito." },
+      { q: "Posso parcelar minha compra?", a: "As condições de pagamento com cartão são exibidas na etapa de pagamento. Consulte as condições no pagamento." },
       { q: "Como aplico um cupom de desconto?", a: "No carrinho de compras, insira o código do cupom no campo 'Cupom de desconto' e clique em 'Aplicar'." },
       { q: "Posso cancelar um pedido?", a: "Pedidos podem ser cancelados enquanto o status for 'Pendente' ou 'Confirmado'. Entre em contato pelo WhatsApp ou e-mail." },
     ],
