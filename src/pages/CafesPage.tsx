@@ -259,7 +259,7 @@ const CafesPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-card rounded-xl border border-cream-400 animate-pulse">
-                <Link to={`/cafe/${produto.slug}`} aria-label={produto.nome} className="block aspect-[3/4] bg-cream-200 rounded-t-xl" />
+                <div className="aspect-[3/4] bg-cream-200 rounded-t-xl" />
                 <div className="p-5 space-y-3"><div className="h-5 bg-cream-300 rounded w-3/4" /><div className="h-3 bg-cream-300 rounded w-1/2" /><div className="h-4 bg-cream-300 rounded w-1/3" /></div>
               </div>
             ))}

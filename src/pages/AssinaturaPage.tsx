@@ -495,7 +495,7 @@ const AssinaturaPage = () => {
                   onClick={handleSubscribe}
                   disabled={submitting || (!cafeSurpresa && !selectedCafe)}
                 >
-                  {submitting ? "Redirecionando…" : `Assinar agora — ${formatBRL(PLANS.find((p) => p.tipo === selectedPlan)!.price)}/mês`}
+                  {submitting ? "Redirecionando…" : `Assinar agora — ${formatBRL(PLANS.find((p) => p.tipo === selectedPlan)?.price)}/mês`}
                 </Button>
                 <p className="font-body text-xs text-muted-foreground mt-3">
                   Cancele quando quiser · Primeira entrega em até 7 dias
