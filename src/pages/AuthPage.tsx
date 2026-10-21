@@ -302,10 +302,10 @@ const AuthPage = () => {
 
             <Button
               type="submit"
-              className="w-full rounded-full font-body bg-gold text-white hover:bg-gold-dark tracking-wider uppercase text-sm transition-all duration-300"
+              className="w-full rounded-full font-body bg-gold text-foreground hover:bg-gold-dark tracking-wide uppercase text-sm transition-all duration-300"
               disabled={loading || googleLoading}
             >
-              {loading ? <span className="btn-spinner" /> : (
+              {loading ? <span role="status" aria-label="Entrando" className="btn-spinner" /> : (
                 <>
                   {mode === "login" && "Entrar"}
                   {mode === "signup" && "Criar conta"}
@@ -333,7 +333,7 @@ const AuthPage = () => {
             {mode === "login" && (
               <p className="font-body text-sm text-muted-foreground">
                 Não tem conta?{" "}
-                <button onClick={() => setMode("signup")} className="text-gold-ink hover:underline font-medium">
+                <button type="button" onClick={() => setMode("signup")} className="text-gold-ink hover:underline font-medium min-h-11">
                   Cadastre-se
                 </button>
               </p>
@@ -341,7 +341,7 @@ const AuthPage = () => {
             {(mode === "signup" || mode === "forgot") && (
               <p className="font-body text-sm text-muted-foreground">
                 Já tem conta?{" "}
-                <button onClick={() => setMode("login")} className="text-gold-ink hover:underline font-medium">
+                <button type="button" onClick={() => setMode("login")} className="text-gold-ink hover:underline font-medium min-h-11">
                   Fazer login
                 </button>
               </p>

@@ -39,7 +39,7 @@ export function translateAuthError(message: string): string {
 
 /** Only allow internal relative paths as post-login destination. */
 export function safeNext(next: string | null | undefined, fallback = "/conta"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u0020]/.test(next)) return fallback;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\") || [...next].some((char) => char.charCodeAt(0) <= 32)) return fallback;
   try {
     const decoded = decodeURIComponent(next);
     if (decoded.startsWith("//") || decoded.includes("\\")) return fallback;

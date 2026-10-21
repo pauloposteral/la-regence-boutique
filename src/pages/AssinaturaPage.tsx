@@ -91,10 +91,11 @@ const AssinaturaPage = () => {
   const { data: assinatura } = useQuery({
     queryKey: ["assinatura", user?.id],
     queryFn: async () => {
+      if (!user) return null;
       const { data } = await supabase
         .from("assinaturas")
         .select("*, produtos(nome, slug)")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .eq("status", "ativa")
         .maybeSingle();
       return data;
@@ -125,7 +126,7 @@ const AssinaturaPage = () => {
   const handleSubscribe = async () => {
     if (!user) {
       toast.info("Faça login para assinar");
-      navigate("/auth");
+      navigate("/auth?next=%2Fassinatura");
       return;
     }
     if (!cafeSurpresa && !selectedCafe) {
@@ -162,6 +163,7 @@ const AssinaturaPage = () => {
 
   // Etapa 2: salvar endereço e abrir o pagamento.
   const handleConfirmAddress = async () => {
+    if (!user) { navigate("/auth?next=%2Fassinatura"); return; }
     const erro = validarEndereco(endereco);
     if (erro) {
       toast.error(erro);
@@ -172,7 +174,7 @@ const AssinaturaPage = () => {
       const { data: novoEndereco, error: endErr } = await supabase
         .from("enderecos")
         .insert({
-          user_id: user!.id,
+          user_id: user.id,
           apelido: "Assinatura",
           cep: endereco.cep.replace(/\D/g, ""),
           logradouro: endereco.logradouro.trim(),

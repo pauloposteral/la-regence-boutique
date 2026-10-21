@@ -89,6 +89,7 @@
     text-wrap: balance;
     letter-spacing: 0;
   }
+  .font-mono { letter-spacing: 0; font-variant-numeric: tabular-nums; }
 
   /* Responsive typography */
   h1 { font-size: 1.875rem; }
