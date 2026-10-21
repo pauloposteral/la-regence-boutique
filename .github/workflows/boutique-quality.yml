@@ -13,17 +13,12 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - name: Synchronize npm lock for managed Google dependency
-        if: github.ref == 'refs/heads/fix/bam-181-brl-auth-ux'
-        run: npm install --package-lock-only --ignore-scripts
       - name: Install locked dependencies
         run: npm ci
       - name: Unit and independent regression tests
@@ -32,13 +27,3 @@ jobs:
         run: npx tsc -p tsconfig.app.json --noEmit
       - name: Production build
         run: npm run build
-      - name: Save verified npm lock on isolated branch
-        if: github.ref == 'refs/heads/fix/bam-181-brl-auth-ux'
-        run: |
-          git add package-lock.json
-          if ! git diff --cached --quiet; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'build(BAM-181): synchronize npm lock for managed Google auth'
-            git push origin HEAD:fix/bam-181-brl-auth-ux
-          fi
