@@ -19,6 +19,8 @@ export function validateSignup(input: SignupInput): string | null {
 }
 
 const AUTH_ERRORS: Array<[RegExp, string]> = [
+  [/access.denied|cancelled|canceled/i, "Login cancelado. Você pode tentar novamente"],
+  [/network|fetch|offline/i, "Verifique sua conexão e tente novamente"],
   [/invalid login credentials/i, "E-mail ou senha incorretos"],
   [/email not confirmed/i, "Confirme seu e-mail antes de entrar"],
   [/user already registered|already been registered/i, "Este e-mail já está cadastrado"],
@@ -37,6 +39,12 @@ export function translateAuthError(message: string): string {
 
 /** Only allow internal relative paths as post-login destination. */
 export function safeNext(next: string | null | undefined, fallback = "/conta"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/auth")) return fallback;
-  return next;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u0020]/.test(next)) return fallback;
+  try {
+    const decoded = decodeURIComponent(next);
+    if (decoded.startsWith("//") || decoded.includes("\\")) return fallback;
+    const url = new URL(next, "https://local.invalid");
+    if (url.origin !== "https://local.invalid" || /^\/auth(?:\/|$)/.test(decodeURIComponent(url.pathname))) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch { return fallback; }
 }
