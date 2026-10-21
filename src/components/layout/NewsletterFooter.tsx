@@ -36,7 +36,7 @@ const NewsletterFooter = () => {
           Dicas de preparo, lançamentos e promoções exclusivas.
         </p>
         <div className="flex gap-2">
-          <Input aria-label="Seu e-mail para receber novidades"
+          <Input
             type="email"
             placeholder="seu@email.com"
             value={email}

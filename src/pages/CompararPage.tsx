@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";

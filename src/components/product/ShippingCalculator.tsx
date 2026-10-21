@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, moneyValue } from "@/lib/money";
 import { useState } from "react";
 import { Truck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,11 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
       if (fnErr) throw fnErr;
       if (data?.error) throw new Error(data.error);
 
-      const opts: ShippingOption[] = data?.options || [];
+      const opts: ShippingOption[] = (data?.options || []).map((opt: ShippingOption) => {
+        const price = moneyValue(opt.price);
+        if (price < 0 || (opt.free && price !== 0)) throw new Error("Frete inválido");
+        return { ...opt, price };
+      });
       if (opts.length === 0) {
         setError("Nenhum serviço disponível para este CEP.");
       } else {
@@ -79,12 +83,12 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
         Calcular frete
       </div>
       <div className="flex gap-2">
-        <Input aria-label="CEP para calcular o frete"
-          placeholder="00000-000"
+        <Input
+          aria-label="CEP para calcular frete" autoComplete="postal-code" inputMode="numeric" placeholder="00000-000"
           value={cep}
           onChange={(e) => setCep(formatCep(e.target.value))}
           onKeyDown={(e) => e.key === "Enter" && handleCalculate()}
-          className="font-body tabular-nums text-sm h-9"
+          className="font-mono text-sm h-9"
           maxLength={9}
         />
         <Button
@@ -127,11 +131,11 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
                     : ""}
                 </p>
               </div>
-              <span className="font-body tabular-nums text-sm font-semibold text-foreground">
+              <span className="font-mono text-sm font-semibold text-foreground">
                 {opt.free || opt.price === 0 ? (
                   <span className="text-gold">Grátis</span>
                 ) : (
-                  `${formatBRL(opt.price)}`
+                  formatBRL(opt.price)
                 )}
               </span>
             </div>

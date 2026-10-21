@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
     },
   });
 
-  const fmt = (v: number) => `${formatBRL(v)}`;
+  const fmt = formatBRL;
 
   const cards = [
     { label: "Receita no período", value: fmt(stats?.revenue || 0), icon: TrendingUp, color: "text-green-600", change: stats?.revenueChange },
@@ -349,7 +349,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-[10px] capitalize font-body">{o.status}</Badge>
-                    <span className="font-medium text-xs">{fmt(Number(o.total))}</span>
+                    <span className="font-medium text-xs">{fmt(o.total)}</span>
                   </div>
                 </div>
               ))}

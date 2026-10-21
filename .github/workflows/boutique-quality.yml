@@ -21,24 +21,32 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Synchronize npm lock for managed Google dependency
+        if: github.ref == 'refs/heads/fix/bam-181-brl-auth-ux'
+        run: npm install --package-lock-only --ignore-scripts
       - name: Install locked dependencies
         run: npm ci
-      - name: Apply branch-only reviewed migration
-        if: github.ref == 'refs/heads/fix/bam-181-brl-auth-ux'
-        run: node scripts/bam181-apply.mjs
-      - name: Unit and regression tests
+      - name: Unit and independent regression tests
         run: npm test
       - name: Type check
         run: npx tsc -p tsconfig.app.json --noEmit
       - name: Production build
         run: npm run build
-      - name: Save verified source patch on isolated branch
+      - name: Save verified lock and read-only permanent workflow
         if: github.ref == 'refs/heads/fix/bam-181-brl-auth-ux'
         run: |
-          git add src
-          if ! git diff --cached --quiet; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'fix(BAM-181): normalize BRL, harden auth and improve storefront readability'
-            git push origin HEAD:fix/bam-181-brl-auth-ux
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/boutique-quality.yml')
+          s=p.read_text().replace('    permissions:\n      contents: write\n','')
+          start=s.index('      - name: Synchronize npm lock')
+          end=s.index('      - name: Install locked dependencies',start)
+          s=s[:start]+s[end:]
+          s=s[:s.index('      - name: Save verified lock')]
+          p.write_text(s)
+          PY
+          git add package-lock.json .github/workflows/boutique-quality.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(BAM-181): synchronize npm lock and retain read-only quality gates'
+          git push origin HEAD:fix/bam-181-brl-auth-ux

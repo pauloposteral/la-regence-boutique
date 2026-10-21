@@ -1,3 +1,4 @@
+import { moneyValue, effectivePrice, variantPromo, roundMoney } from "@/lib/money";
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -75,7 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           .select("items")
           .eq("user_id", uid)
           .maybeSingle();
-        const remoteItems: CartItem[] = Array.isArray(data?.items) ? (data!.items as any) : [];
+        const remoteItems: CartItem[] = Array.isArray(data?.items) ? (data.items as unknown as CartItem[]) : [];
         setItems((local) => {
           const map = new Map<string, CartItem>();
           for (const it of remoteItems) map.set(getKey(it.produtoId, it.varianteId), it);
@@ -142,35 +143,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
     lastValidation.current = now;
     try {
       const productIds = [...new Set(currentItems.map((i) => i.produtoId))];
-      const { data: produtos } = await supabase.from("produtos").select("id, preco, preco_promocional").in("id", productIds);
+      const { data: produtos, error: productError } = await supabase.from("produtos").select("id, preco, preco_promocional").in("id", productIds);
+      if (productError) throw productError;
       const variantIds = currentItems.map((i) => i.varianteId).filter(Boolean) as string[];
-      const { data: variantes } = variantIds.length > 0
+      const { data: variantes, error: variantError } = variantIds.length > 0
         ? await supabase.from("variantes").select("id, preco").in("id", variantIds)
-        : { data: [] };
+        : { data: [], error: null };
+      if (variantError) throw variantError;
 
       const prodMap = new Map((produtos || []).map((p) => [p.id, p]));
       const varMap = new Map((variantes || []).map((v) => [v.id, v]));
       let updated = false;
 
-      setItems((prev) =>
-        prev.map((item) => {
+      const validated = currentItems.map((item) => {
           const prod = prodMap.get(item.produtoId);
           const variant = item.varianteId ? varMap.get(item.varianteId) : null;
-          const newPreco = variant?.preco ?? prod?.preco ?? item.preco;
-          // Promoção é proporcional ao preço base — escala para a variante
-          const newPromo = prod?.preco_promocional != null && prod?.preco
-            ? Math.round(newPreco * (prod.preco_promocional / prod.preco) * 100) / 100
-            : undefined;
+          if (!prod || (item.varianteId && !variant)) throw new Error("Preço indisponível");
+          const newPreco = moneyValue(variant?.preco ?? prod.preco);
+          const newPromo = variantPromo(prod.preco, prod.preco_promocional, newPreco);
           if (newPreco !== item.preco || newPromo !== item.precoPromocional) {
             updated = true;
             return { ...item, preco: newPreco, precoPromocional: newPromo };
           }
           return item;
-        })
-      );
+        });
+      if (updated) setItems((prev) => prev.map((item) => {
+        const fresh = validated.find((v) => getKey(v.produtoId, v.varianteId) === getKey(item.produtoId, item.varianteId));
+        return fresh ? { ...item, preco: fresh.preco, precoPromocional: fresh.precoPromocional } : item;
+      }));
       if (updated) toast.info("Alguns preços foram atualizados no seu carrinho.");
       return updated;
-    } catch { return false; }
+    } catch {
+      toast.error("Não foi possível validar os preços. Tente novamente antes de pagar.");
+      return true;
+    }
   }, []);
 
   const validatePrices = useCallback((currentItems: CartItem[]) => validatePricesCore(currentItems, false), [validatePricesCore]);
@@ -183,6 +189,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((item: CartItem) => {
+    try { effectivePrice(item.preco, item.precoPromocional); }
+    catch { toast.error("Preço inválido. Item não adicionado."); return; }
     setItems((prev) => {
       const key = getKey(item.produtoId, item.varianteId);
       const existing = prev.find((i) => getKey(i.produtoId, i.varianteId) === key);
@@ -195,7 +203,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item];
     });
-    trackAddToCart({ id: item.produtoId, name: item.nome, price: item.precoPromocional || item.preco, quantity: item.quantidade });
+    trackAddToCart({ id: item.produtoId, name: item.nome, price: item.precoPromocional ?? item.preco, quantity: item.quantidade });
     setIsOpen(true);
   }, []);
 
@@ -227,7 +235,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const subtotal = items.reduce((acc, i) => acc + (i.precoPromocional || i.preco) * i.quantidade, 0);
+  let subtotal: number;
+  try { subtotal = roundMoney(items.reduce((acc, i) => acc + effectivePrice(i.preco, i.precoPromocional) * i.quantidade, 0)); }
+  catch { subtotal = NaN; }
   const totalItems = items.reduce((acc, i) => acc + i.quantidade, 0);
 
   return (

@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,8 +77,8 @@ const AdminCupons = () => {
             {paginated.map((c: any) => (
               <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-sm font-mono font-medium">{c.codigo}</td>
-                <td className="px-4 py-3 font-body text-sm">{c.tipo === "frete_gratis" ? <Badge className="bg-gold/15 text-gold border-0 font-body text-[10px]">Frete grátis</Badge> : c.desconto_percentual ? `${c.desconto_percentual}%` : c.desconto_valor ? `${formatBRL(c.desconto_valor)}` : "—"}</td>
-                <td className="px-4 py-3 font-body text-sm">{c.valor_minimo ? `${formatBRL(c.valor_minimo)}` : "—"}</td>
+                <td className="px-4 py-3 font-body text-sm">{c.tipo === "frete_gratis" ? <Badge className="bg-gold/15 text-gold border-0 font-body text-[10px]">Frete grátis</Badge> : c.desconto_percentual ? `${c.desconto_percentual}%` : c.desconto_valor ? formatBRL(c.desconto_valor) : "—"}</td>
+                <td className="px-4 py-3 font-body text-sm">{c.valor_minimo ? formatBRL(c.valor_minimo) : "—"}</td>
                 <td className="px-4 py-3 font-body text-sm">{c.usos_restantes ?? "∞"}</td>
                 <td className="px-4 py-3 font-body text-sm">{c.valido_ate ? new Date(c.valido_ate).toLocaleDateString("pt-BR") : "—"}</td>
                 <td className="px-4 py-3"><Badge variant={c.ativo ? "default" : "secondary"} className="font-body text-[10px]">{c.ativo ? "Ativo" : "Inativo"}</Badge></td>

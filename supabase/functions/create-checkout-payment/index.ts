@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
+import { requireAmount, allocateCheckoutCents } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,7 +33,7 @@ async function isFreteGratisPorRegra(
     const ufUp = (uf || "").toUpperCase();
     const aplicaveis = regras
       .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
-      .filter((r: any) => subtotal >= Number(r.valor_minimo || 0))
+        .filter((r: any) => subtotal >= requireAmount(r.valor_minimo))
       .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
     if (aplicaveis.length > 0) {
       return { free: true, nome: aplicaveis[0].nome };
@@ -173,6 +174,7 @@ serve(async (req) => {
     const validatedItems: any[] = [];
 
     for (const item of items) {
+      if (!Number.isSafeInteger(item.quantidade) || item.quantidade <= 0) throw new Error("Quantidade inválida");
       const produto = prodMap.get(item.produtoId);
       if (!produto || !produto.ativo) {
         throw new Error(`Produto indisponível: ${item.nome || item.produtoId}`);
@@ -183,21 +185,24 @@ serve(async (req) => {
       let pesoKg: number = Number(produto.peso_padrao) || PESO_PADRAO_KG;
 
       // Promoção é proporcional ao preço base — aplica o mesmo desconto à variante
-      const promoRatio = produto.preco_promocional != null && Number(produto.preco) > 0
-        ? Number(produto.preco_promocional) / Number(produto.preco)
+      const basePrice = requireAmount(produto.preco);
+      const offerPrice = produto.preco_promocional == null ? null : requireAmount(produto.preco_promocional);
+      if (basePrice <= 0 || (offerPrice != null && offerPrice > basePrice)) throw new Error("Preço inválido");
+      const promoRatio = offerPrice != null
+        ? offerPrice / basePrice
         : null;
 
       if (item.varianteId) {
         const variante = varMap.get(item.varianteId);
-        if (!variante || !variante.ativo) {
+        if (!variante || !variante.ativo || variante.produto_id !== produto.id) {
           throw new Error(`Variante indisponível para "${produto.nome}"`);
         }
-        unitPrice = Number(variante.preco);
-        if (promoRatio != null) unitPrice = round2(unitPrice * promoRatio);
+        unitPrice = requireAmount(variante.preco);
+        if (promoRatio != null && unitPrice !== offerPrice) unitPrice = round2(unitPrice * promoRatio);
         stock = variante.estoque;
         if (variante.peso) pesoKg = Number(variante.peso);
       } else {
-        unitPrice = Number(produto.preco_promocional ?? produto.preco);
+        unitPrice = offerPrice ?? basePrice;
         stock = produto.estoque;
       }
 
@@ -240,7 +245,8 @@ serve(async (req) => {
         throw new Error(reasonMap[r?.motivo] || "Cupom inválido");
       }
       cupomId = r.cupom_id;
-      desconto = Number(r.desconto) || 0;
+      desconto = requireAmount(r.desconto);
+      if (desconto > subtotal) throw new Error("Desconto inválido");
     }
 
     // === 4. Pix discount (applied on subtotal-after-coupon) ===
@@ -294,7 +300,7 @@ serve(async (req) => {
         const selecionado = escolhido || opcoes.sort(
           (a: any, b: any) => Number(a.price) - Number(b.price)
         )[0];
-        custoFrete = round2(Number(selecionado.price) || 0);
+        custoFrete = round2(requireAmount(selecionado.price));
         freteNomeServico = `${selecionado.company?.name || selecionado.company || ""} · ${selecionado.name}`.trim();
       }
     }
@@ -346,19 +352,18 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    const lineItems = validatedItems.map((item: any) => {
-      let unit = item.unitPrice;
-      if (isPix) unit = unit * (1 - PIX_DISCOUNT);
+    const allocatedCents = allocateCheckoutCents(validatedItems, subtotalAposDescontos);
+    const lineItems = validatedItems.map((item: any, index: number) => {
       return {
         price_data: {
           currency: "brl",
           product_data: {
             name: item.nome,
-            ...(item.moagem ? { description: `Moagem: ${item.moagem}` } : {}),
+            description: [`Quantidade: ${item.quantidade}`, item.moagem ? `Moagem: ${item.moagem}` : ""].filter(Boolean).join(" · "),
           },
-          unit_amount: Math.round(unit * 100),
+          unit_amount: allocatedCents[index],
         },
-        quantity: item.quantidade,
+        quantity: 1,
       };
     });
 
@@ -366,23 +371,11 @@ serve(async (req) => {
       lineItems.push({
         price_data: {
           currency: "brl",
-          product_data: { name: "Frete" },
+          product_data: { name: "Frete", description: "Entrega do pedido" },
           unit_amount: Math.round(custoFrete * 100),
         },
         quantity: 1,
       });
-    }
-
-    if (desconto > 0) {
-      // Apply coupon discount as a negative adjustment via discounts isn't possible
-      // with price_data; instead, we already discounted line items proportionally? No —
-      // coupon comes off total. Stripe Checkout requires positive line items.
-      // Simplest: prorate coupon across items.
-      const ratio = (subtotal - desconto) / subtotal;
-      for (const li of lineItems) {
-        if (li.price_data.product_data.name === "Frete") continue;
-        li.price_data.unit_amount = Math.round(li.price_data.unit_amount * ratio);
-      }
     }
 
     const FALLBACK_ORIGIN = "https://www.cafelaregence.com.br";

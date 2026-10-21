@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,6 +39,9 @@
     --gold: 38 42% 58%;
     --gold-light: 39 50% 65%;
     --gold-dark: 37 38% 50%;
+    --gold-ink: 34 43% 31%;
+    --focus: 30 32% 20%;
+    --scrim: 30 35% 10%;
     --cream: 37 33% 97%;
     --cream-dark: 33 22% 78%;
     --espresso: 30 35% 10%;
@@ -75,6 +76,7 @@
     @apply bg-background text-foreground font-body antialiased;
     font-size: max(14px, 1em);
     overflow-x: clip;
+    line-height: 1.6;
   }
 
   img, video, canvas, svg {
@@ -83,12 +85,21 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    letter-spacing: 0;
   }
+  .font-mono { letter-spacing: 0; font-variant-numeric: tabular-nums; }
 
   /* Responsive typography */
-  h1 { font-size: clamp(1.875rem, 4.5vw, 4rem); }
-  h2 { font-size: clamp(1.5rem, 3.5vw, 3rem); }
-  h3 { font-size: clamp(1.125rem, 2vw, 1.75rem); }
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.125rem; }
+  @media (min-width: 1024px) {
+    h1 { font-size: 4rem; }
+    h2 { font-size: 3rem; }
+    h3 { font-size: 1.75rem; }
+  }
 
   /* Skip to content */
   .skip-to-content {
@@ -97,8 +108,8 @@
 
   /* Focus rings — gold accent */
   :focus-visible {
-    @apply outline-2 outline-offset-2;
-    outline-color: hsl(var(--gold));
+    outline: 2px solid hsl(var(--focus));
+    outline-offset: 3px;
   }
 
   /* Selection */
@@ -279,22 +290,4 @@
     content-visibility: auto;
     contain-intrinsic-size: 1px 800px;
   }
-}
-
-
-/* BAM-181: readable storefront, preserving the established brand and admin/TV styles. */
-.storefront { font-family: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.6; }
-.storefront .tabular-nums { font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
-.storefront label { font-size: 0.8125rem; font-weight: 500; color: hsl(var(--foreground)); }
-.storefront input:not([type="checkbox"]):not([type="radio"]), .storefront select, .storefront textarea { font-size: 16px; min-height: 44px; }
-.storefront button:not([role="checkbox"]):not([role="radio"]) { min-height: 44px; }
-.storefront button.bg-gold { color: hsl(var(--foreground)); font-weight: 600; }
-.storefront :focus-visible { outline: 2px solid hsl(var(--espresso)); outline-offset: 3px; }
-.storefront .auth-panel { line-height: 1.6; }
-.storefront .auth-panel .text-muted-foreground { color: hsl(30 16% 36%); }
-.storefront .auth-panel .text-gold { color: hsl(35 45% 32%); }
-.storefront .auth-panel p, .storefront .auth-panel button { font-weight: 400; }
-@media (max-width: 640px) {
-  .storefront .auth-panel { padding: 1.5rem; }
-  .storefront .auth-panel label { letter-spacing: 0.06em; }
 }

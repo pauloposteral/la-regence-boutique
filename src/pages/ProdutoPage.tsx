@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, variantPromo } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -64,12 +64,10 @@ const ProdutoPage = () => {
     return produto.variantes.find((v: any) => v.moagem === selectedMoagem && v.peso === selectedPeso);
   }, [produto, selectedMoagem, selectedPeso]);
 
-  const currentPrice = selectedVariant?.preco || produto?.preco || 0;
-  // Promoção é proporcional ao preço base — escala para a variante selecionada
-  const promoRatio = produto?.preco_promocional && produto?.preco ? produto.preco_promocional / produto.preco : null;
-  const currentPromoPrice = promoRatio != null
-    ? Math.round(currentPrice * promoRatio * 100) / 100
-    : undefined;
+  const currentPrice = selectedVariant?.preco ?? produto?.preco ?? NaN;
+  let currentPromoPrice: number | undefined;
+  try { currentPromoPrice = produto ? variantPromo(produto.preco, produto.preco_promocional, currentPrice) : undefined; }
+  catch { currentPromoPrice = NaN; }
   const effectivePrice = currentPromoPrice ?? currentPrice;
   const pixPrice = effectivePrice * 0.9;
 
@@ -191,6 +189,7 @@ const ProdutoPage = () => {
   };
 
   const handleAddToCart = () => {
+    if (!Number.isFinite(effectivePrice)) { toast.error("Preço inválido. Item não adicionado."); return; }
     // Validação de estoque antes de adicionar
     const estoqueDisponivel = selectedVariant?.estoque ?? produto.estoque;
     if (quantidade > estoqueDisponivel) {
@@ -247,7 +246,7 @@ const ProdutoPage = () => {
 
           {/* Details */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            {produto.categoria && <span className="text-xs font-body text-gold uppercase tracking-[0.2em]">{produto.categoria.nome}</span>}
+            {produto.categoria && <span className="text-xs font-body text-gold-ink uppercase tracking-[0.2em]">{produto.categoria.nome}</span>}
             <h1 className="font-display text-3xl lg:text-4xl font-semibold leading-tight">{produto.nome}</h1>
 
             {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
@@ -278,9 +277,11 @@ const ProdutoPage = () => {
               </div>
               <div className="mt-2 space-y-1">
                 <div className="flex items-center gap-4 text-sm font-body">
-                  <span className="text-gold font-semibold">{formatBRL(pixPrice)} no Pix (10% off)</span>
+                  <span className="text-gold-ink font-semibold">{formatBRL(pixPrice)} no Pix (10% off)</span>
                 </div>
-                <p className="text-xs text-muted-foreground font-body">Consulte as condições de parcelamento no pagamento</p>
+                <p className="text-xs text-muted-foreground font-body">
+                  Consulte as condições no pagamento
+                </p>
               </div>
               {produto.preco_promocional && (
                 <div className="mt-3"><PromotionCountdown /></div>
@@ -330,12 +331,12 @@ const ProdutoPage = () => {
             {/* Quantity + Add to cart */}
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-border rounded">
-                <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2.5 hover:bg-muted transition-colors"><Minus className="w-4 h-4" /></button>
+                <Button variant="ghost" size="icon" aria-label="Diminuir quantidade" onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2.5 hover:bg-muted transition-colors"><Minus className="w-4 h-4" /></Button>
                 <span className="w-10 text-center font-body text-sm">{quantidade}</span>
-                <button onClick={() => { const max = selectedVariant?.estoque ?? produto.estoque; setQuantidade(Math.min(quantidade + 1, max)); }} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></button>
+                <Button variant="ghost" size="icon" aria-label="Aumentar quantidade" onClick={() => { const max = selectedVariant?.estoque ?? produto.estoque; setQuantidade(Math.min(quantidade + 1, max)); }} className="p-2.5 hover:bg-muted transition-colors"><Plus className="w-4 h-4" /></Button>
               </div>
               <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                <Button className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-light rounded-none transition-all duration-300" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>
+                <Button className="w-full font-body text-sm tracking-wider uppercase bg-gold text-foreground hover:bg-gold-light rounded-full transition-all duration-300" size="lg" disabled={produto.estoque === 0} onClick={handleAddToCart}>
                   <ShoppingBag className="w-4 h-4 mr-2" /> {produto.estoque === 0 ? "Indisponível" : "Adicionar ao Carrinho"}
                 </Button>
               </motion.div>
@@ -350,7 +351,7 @@ const ProdutoPage = () => {
               produtoId={produto.id}
               varianteId={selectedVariant?.id || null}
               quantidade={quantidade}
-              precoUnitario={currentPrice}
+              precoUnitario={effectivePrice}
             />
           </motion.div>
         </div>
@@ -389,13 +390,13 @@ const ProdutoPage = () => {
               <TabsContent value="ficha" className="mt-6">
                 <h3 className="font-display text-lg font-semibold mb-4">Ficha Técnica</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-gold" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
-                  {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-gold" />} label="Variedade" value={produto.variedade} />}
-                  {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-gold" />} label="Processo" value={produto.processo} />}
-                  {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-gold" />} label="Origem" value={produto.origem} />}
-                  {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-gold" />} label="Altitude" value={produto.altitude} />}
-                  {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-gold" />} label="Safra" value={produto.safra} />}
-                  {produto.tipo_torra && <SpecItem icon={<span className="text-gold text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
+                  {produto.sca_score && <SpecItem icon={<Star className="w-4 h-4 text-gold-ink" />} label="SCA Score" value={`${produto.sca_score} pontos`} />}
+                  {produto.variedade && <SpecItem icon={<Leaf className="w-4 h-4 text-gold-ink" />} label="Variedade" value={produto.variedade} />}
+                  {produto.processo && <SpecItem icon={<Coffee className="w-4 h-4 text-gold-ink" />} label="Processo" value={produto.processo} />}
+                  {produto.origem && <SpecItem icon={<MapPin className="w-4 h-4 text-gold-ink" />} label="Origem" value={produto.origem} />}
+                  {produto.altitude && <SpecItem icon={<Mountain className="w-4 h-4 text-gold-ink" />} label="Altitude" value={produto.altitude} />}
+                  {produto.safra && <SpecItem icon={<Calendar className="w-4 h-4 text-gold-ink" />} label="Safra" value={produto.safra} />}
+                  {produto.tipo_torra && <SpecItem icon={<span className="text-gold-ink text-sm">🔥</span>} label="Torra" value={TORRA_LABELS[produto.tipo_torra] || produto.tipo_torra} />}
                 </div>
               </TabsContent>
             )}
@@ -417,12 +418,12 @@ const ProdutoPage = () => {
                     {p.imagens && p.imagens.length > 0 ? (
                       <OptimizedImage src={p.imagens.find((i: any) => i.principal)?.url || p.imagens[0]?.url} alt={p.nome} className="group-hover:scale-105 transition-transform duration-500" />
                     ) : <span className="text-4xl">☕</span>}
-                    {p.sca_score && <div className="absolute top-2 right-2 bg-gold text-primary-foreground text-[9px] font-body tabular-nums font-semibold px-2 py-0.5 rounded-sm flex items-center gap-1"><Star className="w-2.5 h-2.5 fill-current" />{p.sca_score}</div>}
+                    {p.sca_score && <div className="absolute top-2 right-2 bg-gold text-foreground text-[9px] font-mono font-semibold px-2 py-0.5 rounded-sm flex items-center gap-1"><Star className="w-2.5 h-2.5 fill-current" />{p.sca_score}</div>}
                   </div>
                   <div className="p-3">
                     <h3 className="font-display text-sm font-semibold truncate">{p.nome}</h3>
                     <p className="text-[10px] text-muted-foreground font-body mt-0.5">{p.notas_sensoriais?.slice(0, 2).join(" · ")}</p>
-                    <span className="font-body font-semibold text-sm mt-1.5 block">{formatBRL(p.preco)}</span>
+                    <span className="font-body font-semibold text-sm mt-1.5 block">{formatBRL(p.preco_promocional ?? p.preco)}</span>
                   </div>
                 </Link>
               ))}
@@ -437,7 +438,7 @@ const ProdutoPage = () => {
       {/* Sticky add-to-cart mobile (32) */}
       <StickyAddToCart
         productName={produto.nome}
-        price={currentPrice}
+        price={effectivePrice}
         pixPrice={pixPrice}
         onAddToCart={handleAddToCart}
         disabled={produto.estoque === 0}

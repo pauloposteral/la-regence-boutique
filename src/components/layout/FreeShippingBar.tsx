@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { motion } from "framer-motion";
 import { Truck } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";

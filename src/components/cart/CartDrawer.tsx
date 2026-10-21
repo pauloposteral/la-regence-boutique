@@ -1,7 +1,7 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, moneyValue } from "@/lib/money";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CrossSellProducts from "./CrossSellProducts";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const FRETE_GRATIS_MIN = 150;
 
@@ -37,7 +38,7 @@ const CartDrawer = () => {
       const row = Array.isArray(data) ? data[0] : data;
       const motivo = row?.motivo;
       const tipo = (row?.tipo as "desconto" | "frete_gratis" | undefined) || "desconto";
-      const desc = Number(row?.desconto || 0);
+
       if (motivo !== "ok") {
         const msg: Record<string, string> = {
           invalido: "Cupom inválido",
@@ -48,6 +49,7 @@ const CartDrawer = () => {
         toast.error(msg[motivo || ""] || "Cupom inválido");
         return;
       }
+      const desc = moneyValue(row?.desconto);
       if (tipo === "desconto" && desc <= 0) {
         toast.error("Cupom inválido");
         return;
@@ -67,15 +69,10 @@ const CartDrawer = () => {
   const total = Math.max(0, subtotal - desconto);
 
   return (
-    <AnimatePresence>
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) closeCart(); }}>
       {isOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50" onClick={closeCart} />
-          <motion.div
-            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream-50 z-50 flex flex-col shadow-2xl"
-          >
+          <SheetContent aria-describedby={undefined} className="w-full max-w-md sm:max-w-md bg-cream-50 flex flex-col gap-0 p-0 shadow-2xl [&>button]:hidden">
             {/* Gold top accent */}
             <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
 
@@ -83,8 +80,8 @@ const CartDrawer = () => {
             <div className="flex items-center justify-between p-5 border-b border-cream-400">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-brown-dark" />
-                <h2 className="font-display text-xl font-semibold text-brown-dark">Carrinho</h2>
-                <span className="text-xs font-body text-cream-700">({totalItems})</span>
+                <SheetTitle className="font-display text-xl font-semibold text-brown-dark">Carrinho</SheetTitle>
+                <span className="text-xs font-body text-muted-foreground">({totalItems})</span>
               </div>
               <button aria-label="Fechar carrinho" onClick={closeCart} className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 rounded-full transition-colors"><X className="w-5 h-5 text-brown" /></button>
             </div>
@@ -95,13 +92,13 @@ const CartDrawer = () => {
                 <div className="flex items-center justify-between text-xs font-body mb-1.5">
                   {faltaFreteGratis > 0 ? (
                     <>
-                      <span className="text-brown-light">
+                      <span className="text-brown">
                         Faltam <strong className="text-brown-dark">{formatBRL(faltaFreteGratis)}</strong> para frete grátis
                       </span>
-                      <span className="text-cream-700">R$ {FRETE_GRATIS_MIN},00</span>
+                      <span className="text-muted-foreground">{formatBRL(FRETE_GRATIS_MIN)}</span>
                     </>
                   ) : (
-                    <span className="text-gold font-medium">🎉 Você ganhou frete grátis!</span>
+                    <span className="text-gold-ink font-medium">🎉 Você ganhou frete grátis!</span>
                   )}
                 </div>
                 <div className="w-full h-1.5 bg-cream-400 rounded-full overflow-hidden">
@@ -115,14 +112,14 @@ const CartDrawer = () => {
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-8">
                   <ShoppingBag className="w-12 h-12 text-cream-500 mb-4" />
-                  <p className="font-display text-lg text-brown-light mb-2">Seu carrinho está vazio</p>
-                  <p className="font-body text-sm text-cream-700 mb-6">Explore nossos cafés e encontre o sabor perfeito.</p>
+                  <p className="font-display text-lg text-brown mb-2">Seu carrinho está vazio</p>
+                  <p className="font-body text-sm text-muted-foreground mb-6">Explore nossos cafés e encontre o sabor perfeito.</p>
                   <Button asChild variant="outline" onClick={closeCart}><Link to="/cafes">Ver Cafés</Link></Button>
                 </div>
               ) : (
                 <div className="p-5 space-y-4">
                   {items.map((item) => {
-                    const unit = item.precoPromocional || item.preco;
+                    const unit = item.precoPromocional ?? item.preco;
                     return (
                     <motion.div
                       key={`${item.produtoId}-${item.varianteId}`}
@@ -138,9 +135,9 @@ const CartDrawer = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block text-brown-dark hover:text-gold transition-colors duration-300" onClick={closeCart}>{item.nome}</Link>
-                        <p className="text-[10px] text-cream-700 font-body">
+                        <p className="text-[10px] text-muted-foreground font-body">
                           {item.moagem && MOAGEM_LABELS[item.moagem]}{item.peso && ` · ${item.peso >= 1000 ? `${item.peso / 1000}kg` : `${item.peso}g`}`}
-                          <span className="ml-1 text-cream-700">· {formatBRL(unit)} un.</span>
+                          <span className="ml-1 text-muted-foreground">· {formatBRL(unit)} un.</span>
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center border border-cream-400 rounded-full">
@@ -165,7 +162,7 @@ const CartDrawer = () => {
                             <button
                               aria-label="Remover item"
                               onClick={() => { removeItem(item.produtoId, item.varianteId); toast.success("Item removido"); }}
-                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-cream-700 hover:text-destructive transition-colors"
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -187,14 +184,14 @@ const CartDrawer = () => {
                 {!cupom ? (
                   <div className="space-y-1.5">
                     <div className="flex gap-2">
-                      <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
+                      <Input aria-label="Cupom de desconto" placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
                       <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 h-11 px-4">Aplicar</Button>
                     </div>
                     {subtotal >= 80 && (
                       <button
                         type="button"
                         onClick={() => setCupomInput("PRIMEIRACOMPRA10")}
-                        className="text-[11px] font-body text-gold hover:text-gold-dark transition-colors"
+                        className="text-[11px] font-body text-gold-ink hover:text-gold-dark transition-colors"
                       >
                         Primeira compra? Use PRIMEIRACOMPRA10 e ganhe 10%
                       </button>
@@ -203,30 +200,30 @@ const CartDrawer = () => {
                 ) : (
 
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
-                    <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-{formatBRL(desconto)})</span>
-                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
+                    <span className="text-xs font-body font-medium text-gold-ink">Cupom: {cupom} {cupomTipo === "frete_gratis" ? "(Frete grátis)" : `(-${formatBRL(desconto)})`}</span>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
                 <div className="space-y-1 text-sm font-body">
-                  <div className="flex justify-between text-brown-light"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
-                  {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
-                  <div className="flex justify-between text-brown-light"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
+                  <div className="flex justify-between text-brown"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
+                  {desconto > 0 && <div className="flex justify-between text-gold-ink"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
+                  <div className="flex justify-between text-brown"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
                   <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>{formatBRL(total)}</span></div>
-                  <p className="text-[10px] text-gold text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
+                  <p className="text-[10px] text-gold-ink text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>
-                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-white hover:bg-gold-dark transition-all duration-300 min-h-[52px]" size="lg" onClick={closeCart}>
+                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-foreground hover:bg-gold-dark transition-all duration-300 min-h-[52px]" size="lg" onClick={closeCart}>
                     <Link to="/checkout">Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" /></Link>
                   </Button>
                 </motion.div>
               </div>
             )}
-          </motion.div>
+          </SheetContent>
         </>
       )}
-    </AnimatePresence>
+    </Sheet>
   );
 };
 

@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,7 +122,7 @@ const AdminAssinaturas = () => {
     }
   };
 
-  const fmt = (v: number) => `${formatBRL(v)}`;
+  const fmt = formatBRL;
 
 
   const exportCSV = () => {
@@ -215,7 +215,7 @@ const AdminAssinaturas = () => {
               >
                 <td className="px-4 py-3 font-body text-xs font-mono">#{s.id.slice(0, 8)}</td>
                 <td className="px-4 py-3 font-body text-sm capitalize">{s.tipo}</td>
-                <td className="px-4 py-3 font-body text-sm">{fmt(Number(s.preco))}</td>
+                <td className="px-4 py-3 font-body text-sm">{fmt(s.preco)}</td>
                 <td className="px-4 py-3 font-body text-xs">{s.moagem || "—"}</td>
                 <td className="px-4 py-3 font-body text-xs">{s.cafe_surpresa ? "Surpresa" : s.produtos?.nome || "—"}</td>
                 <td className="px-4 py-3">
@@ -297,7 +297,7 @@ const AdminAssinaturas = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" className="rounded-full font-body text-xs" onClick={() => setShipTarget(null)} disabled={acting}>Cancelar</Button>
-            <Button className="rounded-full bg-gold text-white hover:bg-gold-dark font-body text-xs" onClick={confirmarDespacho} disabled={acting}>
+            <Button className="rounded-full bg-gold text-primary-foreground hover:bg-gold-dark font-body text-xs" onClick={confirmarDespacho} disabled={acting}>
               {acting ? "Enviando…" : "Confirmar despacho"}
             </Button>
           </DialogFooter>

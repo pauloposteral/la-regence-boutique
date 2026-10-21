@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ArrowRight } from "lucide-react";
@@ -85,7 +85,7 @@ const AbandonedCartBanner = () => {
             <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
-                className="bg-gold text-white hover:bg-gold-light font-body text-xs tracking-wider uppercase rounded-full gap-1.5"
+                className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-xs tracking-wider uppercase rounded-full gap-1.5"
                 onClick={handleOpen}
               >
                 Ver Carrinho <ArrowRight className="w-3.5 h-3.5" />

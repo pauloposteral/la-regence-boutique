@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
             </div>
             <Button
               size="sm"
-              className="font-body text-xs shrink-0 bg-gold text-white hover:bg-gold-dark uppercase tracking-wider"
+              className="font-body text-xs shrink-0 bg-gold text-primary-foreground hover:bg-gold-dark uppercase tracking-wider"
               onClick={onAddToCart}
               disabled={disabled}
             >

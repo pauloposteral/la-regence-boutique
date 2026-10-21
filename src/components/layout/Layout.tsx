@@ -50,7 +50,7 @@ const Layout = ({ children }: LayoutProps) => {
   }, [location.pathname]);
   
   return (
-    <div className="storefront min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Skip to content (accessibility) */}
       <a href="#main-content" className="skip-to-content">Ir para o conteúdo</a>
       {showScrollProgress && <ScrollProgress />}

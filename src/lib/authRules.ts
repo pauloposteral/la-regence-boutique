@@ -19,6 +19,8 @@ export function validateSignup(input: SignupInput): string | null {
 }
 
 const AUTH_ERRORS: Array<[RegExp, string]> = [
+  [/access.denied|cancelled|canceled/i, "Login cancelado. Você pode tentar novamente"],
+  [/network|fetch|offline/i, "Verifique sua conexão e tente novamente"],
   [/invalid login credentials/i, "E-mail ou senha incorretos"],
   [/email not confirmed/i, "Confirme seu e-mail antes de entrar"],
   [/user already registered|already been registered/i, "Este e-mail já está cadastrado"],
@@ -31,28 +33,18 @@ const AUTH_ERRORS: Array<[RegExp, string]> = [
 ];
 
 export function translateAuthError(message: string): string {
-  if (/missing OAuth secret|unsupported provider|provider.*not enabled/i.test(message)) {
-    return "O login com Google está indisponível no momento. Entre com e-mail e senha.";
-  }
-  if (/access_denied|user.*cancel/i.test(message)) return "A entrada com Google foi cancelada. Tente novamente.";
-
   for (const [re, pt] of AUTH_ERRORS) if (re.test(message)) return pt;
   return "Não foi possível concluir. Tente novamente";
 }
 
 /** Only allow internal relative paths as post-login destination. */
 export function safeNext(next: string | null | undefined, fallback = "/conta"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\") || [...next].some((char) => char.charCodeAt(0) <= 32)) return fallback;
   try {
-    let decoded = next;
-    for (let i = 0; i < 3; i++) {
-      if (/[\\\u0000-\u0020\u007f]/.test(decoded) || decoded.startsWith("//")) return fallback;
-      const url = new URL(decoded, "https://storefront.invalid");
-      if (url.origin !== "https://storefront.invalid" || url.pathname.startsWith("/auth")) return fallback;
-      const again = decodeURIComponent(decoded);
-      if (again === decoded) return next;
-      decoded = again;
-    }
+    const decoded = decodeURIComponent(next);
+    if (decoded.startsWith("//") || decoded.includes("\\")) return fallback;
+    const url = new URL(next, "https://local.invalid");
+    if (url.origin !== "https://local.invalid" || /^\/auth(?:\/|$)/.test(decodeURIComponent(url.pathname))) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch { return fallback; }
-  return fallback;
 }

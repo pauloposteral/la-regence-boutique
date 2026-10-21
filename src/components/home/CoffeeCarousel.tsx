@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -20,7 +20,7 @@ const CoffeeCarousel = () => {
       produtoId: coffee.id,
       nome: coffee.nome,
       preco: coffee.preco,
-      precoPromocional: coffee.preco_promocional || undefined,
+      precoPromocional: coffee.preco_promocional ?? undefined,
       quantidade: 1,
       imagemUrl: coffee.imagens?.find((i) => i.principal)?.url || coffee.imagens?.[0]?.url,
       slug: coffee.slug,
@@ -31,7 +31,7 @@ const CoffeeCarousel = () => {
   };
 
   return (
-    <section className="py-24 lg:py-32 bg-white">
+    <section className="py-24 lg:py-32 bg-card">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ const CoffeeCarousel = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-4">Seleção Especial</p>
+          <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-ink mb-4">Seleção Especial</p>
           <h2 className="font-display text-3xl lg:text-5xl font-bold text-brown-dark">Nossos Cafés</h2>
           <p className="text-sm text-muted-foreground font-body mt-4 max-w-xl mx-auto leading-relaxed">
             Cafés especiais com pontuação SCA acima de 80 pontos, 
@@ -66,7 +66,6 @@ const CoffeeCarousel = () => {
             {items.map((coffee, i) => {
               const basePrice = coffee.preco_promocional ?? coffee.preco;
               const pixPrice = basePrice * 0.9;
-
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
@@ -93,8 +92,8 @@ const CoffeeCarousel = () => {
                         <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                       )}
                       {coffee.sca_score && (
-                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-body tabular-nums text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
-                          <Star className="w-3 h-3 fill-gold text-gold" />
+                        <div className="absolute top-3 right-3 bg-card/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
+                          <Star className="w-3 h-3 fill-gold text-gold-ink" />
                           SCA {coffee.sca_score}
                         </div>
                       )}
@@ -125,7 +124,7 @@ const CoffeeCarousel = () => {
                           {Array.from({ length: 5 }).map((_, s) => (
                             <div
                               key={s}
-                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-300"}`}
+                              className={`w-3 h-1.5 rounded-sm ${s < (coffee.corpo ?? 0) ? "bg-brown" : "bg-cream-300"}`}
                             />
                           ))}
                         </div>
@@ -141,13 +140,15 @@ const CoffeeCarousel = () => {
                         </div>
                       )}
 
-                      <p className="font-body tabular-nums font-bold text-xl text-brown-dark mt-4">
+                      <p className="font-mono font-bold text-xl text-brown-dark mt-4">
                         {formatBRL(basePrice)}
                       </p>
-                      <p className="text-[11px] text-muted-foreground font-body mt-0.5">Consulte as condições de parcelamento no pagamento</p>
+                      <p className="text-[11px] text-muted-foreground font-body mt-0.5">
+                        Consulte as condições no pagamento
+                      </p>
 
                       <div className="mt-3 border border-gold/20 rounded-xl px-3 py-2 text-center bg-gold/[0.04]">
-                        <span className="text-xs font-body font-semibold text-gold flex items-center justify-center gap-1.5">
+                        <span className="text-xs font-body font-semibold text-gold-ink flex items-center justify-center gap-1.5">
                           À vista {formatBRL(pixPrice)} no Pix
                         </span>
                       </div>
@@ -155,7 +156,7 @@ const CoffeeCarousel = () => {
                       {/* Quick-add button */}
                       <Button
                         size="sm"
-                        className="w-full mt-3 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 hover:shadow-[0_4px_12px_hsl(var(--gold)/0.25)] hover:scale-[1.02]"
+                        className="w-full mt-3 font-body text-xs bg-gold text-foreground hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 hover:shadow-[0_4px_12px_hsl(var(--gold)/0.25)] hover:scale-[1.02]"
                         onClick={(e) => handleQuickAdd(e, coffee)}
                       >
                         <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />

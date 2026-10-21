@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coffee, ArrowRight, ArrowLeft, RefreshCw } from "lucide-react";
@@ -204,7 +204,7 @@ const QuizPage = () => {
                             <p className="font-body text-xs text-muted-foreground truncate">
                               {(p.notas_sensoriais || []).slice(0, 4).join(" · ")}
                             </p>
-                            <p className="font-body tabular-nums text-sm font-medium mt-1 text-gold">{formatBRL(p.preco)}</p>
+                            <p className="font-mono text-sm font-medium mt-1 text-gold">{formatBRL(p.preco)}</p>
                           </div>
                           <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-gold shrink-0" />
                         </Link>

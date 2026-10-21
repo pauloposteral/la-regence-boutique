@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -65,7 +65,7 @@ const CafesPage = () => {
   // Get actual price range from products
   const actualPriceRange = useMemo(() => {
     if (produtos.length === 0) return [0, 500];
-    const prices = produtos.map((p) => p.preco_promocional || p.preco);
+    const prices = produtos.map((p) => p.preco_promocional ?? p.preco);
     return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
   }, [produtos]);
 
@@ -113,14 +113,14 @@ const CafesPage = () => {
     if (scaMin) result = result.filter((p) => (p.sca_score || 0) >= scaMin);
     if (priceFilterActive) {
       result = result.filter((p) => {
-        const price = p.preco_promocional || p.preco;
+        const price = p.preco_promocional ?? p.preco;
         return price >= priceRange[0] && price <= priceRange[1];
       });
     }
 
     switch (sort) {
-      case "preco_asc": result.sort((a, b) => a.preco - b.preco); break;
-      case "preco_desc": result.sort((a, b) => b.preco - a.preco); break;
+      case "preco_asc": result.sort((a, b) => (a.preco_promocional ?? a.preco) - (b.preco_promocional ?? b.preco)); break;
+      case "preco_desc": result.sort((a, b) => (b.preco_promocional ?? b.preco) - (a.preco_promocional ?? a.preco)); break;
       case "sca_desc": result.sort((a, b) => (b.sca_score || 0) - (a.sca_score || 0)); break;
       case "nome": result.sort((a, b) => a.nome.localeCompare(b.nome)); break;
       default: result.sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
@@ -152,7 +152,7 @@ const CafesPage = () => {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A96E' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold mb-4">Coleção Completa</p>
+          <p className="text-[11px] font-body tracking-[0.3em] uppercase text-gold-ink mb-4">Coleção Completa</p>
           <h1 className="font-display text-4xl lg:text-5xl font-bold mb-3 text-brown-dark">
             Nossos <span className="italic font-light text-gradient-gold">Cafés</span>
           </h1>
@@ -178,46 +178,46 @@ const CafesPage = () => {
             <Input aria-label="Buscar cafés" placeholder="Buscar por nome, nota sensorial, origem..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 font-body" />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" className="font-body relative flex-1 sm:flex-none min-h-11" onClick={() => setShowFilters(!showFilters)}>
+            <Button variant="outline" className="font-body relative flex-1 sm:flex-none min-h-11" aria-expanded={showFilters} aria-controls="catalog-filters" onClick={() => setShowFilters(!showFilters)}>
               <SlidersHorizontal className="w-4 h-4 mr-2" /> Filtros
-              {activeFilterCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{activeFilterCount}</span>}
+              {activeFilterCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gold text-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{activeFilterCount}</span>}
             </Button>
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="flex-1 sm:flex-none sm:w-[160px] min-h-11 font-body"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Ordenar cafés" className="flex-1 sm:flex-none sm:w-[160px] min-h-11 font-body"><SelectValue /></SelectTrigger>
               <SelectContent>{SORT_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value} className="font-body">{o.label}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
 
         {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 p-5 bg-card border border-cream-400 rounded-xl overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} id="catalog-filters" className="mb-8 p-5 bg-card border border-cream-400 rounded-xl overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-lg font-semibold">Filtrar por</h3>
+              <h2 className="font-display text-lg font-semibold">Filtrar por</h2>
               {activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters} className="font-body text-xs">Limpar filtros</Button>}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Categoria</label>
                 <div className="flex flex-wrap gap-2">
-                  {categorias.map((c) => <Badge key={c.id} variant={selectedCategoria === c.id ? "default" : "outline"} className="cursor-pointer font-body" onClick={() => setSelectedCategoria(selectedCategoria === c.id ? null : c.id)}>{c.nome}</Badge>)}
+                  {categorias.map((c) => <Button type="button" size="sm" key={c.id} variant={selectedCategoria === c.id ? "default" : "outline"} aria-pressed={selectedCategoria === c.id} className="cursor-pointer font-body" onClick={() => setSelectedCategoria(selectedCategoria === c.id ? null : c.id)}>{c.nome}</Button>)}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Tipo de Torra</label>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(TORRA_LABELS).map(([key, label]) => <Badge key={key} variant={selectedTorra === key ? "default" : "outline"} className="cursor-pointer font-body" onClick={() => setSelectedTorra(selectedTorra === key ? null : key)}>{label}</Badge>)}
+                  {Object.entries(TORRA_LABELS).map(([key, label]) => <Button type="button" size="sm" key={key} variant={selectedTorra === key ? "default" : "outline"} aria-pressed={selectedTorra === key} className="cursor-pointer font-body" onClick={() => setSelectedTorra(selectedTorra === key ? null : key)}>{label}</Button>)}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Notas Sensoriais</label>
                 <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
-                  {allNotas.map((nota) => <Badge key={nota} variant={selectedNotas.includes(nota) ? "default" : "outline"} className="cursor-pointer font-body text-xs" onClick={() => setSelectedNotas(selectedNotas.includes(nota) ? selectedNotas.filter((n) => n !== nota) : [...selectedNotas, nota])}>{nota}</Badge>)}
+                  {allNotas.map((nota) => <Button type="button" size="sm" key={nota} variant={selectedNotas.includes(nota) ? "default" : "outline"} aria-pressed={selectedNotas.includes(nota)} className="cursor-pointer font-body text-xs" onClick={() => setSelectedNotas(selectedNotas.includes(nota) ? selectedNotas.filter((n) => n !== nota) : [...selectedNotas, nota])}>{nota}</Button>)}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-body font-medium text-muted-foreground uppercase tracking-wide mb-2 block">SCA mínima</label>
                 <div className="flex flex-wrap gap-2">
-                  {[80, 84, 86, 88].map((score) => <Badge key={score} variant={scaMin === score ? "default" : "outline"} className="cursor-pointer font-body" onClick={() => setScaMin(scaMin === score ? null : score)}>≥ {score}</Badge>)}
+                  {[80, 84, 86, 88].map((score) => <Button type="button" size="sm" key={score} variant={scaMin === score ? "default" : "outline"} aria-pressed={scaMin === score} className="cursor-pointer font-body" onClick={() => setScaMin(scaMin === score ? null : score)}>≥ {score}</Button>)}
                 </div>
               </div>
               <div>
@@ -234,8 +234,8 @@ const CafesPage = () => {
                     className="mb-2"
                   />
                   <div className="flex justify-between text-[10px] font-body text-muted-foreground">
-                    <span>R$ {priceRange[0]}</span>
-                    <span>R$ {priceRange[1]}</span>
+                    <span>{formatBRL(priceRange[0])}</span>
+                    <span>{formatBRL(priceRange[1])}</span>
                   </div>
                 </div>
               </div>
@@ -245,15 +245,15 @@ const CafesPage = () => {
 
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {selectedCategoria && <Badge variant="secondary" className="font-body gap-1">{categorias.find((c) => c.id === selectedCategoria)?.nome}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedCategoria(null)} /></Badge>}
-            {selectedTorra && <Badge variant="secondary" className="font-body gap-1">Torra {TORRA_LABELS[selectedTorra]}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedTorra(null)} /></Badge>}
-            {selectedNotas.map((n) => <Badge key={n} variant="secondary" className="font-body gap-1">{n}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedNotas(selectedNotas.filter((x) => x !== n))} /></Badge>)}
-            {scaMin && <Badge variant="secondary" className="font-body gap-1">SCA ≥ {scaMin}<X className="w-3 h-3 cursor-pointer" onClick={() => setScaMin(null)} /></Badge>}
-            {priceFilterActive && <Badge variant="secondary" className="font-body gap-1">R$ {priceRange[0]}–{priceRange[1]}<X className="w-3 h-3 cursor-pointer" onClick={() => { setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]); }} /></Badge>}
+            {selectedCategoria && <Button variant="secondary" size="sm" aria-label="Remover filtro" onClick={() => setSelectedCategoria(null)}>{categorias.find((c) => c.id === selectedCategoria)?.nome}<X className="w-3 h-3" /></Button>}
+            {selectedTorra && <Button variant="secondary" size="sm" aria-label="Remover filtro" onClick={() => setSelectedTorra(null)}>Torra {TORRA_LABELS[selectedTorra]}<X className="w-3 h-3" /></Button>}
+            {selectedNotas.map((n) => <Button key={n} variant="secondary" size="sm" aria-label={`Remover filtro ${n}`} onClick={() => setSelectedNotas(selectedNotas.filter((x) => x !== n))}>{n}<X className="w-3 h-3" /></Button>)}
+            {scaMin && <Button variant="secondary" size="sm" aria-label="Remover filtro" onClick={() => setScaMin(null)}>SCA ≥ {scaMin}<X className="w-3 h-3" /></Button>}
+            {priceFilterActive && <Button variant="secondary" size="sm" aria-label="Remover filtro" onClick={() => { setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]); }}>{formatBRL(priceRange[0])}–{formatBRL(priceRange[1])}<X className="w-3 h-3" /></Button>}
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground font-body mb-6">{filtered.length} {filtered.length === 1 ? "café encontrado" : "cafés encontrados"}</p>
+        <p role="status" className="text-sm text-muted-foreground font-body mb-6">{filtered.length} {filtered.length === 1 ? "café encontrado" : "cafés encontrados"}</p>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -301,14 +301,14 @@ function CompareBar() {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 80, opacity: 0 }}
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-card border border-gold/30 text-foreground rounded-full px-6 py-3 shadow-xl shadow-gold/10 flex items-center gap-4"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg z-40 bg-card border border-gold/30 text-foreground rounded-full px-3 sm:px-6 py-3 shadow-xl shadow-gold/10 flex items-center gap-4"
     >
-      <GitCompareArrows className="w-4 h-4 text-gold" />
+      <GitCompareArrows className="w-4 h-4 text-gold-ink" />
       <span className="font-body text-sm font-medium">{compareIds.length} café{compareIds.length > 1 ? "s" : ""} selecionado{compareIds.length > 1 ? "s" : ""}</span>
-      <Button size="sm" className="font-body text-xs h-7 bg-gold text-primary-foreground hover:bg-gold-light rounded-full" onClick={goToCompare} disabled={compareIds.length < 2}>
+      <Button size="sm" className="font-body text-xs h-7 bg-gold text-foreground hover:bg-gold-light rounded-full" onClick={goToCompare} disabled={compareIds.length < 2}>
         Comparar
       </Button>
-      <button onClick={clearCompare} className="text-muted-foreground hover:text-foreground transition-colors">
+      <button aria-label="Limpar comparação" onClick={clearCompare} className="text-muted-foreground hover:text-foreground transition-colors">
         <X className="w-4 h-4" />
       </button>
     </motion.div>
@@ -316,7 +316,7 @@ function CompareBar() {
 }
 
 function ProductCard({ produto, index, onQuickView }: { produto: Produto; index: number; onQuickView: () => void }) {
-  const pixPrice = produto.preco_promocional || produto.preco * 0.9;
+  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
   const comparing = isComparing(produto.id);
@@ -332,7 +332,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
       produtoId: produto.id,
       nome: produto.nome,
       preco: produto.preco,
-      precoPromocional: produto.preco_promocional || undefined,
+      precoPromocional: produto.preco_promocional ?? undefined,
       quantidade: 1,
       imagemUrl: produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url,
       slug: produto.slug,
@@ -344,8 +344,8 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.05, 0.3) }}>
-      <Link to={`/cafe/${produto.slug}`} className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-[0_20px_40px_-15px_hsl(var(--brown-deep)/0.22)] hover:-translate-y-0.5 transition-all duration-500">
-        <div className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
+      <article className="group block bg-card rounded-xl overflow-hidden border border-cream-400 hover:border-gold/25 hover:shadow-[0_20px_40px_-15px_hsl(var(--brown-deep)/0.22)] hover:-translate-y-0.5 transition-all duration-500">
+        <Link to={`/cafe/${produto.slug}`} aria-label={produto.nome} className="aspect-[3/4] bg-cream-200 flex items-center justify-center relative overflow-hidden">
           {produto.imagens && produto.imagens.length > 0 ? (
             <OptimizedImage
               src={produto.imagens.find((i) => i.principal)?.url || produto.imagens[0]?.url}
@@ -358,9 +358,9 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
-          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-body tabular-nums text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
+          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold-ink" />SCA {produto.sca_score}</div>}
           {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
-          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {soldOut && (
             <div className="absolute inset-0 bg-brown-deep/45 flex items-center justify-center">
               <span className="bg-cream-50 text-brown-dark text-[10px] font-body font-semibold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full">
@@ -374,19 +374,19 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
               Últimas {produto.estoque} un.
             </div>
           )}
-        </div>
-        <div className="p-5">
+        </Link>
+        <div className="p-4 sm:p-5">
           {produto.categoria && <span className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">{produto.categoria.nome}</span>}
-          <h3 className="font-display text-xl font-semibold mt-1 text-brown-dark group-hover:text-gold transition-colors duration-300">{produto.nome}</h3>
+          <h3 className="font-display text-xl font-semibold mt-1 text-brown-dark group-hover:text-gold transition-colors duration-300"><Link to={`/cafe/${produto.slug}`}>{produto.nome}</Link></h3>
           <div className="flex items-center gap-1.5 mt-1.5 min-h-[16px]">
             {rating && rating.total > 0 ? (
               <>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={`w-3 h-3 ${n <= Math.round(rating.media) ? "fill-gold text-gold" : "text-cream-400"}`} />
+                    <Star key={n} className={`w-3 h-3 ${n <= Math.round(rating.media) ? "fill-gold text-gold-ink" : "text-cream-400"}`} />
                   ))}
                 </div>
-                <span className="font-body tabular-nums text-[10px] text-brown-light">{rating.media.toFixed(1)}</span>
+                <span className="font-mono text-[10px] text-brown">{rating.media.toFixed(1)}</span>
                 <span className="font-body text-[10px] text-muted-foreground">({rating.total})</span>
               </>
             ) : (
@@ -395,28 +395,30 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           </div>
           {produto.notas_sensoriais && produto.notas_sensoriais.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-brown-light border border-cream-500 px-2 py-0.5 rounded-full hover:border-gold hover:text-gold transition-colors">{nota}</span>)}
+              {produto.notas_sensoriais.map((nota) => <span key={nota} className="text-[10px] font-body text-brown border border-cream-500 px-2 py-0.5 rounded-full hover:border-gold hover:text-gold transition-colors">{nota}</span>)}
             </div>
           )}
           {produto.origem && <p className="text-xs text-muted-foreground font-body mt-2">{produto.origem}</p>}
           <div className="mt-4 space-y-1">
-            <div className="flex items-end justify-between">
+            <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
                 {produto.preco_promocional ? (
-                  <><span className="text-xs text-cream-700 font-body line-through">{formatBRL(produto.preco)}</span><span className="block font-body tabular-nums font-bold text-lg text-brown-dark">{formatBRL(produto.preco_promocional)}</span></>
+                  <><span className="text-xs text-muted-foreground font-body line-through">{formatBRL(produto.preco)}</span><span className="block font-mono font-bold text-lg text-brown-dark">{formatBRL(produto.preco_promocional)}</span></>
                 ) : (
-                  <span className="font-body tabular-nums font-bold text-lg text-brown-dark">{formatBRL(produto.preco)}</span>
+                  <span className="font-mono font-bold text-lg text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
-              <span className="text-[10px] text-gold font-body font-medium">{formatBRL(pixPrice)} no Pix</span>
+              <span className="text-[10px] text-gold-ink font-body font-medium">{formatBRL(pixPrice)} no Pix</span>
             </div>
-            <p className="text-[10px] text-muted-foreground font-body">Consulte as condições de parcelamento no pagamento</p>
+            <p className="text-[10px] text-muted-foreground font-body">
+              Consulte as condições no pagamento
+            </p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button
               size="sm"
               disabled={soldOut}
-              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 disabled:opacity-60"
+              className="flex-1 font-body text-xs bg-gold text-foreground hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 disabled:opacity-60"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
@@ -427,7 +429,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
               size="sm"
               className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }}
-              title="Visualização rápida"
+              aria-label={`Visualização rápida de ${produto.nome}`} title="Visualização rápida"
             >
               <Eye className="w-3.5 h-3.5" />
             </Button>
@@ -436,13 +438,13 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
               size="sm"
               className="font-body text-xs px-2.5 border-cream-400 hover:border-gold/30"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(produto.id); }}
-              title="Comparar"
+              aria-label={`Comparar ${produto.nome}`} aria-pressed={comparing} title="Comparar"
             >
               <GitCompareArrows className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
-      </Link>
+      </article>
     </motion.div>
   );
 }

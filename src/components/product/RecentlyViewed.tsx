@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/utils";
+import { formatBRL } from "@/lib/money";
 import { Link } from "react-router-dom";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { Star } from "lucide-react";

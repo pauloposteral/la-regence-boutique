@@ -11,30 +11,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { lovable } from "@/integrations/lovable";
+import { oauthCallback, callbackError, consumeOAuthNext, storeOAuthNext } from "@/lib/oauth";
 
 const AuthPage = () => {
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [oauthError, setOAuthError] = useState<string | null>(null);
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const hash = new URLSearchParams(url.hash.slice(1));
-    const error = url.searchParams.get("error_description") || url.searchParams.get("error") || hash.get("error_description") || hash.get("error");
-    if (!error) return;
-    setOAuthError(translateAuthError(error));
-    for (const key of ["error", "error_code", "error_description"]) url.searchParams.delete(key);
-    url.hash = "";
-    window.history.replaceState(window.history.state, "", url.pathname + url.search);
-  }, []);
-
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = safeNext(searchParams.get("next"));
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [pendingConfirmEmail, setPendingConfirmEmail] = useState<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, error: sessionError } = useAuth();
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -45,12 +36,28 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (!authLoading && user) {
-      let stored: string | null = null;
-      try { stored = sessionStorage.getItem("auth_next"); } catch { /* optional storage */ }
-      try { sessionStorage.removeItem("auth_next"); } catch { /* optional storage */ }
-      navigate(stored ? safeNext(stored) : next, { replace: true });
+      navigate(consumeOAuthNext(sessionStorage, next), { replace: true });
     }
   }, [user, authLoading, navigate, next]);
+
+  useEffect(() => {
+    const error = callbackError(window.location.search, window.location.hash);
+    if (error || sessionError) {
+      consumeOAuthNext(sessionStorage, next);
+      setAuthError(translateAuthError(error || sessionError?.message || ""));
+    }
+  }, [next, sessionError]);
+
+  const runAuth = async (action: () => Promise<void>) => {
+    if (loading || googleLoading) return;
+    setAuthError(null);
+    try { await action(); }
+    catch (cause: unknown) {
+      const message = translateAuthError(cause instanceof Error ? cause.message : "");
+      setAuthError(message);
+      toast.error(message);
+    } finally { setLoading(false); }
+  };
 
   const updateField = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -132,39 +139,29 @@ const AuthPage = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (googleLoading) return;
+    if (loading || googleLoading) return;
     setGoogleLoading(true);
-    setOAuthError(null);
+    setAuthError(null);
     try {
-      try { sessionStorage.setItem("auth_next", next); } catch { /* sign-in still works with restricted storage */ }
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin + "/auth", skipBrowserRedirect: true },
+      storeOAuthNext(sessionStorage, next);
+      // Cloud owns the provider exchange and preview popup; never exchange the code twice.
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: oauthCallback(window.location.origin, next),
       });
-      if (error) throw error;
-      if (!data.url) throw new Error("Unsupported provider");
-      // Inspect configuration errors before leaving the store. A healthy cross-origin
-      // OAuth redirect is opaque; the subsequent top-level navigation starts the flow.
-      const check = await fetch(data.url, { redirect: "manual", credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(10000) });
-      if (check.type !== "opaqueredirect" && !check.ok) {
-        const detail = await check.json().catch(() => ({}));
-        throw new Error(typeof detail.msg === "string" ? detail.msg : "Unsupported provider");
-      }
-      window.location.assign(data.url);
-    } catch (error) {
-      const message = translateAuthError(error instanceof Error ? error.message : "Unsupported provider");
-      setOAuthError(message);
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      // useAuth resumes the destination only after a confirmed session event.
+    } catch (cause: unknown) {
+      consumeOAuthNext(sessionStorage, next);
+      const message = translateAuthError(cause instanceof Error ? cause.message : "");
+      setAuthError(message);
       toast.error(message);
-      setGoogleLoading(false);
-      try { sessionStorage.removeItem("auth_next"); } catch { /* optional storage */ }
-    }
+    } finally { setGoogleLoading(false); }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "login") handleLogin();
-    else if (mode === "signup") handleSignup();
-    else handleForgot();
+    void runAuth(mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot);
   };
 
   return (
@@ -178,12 +175,12 @@ const AuthPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-card border border-cream-400 rounded-2xl shadow-xl shadow-gold/5 p-8 lg:p-10 w-full auth-panel max-w-md"
+          className="relative bg-card border border-cream-400 rounded-2xl shadow-xl shadow-gold/5 p-8 lg:p-10 w-full max-w-md"
         >
           {/* Brand */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border border-gold/25 flex items-center justify-center bg-gold/[0.03]">
-              <span className="font-display text-xs font-semibold text-gold">LR</span>
+              <span className="font-display text-xs font-semibold text-gold-ink">LR</span>
             </div>
             <h1 className="font-display text-3xl font-bold text-brown-dark">
               La <span className="text-gradient-gold italic">Régence</span>
@@ -195,14 +192,15 @@ const AuthPage = () => {
             </p>
           </div>
 
-          {oauthError && <p role="alert" className="mb-5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-foreground">{oauthError}</p>}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {authError && <p role="alert" className="mb-4 font-body text-sm text-destructive">{authError}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4" aria-busy={loading || googleLoading}>
             {mode === "signup" && (
               <div>
-                <Label htmlFor="auth-name" className="font-body text-[11px] tracking-wide uppercase text-muted-foreground">Nome completo</Label>
+                <Label htmlFor="auth-name" className="font-body text-xs tracking-wide uppercase text-muted-foreground">Nome completo</Label>
                 <div className="relative mt-1">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
+                    id="auth-name" autoComplete="name" required
                     value={form.name}
                     onChange={(e) => updateField("name", e.target.value)}
                     className="pl-10 font-body"
@@ -213,10 +211,11 @@ const AuthPage = () => {
             )}
 
             <div>
-              <Label htmlFor="auth-email" className="font-body text-[11px] tracking-wide uppercase text-muted-foreground">E-mail</Label>
+              <Label htmlFor="auth-email" className="font-body text-xs tracking-wide uppercase text-muted-foreground">E-mail</Label>
               <div className="relative mt-1">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
+                  id="auth-email" autoComplete="email" required
                   type="email"
                   value={form.email}
                   onChange={(e) => updateField("email", e.target.value)}
@@ -228,23 +227,25 @@ const AuthPage = () => {
 
             {mode !== "forgot" && (
               <div>
-                <Label htmlFor="auth-password" className="font-body text-[11px] tracking-wide uppercase text-muted-foreground">Senha</Label>
+                <Label htmlFor="auth-password" className="font-body text-xs tracking-wide uppercase text-muted-foreground">Senha</Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
+                    id="auth-password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required
                     type={showPassword ? "text" : "password"}
                     value={form.password}
                     onChange={(e) => updateField("password", e.target.value)}
                     className="pl-10 pr-10 font-body"
                     placeholder="••••••••"
                   />
-                  <button aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  <Button variant="ghost" size="icon"
                     type="button"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-pressed={showPassword}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -252,10 +253,11 @@ const AuthPage = () => {
             {mode === "signup" && (
               <>
                 <div>
-                  <Label htmlFor="auth-confirm" className="font-body text-[11px] tracking-wide uppercase text-muted-foreground">Confirmar senha</Label>
+                  <Label htmlFor="auth-confirm" className="font-body text-xs tracking-wide uppercase text-muted-foreground">Confirmar senha</Label>
                   <div className="relative mt-1">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
+                      id="auth-confirm" required
                       type={showPassword ? "text" : "password"}
                       value={form.confirmPassword}
                       onChange={(e) => updateField("confirmPassword", e.target.value)}
@@ -274,15 +276,15 @@ const AuthPage = () => {
                     className="mt-0.5 h-4 w-4 accent-[hsl(var(--gold))]"
                   />
                   <span>
-                    Li e aceito os <Link to="/termos" target="_blank" className="text-gold hover:underline">Termos de Uso</Link> e a{" "}
-                    <Link to="/politica-privacidade" target="_blank" className="text-gold hover:underline">Política de Privacidade</Link>.
+                    Li e aceito os <Link to="/termos" target="_blank" className="text-gold-ink hover:underline">Termos de Uso</Link> e a{" "}
+                    <Link to="/politica-privacidade" target="_blank" className="text-gold-ink hover:underline">Política de Privacidade</Link>.
                   </span>
                 </label>
               </>
             )}
 
             {mode === "login" && pendingConfirmEmail && (
-              <button type="button" onClick={handleResend} disabled={loading} className="block text-xs font-body text-gold hover:underline">
+              <button type="button" onClick={() => void runAuth(handleResend)} disabled={loading || googleLoading} className="block text-xs font-body text-gold-ink hover:underline min-h-11">
                 Não recebeu a confirmação? Reenviar e-mail
               </button>
             )}
@@ -291,7 +293,7 @@ const AuthPage = () => {
               <button
                 type="button"
                 onClick={() => setMode("forgot")}
-                className="text-xs font-body text-gold hover:underline"
+                className="text-xs font-body text-gold-ink hover:underline"
               >
                 Esqueceu a senha?
               </button>
@@ -299,10 +301,10 @@ const AuthPage = () => {
 
             <Button
               type="submit"
-              className="w-full rounded-full font-body bg-gold text-white hover:bg-gold-dark tracking-wider uppercase text-sm transition-all duration-300"
-              disabled={loading}
+              className="w-full rounded-full font-body bg-gold text-foreground hover:bg-gold-dark tracking-wide uppercase text-sm transition-all duration-300"
+              disabled={loading || googleLoading}
             >
-              {loading ? <span className="btn-spinner" /> : (
+              {loading ? <span role="status" aria-label="Entrando" className="btn-spinner" /> : (
                 <>
                   {mode === "login" && "Entrar"}
                   {mode === "signup" && "Criar conta"}
@@ -319,9 +321,10 @@ const AuthPage = () => {
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-cream-400" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-card px-3 text-muted-foreground font-body">ou continue com</span></div>
               </div>
-              <Button type="button" variant="outline" className="w-full rounded-full font-body gap-2 border-cream-400 hover:border-gold/30 hover:bg-gold/5 transition-all duration-300" onClick={handleGoogleLogin}>
+              <Button type="button" variant="outline" disabled={loading || googleLoading || authLoading} aria-busy={googleLoading} className="w-full rounded-full font-body gap-2 border-cream-400 hover:border-gold/30 hover:bg-gold/5 transition-all duration-300" onClick={handleGoogleLogin}>
                 <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                {googleLoading ? "Conectando ao Google…" : "Continuar com Google"}</Button>
+                {googleLoading ? "Conectando ao Google…" : "Google"}
+              </Button>
             </>
           )}
 
@@ -329,7 +332,7 @@ const AuthPage = () => {
             {mode === "login" && (
               <p className="font-body text-sm text-muted-foreground">
                 Não tem conta?{" "}
-                <button onClick={() => setMode("signup")} className="text-gold hover:underline font-medium">
+                <button type="button" onClick={() => setMode("signup")} className="text-gold-ink hover:underline font-medium min-h-11">
                   Cadastre-se
                 </button>
               </p>
@@ -337,7 +340,7 @@ const AuthPage = () => {
             {(mode === "signup" || mode === "forgot") && (
               <p className="font-body text-sm text-muted-foreground">
                 Já tem conta?{" "}
-                <button onClick={() => setMode("login")} className="text-gold hover:underline font-medium">
+                <button type="button" onClick={() => setMode("login")} className="text-gold-ink hover:underline font-medium min-h-11">
                   Fazer login
                 </button>
               </p>
