@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { requireAmount } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +59,7 @@ async function evaluateFreeShipping(
     // Ordena: regras aplicáveis com menor valor mínimo primeiro
     const aplicaveis = regras
       .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
-      .filter((r: any) => subtotal >= Number(r.valor_minimo || 0))
+      .filter((r: any) => subtotal >= requireAmount(r.valor_minimo))
       .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
     if (aplicaveis.length > 0) {
       const r: any = aplicaveis[0];
@@ -88,7 +89,7 @@ serve(async (req) => {
 
     const uf: string | undefined = body.estado;
     const items: IncomingItem[] = Array.isArray(body.items) ? body.items : [];
-    const subtotalCliente: number = Number(body.subtotal) || 0;
+    const subtotalCliente = body.subtotal == null ? 0 : requireAmount(body.subtotal);
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -96,7 +97,7 @@ serve(async (req) => {
     );
 
     // ==== Build products array ====
-    let meProducts: MEProduct[] = [];
+    const meProducts: MEProduct[] = [];
     let subtotalServidor = 0;
 
     if (items.length > 0) {
@@ -121,15 +122,21 @@ serve(async (req) => {
       const varMap = new Map(variantes.map((v: any) => [v.id, v]));
 
       items.forEach((item, idx) => {
+        if (!Number.isSafeInteger(item.quantidade) || item.quantidade <= 0) throw new Error("Quantidade inválida");
         const p: any = item.produtoId ? prodMap.get(item.produtoId) : null;
-        if (!p) return;
+        if (!p) throw new Error("Produto indisponível");
         let pesoKg = Number(p.peso_padrao) || PESO_PADRAO_KG;
-        let preco = Number(p.preco_promocional ?? p.preco) || 0;
+        const basePrice = requireAmount(p.preco);
+        const offerPrice = p.preco_promocional == null ? null : requireAmount(p.preco_promocional);
+        if (basePrice <= 0 || (offerPrice != null && offerPrice > basePrice)) throw new Error("Preço inválido");
+        let preco = offerPrice ?? basePrice;
         if (item.varianteId) {
           const v: any = varMap.get(item.varianteId);
+          if (!v || v.produto_id !== p.id) throw new Error("Variante indisponível");
           if (v) {
             if (v.peso) pesoKg = Number(v.peso);
-            if (v.preco) preco = Number(v.preco);
+            preco = requireAmount(v.preco);
+            if (offerPrice != null) preco = Math.round(preco * offerPrice / basePrice * 100) / 100;
           }
         }
         // Normalizar peso: se vier em gramas (>10) converter
@@ -150,7 +157,7 @@ serve(async (req) => {
     // Fallback: quando não vieram itens (ShippingCalculator da PDP)
     if (meProducts.length === 0) {
       const pesoKg = Number(body.peso_kg) || PESO_PADRAO_KG;
-      const valor = Number(body.valor_declarado) || 50;
+      const valor = body.valor_declarado == null ? 50 : requireAmount(body.valor_declarado);
       meProducts.push({
         id: "1",
         width: CAIXA.width,
@@ -196,7 +203,7 @@ serve(async (req) => {
     const { free: isFreeShipping, regra: regraFrete } = await evaluateFreeShipping(supabaseAdmin, subtotalEfetivo, uf);
 
     const options = services.map((s: any) => {
-      const originalPrice = Number(s.price);
+      const originalPrice = requireAmount(s.price);
       return {
         id: String(s.id),
         name: s.name,
