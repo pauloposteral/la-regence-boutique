@@ -32,22 +32,26 @@ const NewsletterFooter = () => {
     <div className="mt-10 pt-10 border-t border-cream-300">
       <div className="max-w-md mx-auto text-center">
         <h4 className="font-display text-lg font-semibold text-foreground mb-2">Receba novidades</h4>
-        <p className="text-[11px] text-muted-foreground font-body mb-4 tracking-wide">
+        <p className="text-sm text-muted-foreground font-body mb-4 leading-relaxed">
           Dicas de preparo, lançamentos e promoções exclusivas.
         </p>
         <div className="flex gap-2">
           <Input
             type="email"
+            aria-label="Seu e-mail para receber novidades"
+            autoComplete="email"
+            inputMode="email"
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-white border-cream-300 text-foreground placeholder:text-muted-foreground font-body text-sm rounded-full"
+            className="min-w-0 h-11 bg-white border-cream-300 text-foreground placeholder:text-muted-foreground font-body text-base rounded-full"
             onKeyDown={(e) => e.key === "Enter" && subscribe()}
           />
           <Button
             onClick={subscribe}
             disabled={loading}
-            className="bg-gold text-white hover:bg-gold-dark font-body text-xs shrink-0 tracking-wider uppercase transition-all duration-300"
+            aria-busy={loading}
+            className="min-h-[44px] bg-gold text-foreground hover:bg-gold-dark font-body text-xs shrink-0 tracking-wider uppercase transition-all duration-300"
           >
             {loading ? "..." : "Inscrever"}
           </Button>
