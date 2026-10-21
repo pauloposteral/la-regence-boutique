@@ -1,4 +1,4 @@
-import { checkoutTotals } from "../../supabase/functions/_shared/checkoutAmounts";
+import { amountCents, checkoutTotals } from "../../supabase/functions/_shared/checkoutAmounts";
 /** Database, cart and shipping amounts are BRL reais. Stripe alone uses centavos. */
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -19,7 +19,7 @@ export function formatBRL(value: unknown): string {
 
 export function roundMoney(value: unknown): number {
   const amount = moneyValue(value);
-  return Math.sign(amount) * Math.round((Math.abs(amount) + Number.EPSILON) * 100) / 100;
+  return Math.sign(amount) * amountCents(Math.abs(amount)) / 100;
 }
 
 export function fromCents(value: unknown): number {

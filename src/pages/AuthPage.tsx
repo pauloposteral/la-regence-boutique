@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
-import { lovable } from "@/integrations/lovable";
 import { oauthCallback, callbackError, consumeOAuthNext, storeOAuthNext } from "@/lib/oauth";
 
 const AuthPage = () => {
@@ -145,6 +144,7 @@ const AuthPage = () => {
     try {
       storeOAuthNext(() => window.sessionStorage, next);
       // Cloud owns the provider exchange and preview popup; never exchange the code twice.
+      const { lovable } = await import("@/integrations/lovable");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: oauthCallback(window.location.origin, next),
       });
