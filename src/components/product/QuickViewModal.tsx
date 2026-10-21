@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, ShoppingBag, Minus, Plus, X, Eye } from "lucide-react";
@@ -21,15 +22,15 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
   if (!produto) return null;
 
   const mainImg = produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url;
-  const pixPrice = (produto.preco_promocional || produto.preco) * 0.9;
-  const displayPrice = produto.preco_promocional || produto.preco;
+  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
+  const displayPrice = produto.preco_promocional ?? produto.preco;
 
   const handleAdd = () => {
     addItem({
       produtoId: produto.id,
       nome: produto.nome,
       preco: produto.preco,
-      precoPromocional: produto.preco_promocional || undefined,
+      precoPromocional: produto.preco_promocional ?? undefined,
       quantidade,
       imagemUrl: mainImg,
       slug: produto.slug,
@@ -55,11 +56,11 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
             )}
             {produto.sca_score && (
               <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                <Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}
+                <Star className="w-3 h-3 fill-gold text-gold-ink" />SCA {produto.sca_score}
               </div>
             )}
             {produto.preco_promocional && (
-              <div className="absolute top-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">
+              <div className="absolute top-3 left-3 bg-gold text-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded-full">
                 {Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF
               </div>
             )}
@@ -68,7 +69,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
           {/* Info */}
           <div className="p-6 flex flex-col">
             {produto.categoria && (
-              <span className="text-[10px] font-body text-gold uppercase tracking-[0.2em] mb-1">{produto.categoria.nome}</span>
+              <span className="text-[10px] font-body text-gold-ink uppercase tracking-[0.2em] mb-1">{produto.categoria.nome}</span>
             )}
             <h3 className="font-display text-xl font-semibold text-brown-dark mb-2">{produto.nome}</h3>
 
@@ -89,18 +90,18 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               <div className="flex items-end gap-2">
                 {produto.preco_promocional ? (
                   <>
-                    <span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-xs text-muted-foreground font-body line-through">{formatBRL(produto.preco)}</span>
+                    <span className="font-mono font-bold text-2xl text-brown-dark">{formatBRL(produto.preco_promocional)}</span>
                   </>
                 ) : (
-                  <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-mono font-bold text-2xl text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
-              <p className="text-[10px] text-gold font-body font-semibold mt-1">
-                R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)
+              <p className="text-[10px] text-gold-ink font-body font-semibold mt-1">
+                {formatBRL(pixPrice)} no Pix (10% off)
               </p>
               <p className="text-[10px] text-muted-foreground font-body">
-                ou 12x de R$ {(displayPrice / 12).toFixed(2).replace(".", ",")} sem juros
+                ou 12x de {formatBRL((displayPrice / 12))} sem juros
               </p>
             </div>
 
@@ -108,16 +109,14 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               {/* Quantity + Add */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center border border-cream-400 rounded-lg">
-                  <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2 hover:bg-cream-200 transition-colors rounded-l-lg">
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
+                  <Button variant="ghost" size="icon" aria-label="Diminuir quantidade" onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="p-2 hover:bg-cream-200 transition-colors rounded-l-lg">
+                    <Minus className="w-3.5 h-3.5" /></Button>
                   <span className="w-8 text-center font-body text-sm">{quantidade}</span>
-                  <button onClick={() => setQuantidade(quantidade + 1)} className="p-2 hover:bg-cream-200 transition-colors rounded-r-lg">
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
+                  <Button variant="ghost" size="icon" aria-label="Aumentar quantidade" onClick={() => setQuantidade(quantidade + 1)} className="p-2 hover:bg-cream-200 transition-colors rounded-r-lg">
+                    <Plus className="w-3.5 h-3.5" /></Button>
                 </div>
                 <Button
-                  className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase rounded-full transition-all duration-300"
+                  className="flex-1 font-body text-xs bg-gold text-foreground hover:bg-gold-dark tracking-wide uppercase rounded-full transition-all duration-300"
                   disabled={produto.estoque === 0}
                   onClick={handleAdd}
                 >

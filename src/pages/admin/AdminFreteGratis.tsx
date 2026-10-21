@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,7 +115,7 @@ const AdminFreteGratis = () => {
               <tr key={r.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-body text-sm font-medium">{r.nome}</td>
                 <td className="px-4 py-3 font-body text-sm">{r.uf || <span className="text-muted-foreground">Todas</span>}</td>
-                <td className="px-4 py-3 font-body text-sm font-mono">R$ {Number(r.valor_minimo).toFixed(2).replace(".", ",")}</td>
+                <td className="px-4 py-3 font-body text-sm font-mono">{formatBRL(r.valor_minimo)}</td>
                 <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.prioridade}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => toggleAtiva(r)} className="cursor-pointer">

@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useMemo } from "react";
 import { useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
@@ -52,7 +53,7 @@ const CrossSellProducts = () => {
       <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory -mx-1 px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {suggestions.map((p) => {
           const img = p.imagens?.find((i) => i.principal)?.url || p.imagens?.[0]?.url;
-          const preco = p.preco_promocional || p.preco;
+          const preco = p.preco_promocional ?? p.preco;
           return (
             <div
               key={p.id}
@@ -68,19 +69,19 @@ const CrossSellProducts = () => {
               <div className="min-w-0">
                 <p className="font-display text-xs font-semibold text-brown-dark leading-tight line-clamp-2">{p.nome}</p>
                 <p className="font-body text-[11px] text-brown-light mt-0.5">
-                  R$ {preco.toFixed(2).replace(".", ",")}
+                  {formatBRL(preco)}
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-full border-gold/40 text-gold hover:bg-gold hover:text-white text-[10px] tracking-wider uppercase font-body gap-1"
+                className="h-8 rounded-full border-gold/40 text-gold hover:bg-gold hover:text-primary-foreground text-[10px] tracking-wider uppercase font-body gap-1"
                 onClick={() => {
                   addItem({
                     produtoId: p.id,
                     nome: p.nome,
                     preco: p.preco,
-                    precoPromocional: p.preco_promocional || undefined,
+                    precoPromocional: p.preco_promocional ?? undefined,
                     quantidade: 1,
                     imagemUrl: img,
                     slug: p.slug,

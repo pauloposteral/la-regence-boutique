@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -54,10 +55,12 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         gold: {
+          ink: "hsl(var(--gold-ink))",
           DEFAULT: "hsl(var(--gold))",
           light: "hsl(var(--gold-light))",
           dark: "hsl(var(--gold-dark))",
         },
+        scrim: "hsl(var(--scrim))",
         cream: {
           50: "hsl(40 35% 99%)",
           100: "hsl(37 33% 97%)",
@@ -136,5 +139,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } satisfies Config;
