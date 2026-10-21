@@ -13,14 +13,15 @@ export function callbackError(search: string, hash: string): string | null {
 }
 
 /** Destination only, never tokens. URL fallback also works with restricted Safari storage. */
-export function storeOAuthNext(storage: Pick<Storage, "setItem">, next: string): void {
-  try { storage.setItem("auth_next", safeNext(next)); } catch { /* callback query preserves destination */ }
+export function storeOAuthNext(storage: Pick<Storage, "setItem"> | (() => Pick<Storage, "setItem">), next: string): void {
+  try { (typeof storage === "function" ? storage() : storage).setItem("auth_next", safeNext(next)); } catch { /* callback query preserves destination */ }
 }
 
-export function consumeOAuthNext(storage: Pick<Storage, "getItem" | "removeItem">, fallback: string): string {
+export function consumeOAuthNext(storage: Pick<Storage, "getItem" | "removeItem"> | (() => Pick<Storage, "getItem" | "removeItem">), fallback: string): string {
   try {
-    const next = storage.getItem("auth_next");
-    storage.removeItem("auth_next");
+    const available = typeof storage === "function" ? storage() : storage;
+    const next = available.getItem("auth_next");
+    available.removeItem("auth_next");
     return safeNext(next, safeNext(fallback));
   } catch { return safeNext(fallback); }
 }

@@ -36,14 +36,14 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate(consumeOAuthNext(sessionStorage, next), { replace: true });
+      navigate(consumeOAuthNext(() => window.sessionStorage, next), { replace: true });
     }
   }, [user, authLoading, navigate, next]);
 
   useEffect(() => {
     const error = callbackError(window.location.search, window.location.hash);
     if (error || sessionError) {
-      consumeOAuthNext(sessionStorage, next);
+      consumeOAuthNext(() => window.sessionStorage, next);
       setAuthError(translateAuthError(error || sessionError?.message || ""));
     }
   }, [next, sessionError]);
@@ -143,7 +143,7 @@ const AuthPage = () => {
     setGoogleLoading(true);
     setAuthError(null);
     try {
-      storeOAuthNext(sessionStorage, next);
+      storeOAuthNext(() => window.sessionStorage, next);
       // Cloud owns the provider exchange and preview popup; never exchange the code twice.
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: oauthCallback(window.location.origin, next),
@@ -152,7 +152,7 @@ const AuthPage = () => {
       if (result.redirected) return;
       // useAuth resumes the destination only after a confirmed session event.
     } catch (cause: unknown) {
-      consumeOAuthNext(sessionStorage, next);
+      consumeOAuthNext(() => window.sessionStorage, next);
       const message = translateAuthError(cause instanceof Error ? cause.message : "");
       setAuthError(message);
       toast.error(message);

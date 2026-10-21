@@ -12,8 +12,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Eager: critical path
 import Index from "./pages/Index";
-import CafesPage from "./pages/CafesPage";
-import ProdutoPage from "./pages/ProdutoPage";
+const CafesPage = lazy(() => import("./pages/CafesPage"));
+const ProdutoPage = lazy(() => import("./pages/ProdutoPage"));
 import NotFound from "./pages/NotFound";
 
 // Lazy: secondary pages
