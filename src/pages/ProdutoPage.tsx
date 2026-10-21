@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, variantPromo } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -64,12 +64,10 @@ const ProdutoPage = () => {
     return produto.variantes.find((v: any) => v.moagem === selectedMoagem && v.peso === selectedPeso);
   }, [produto, selectedMoagem, selectedPeso]);
 
-  const currentPrice = selectedVariant?.preco || produto?.preco || 0;
-  // Promoção é proporcional ao preço base — escala para a variante selecionada
-  const promoRatio = produto?.preco_promocional && produto?.preco ? produto.preco_promocional / produto.preco : null;
-  const currentPromoPrice = promoRatio != null
-    ? Math.round(currentPrice * promoRatio * 100) / 100
-    : undefined;
+  const currentPrice = selectedVariant?.preco ?? produto?.preco ?? NaN;
+  let currentPromoPrice: number | undefined;
+  try { currentPromoPrice = produto ? variantPromo(produto.preco, produto.preco_promocional, currentPrice) : undefined; }
+  catch { currentPromoPrice = NaN; }
   const effectivePrice = currentPromoPrice ?? currentPrice;
   const pixPrice = effectivePrice * 0.9;
 
@@ -191,6 +189,7 @@ const ProdutoPage = () => {
   };
 
   const handleAddToCart = () => {
+    if (!Number.isFinite(effectivePrice)) { toast.error("Preço inválido. Item não adicionado."); return; }
     // Validação de estoque antes de adicionar
     const estoqueDisponivel = selectedVariant?.estoque ?? produto.estoque;
     if (quantidade > estoqueDisponivel) {

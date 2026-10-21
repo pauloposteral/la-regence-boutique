@@ -1,7 +1,7 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, moneyValue } from "@/lib/money";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CrossSellProducts from "./CrossSellProducts";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const FRETE_GRATIS_MIN = 150;
 
@@ -37,7 +38,7 @@ const CartDrawer = () => {
       const row = Array.isArray(data) ? data[0] : data;
       const motivo = row?.motivo;
       const tipo = (row?.tipo as "desconto" | "frete_gratis" | undefined) || "desconto";
-      const desc = Number(row?.desconto || 0);
+
       if (motivo !== "ok") {
         const msg: Record<string, string> = {
           invalido: "Cupom inválido",
@@ -48,6 +49,7 @@ const CartDrawer = () => {
         toast.error(msg[motivo || ""] || "Cupom inválido");
         return;
       }
+      const desc = moneyValue(row?.desconto);
       if (tipo === "desconto" && desc <= 0) {
         toast.error("Cupom inválido");
         return;
@@ -67,15 +69,10 @@ const CartDrawer = () => {
   const total = Math.max(0, subtotal - desconto);
 
   return (
-    <AnimatePresence>
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) closeCart(); }}>
       {isOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50" onClick={closeCart} />
-          <motion.div
-            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream-50 z-50 flex flex-col shadow-2xl"
-          >
+          <SheetContent aria-describedby={undefined} className="w-full max-w-md sm:max-w-md bg-cream-50 flex flex-col gap-0 p-0 shadow-2xl [&>button]:hidden">
             {/* Gold top accent */}
             <div className="h-1 bg-gradient-to-r from-gold/60 via-gold to-gold/60" />
 
@@ -83,7 +80,7 @@ const CartDrawer = () => {
             <div className="flex items-center justify-between p-5 border-b border-cream-400">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-brown-dark" />
-                <h2 className="font-display text-xl font-semibold text-brown-dark">Carrinho</h2>
+                <SheetTitle className="font-display text-xl font-semibold text-brown-dark">Carrinho</SheetTitle>
                 <span className="text-xs font-body text-muted-foreground">({totalItems})</span>
               </div>
               <button aria-label="Fechar carrinho" onClick={closeCart} className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 rounded-full transition-colors"><X className="w-5 h-5 text-brown" /></button>
@@ -187,7 +184,7 @@ const CartDrawer = () => {
                 {!cupom ? (
                   <div className="space-y-1.5">
                     <div className="flex gap-2">
-                      <Input placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
+                      <Input aria-label="Cupom de desconto" placeholder="Cupom de desconto" value={cupomInput} onChange={(e) => setCupomInput(e.target.value)} className="font-body text-base md:text-sm h-11" />
                       <Button variant="outline" size="sm" onClick={aplicarCupom} disabled={cupomLoading} className="font-body text-xs shrink-0 h-11 px-4">Aplicar</Button>
                     </div>
                     {subtotal >= 80 && (
@@ -203,8 +200,8 @@ const CartDrawer = () => {
                 ) : (
 
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
-                    <span className="text-xs font-body font-medium text-gold-ink">Cupom: {cupom} (-{formatBRL(desconto)})</span>
-                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
+                    <span className="text-xs font-body font-medium text-gold-ink">Cupom: {cupom} {cupomTipo === "frete_gratis" ? "(Frete grátis)" : `(-${formatBRL(desconto)})`}</span>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
@@ -223,10 +220,10 @@ const CartDrawer = () => {
                 </motion.div>
               </div>
             )}
-          </motion.div>
+          </SheetContent>
         </>
       )}
-    </AnimatePresence>
+    </Sheet>
   );
 };
 
