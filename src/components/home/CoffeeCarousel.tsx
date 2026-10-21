@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -19,7 +20,7 @@ const CoffeeCarousel = () => {
       produtoId: coffee.id,
       nome: coffee.nome,
       preco: coffee.preco,
-      precoPromocional: coffee.preco_promocional || undefined,
+      precoPromocional: coffee.preco_promocional ?? undefined,
       quantidade: 1,
       imagemUrl: coffee.imagens?.find((i) => i.principal)?.url || coffee.imagens?.[0]?.url,
       slug: coffee.slug,
@@ -30,7 +31,7 @@ const CoffeeCarousel = () => {
   };
 
   return (
-    <section className="py-24 lg:py-32 bg-white">
+    <section className="py-24 lg:py-32 bg-card">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -63,9 +64,9 @@ const CoffeeCarousel = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {items.map((coffee, i) => {
-              const basePrice = coffee.preco_promocional || coffee.preco;
+              const basePrice = coffee.preco_promocional ?? coffee.preco;
               const pixPrice = basePrice * 0.9;
-              const parcela = coffee.preco / 3;
+              const parcela = basePrice / 12;
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
@@ -92,7 +93,7 @@ const CoffeeCarousel = () => {
                         <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                       )}
                       {coffee.sca_score && (
-                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
+                        <div className="absolute top-3 right-3 bg-card/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
                           <Star className="w-3 h-3 fill-gold text-gold" />
                           SCA {coffee.sca_score}
                         </div>
@@ -124,7 +125,7 @@ const CoffeeCarousel = () => {
                           {Array.from({ length: 5 }).map((_, s) => (
                             <div
                               key={s}
-                              className={`w-3 h-1.5 rounded-sm ${s < coffee.corpo! ? "bg-brown" : "bg-cream-300"}`}
+                              className={`w-3 h-1.5 rounded-sm ${s < (coffee.corpo ?? 0) ? "bg-brown" : "bg-cream-300"}`}
                             />
                           ))}
                         </div>
@@ -141,22 +142,22 @@ const CoffeeCarousel = () => {
                       )}
 
                       <p className="font-mono font-bold text-xl text-brown-dark mt-4">
-                        R$ {coffee.preco.toFixed(2).replace(".", ",")}
+                        {formatBRL(basePrice)}
                       </p>
                       <p className="text-[11px] text-muted-foreground font-body mt-0.5">
-                        Em até 3x de R$ {parcela.toFixed(2).replace(".", ",")} s/ juros
+                        Em até 12x de {formatBRL(parcela)} s/ juros
                       </p>
 
                       <div className="mt-3 border border-gold/20 rounded-xl px-3 py-2 text-center bg-gold/[0.04]">
                         <span className="text-xs font-body font-semibold text-gold flex items-center justify-center gap-1.5">
-                          À vista R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
+                          À vista {formatBRL(pixPrice)} no Pix
                         </span>
                       </div>
 
                       {/* Quick-add button */}
                       <Button
                         size="sm"
-                        className="w-full mt-3 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 hover:shadow-[0_4px_12px_hsl(var(--gold)/0.25)] hover:scale-[1.02]"
+                        className="w-full mt-3 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 hover:shadow-[0_4px_12px_hsl(var(--gold)/0.25)] hover:scale-[1.02]"
                         onClick={(e) => handleQuickAdd(e, coffee)}
                       >
                         <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />

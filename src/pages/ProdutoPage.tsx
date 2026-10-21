@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -268,19 +269,19 @@ const ProdutoPage = () => {
               <div className="flex items-end gap-3">
                 {currentPromoPrice != null ? (
                   <>
-                    <span className="text-sm text-muted-foreground font-body line-through">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-display text-4xl font-bold text-foreground">R$ {currentPromoPrice.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-sm text-muted-foreground font-body line-through">{formatBRL(currentPrice)}</span>
+                    <span className="font-display text-4xl font-bold text-foreground">{formatBRL(currentPromoPrice)}</span>
                   </>
                 ) : (
-                  <span className="font-display text-4xl font-bold text-foreground">R$ {currentPrice.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-display text-4xl font-bold text-foreground">{formatBRL(currentPrice)}</span>
                 )}
               </div>
               <div className="mt-2 space-y-1">
                 <div className="flex items-center gap-4 text-sm font-body">
-                  <span className="text-gold font-semibold">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)</span>
+                  <span className="text-gold font-semibold">{formatBRL(pixPrice)} no Pix (10% off)</span>
                 </div>
                 <p className="text-xs text-muted-foreground font-body">
-                  ou 12x de R$ {(effectivePrice / 12).toFixed(2).replace(".", ",")} sem juros
+                  ou 12x de {formatBRL((effectivePrice / 12))} sem juros
                 </p>
               </div>
               {produto.preco_promocional && (
@@ -351,7 +352,7 @@ const ProdutoPage = () => {
               produtoId={produto.id}
               varianteId={selectedVariant?.id || null}
               quantidade={quantidade}
-              precoUnitario={currentPrice}
+              precoUnitario={effectivePrice}
             />
           </motion.div>
         </div>
@@ -423,7 +424,7 @@ const ProdutoPage = () => {
                   <div className="p-3">
                     <h3 className="font-display text-sm font-semibold truncate">{p.nome}</h3>
                     <p className="text-[10px] text-muted-foreground font-body mt-0.5">{p.notas_sensoriais?.slice(0, 2).join(" · ")}</p>
-                    <span className="font-body font-semibold text-sm mt-1.5 block">R$ {p.preco.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-body font-semibold text-sm mt-1.5 block">{formatBRL(p.preco_promocional ?? p.preco)}</span>
                   </div>
                 </Link>
               ))}
@@ -438,7 +439,7 @@ const ProdutoPage = () => {
       {/* Sticky add-to-cart mobile (32) */}
       <StickyAddToCart
         productName={produto.nome}
-        price={currentPrice}
+        price={effectivePrice}
         pixPrice={pixPrice}
         onAddToCart={handleAddToCart}
         disabled={produto.estoque === 0}

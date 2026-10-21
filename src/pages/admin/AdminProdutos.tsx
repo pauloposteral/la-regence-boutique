@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -360,8 +361,8 @@ const AdminProdutos = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3 font-body text-sm">
-                    R$ {Number(p.preco).toFixed(2).replace(".", ",")}
-                    {p.preco_promocional && <span className="block text-[10px] text-gold">Promo: R$ {Number(p.preco_promocional).toFixed(2).replace(".", ",")}</span>}
+                    {formatBRL(p.preco)}
+                    {p.preco_promocional && <span className="block text-[10px] text-gold">Promo: {formatBRL(p.preco_promocional)}</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -462,9 +463,9 @@ const AdminProdutos = () => {
                     <div key={img.id} className="relative w-16 h-16 rounded border border-border overflow-hidden group">
                       <img src={img.url} alt="" className="w-full h-full object-cover" />
                       <button onClick={() => deleteImage(img.id)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <X className="w-4 h-4 text-white" />
+                        <X className="w-4 h-4 text-primary-foreground" />
                       </button>
-                      {img.principal && <div className="absolute bottom-0 left-0 right-0 bg-gold text-white text-[8px] text-center py-0.5">Principal</div>}
+                      {img.principal && <div className="absolute bottom-0 left-0 right-0 bg-gold text-primary-foreground text-[8px] text-center py-0.5">Principal</div>}
                     </div>
                   ))}
                 </div>

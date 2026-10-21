@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,7 +167,7 @@ const AdminClientes = () => {
                 <div><p className="text-xs text-muted-foreground">Telefone</p><p>{selectedClient.phone || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground">CPF</p><p>{selectedClient.cpf || "—"}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total de pedidos</p><p className="font-semibold">{clientOrders.length}</p></div>
-                <div><p className="text-xs text-muted-foreground">Total gasto</p><p className="font-semibold text-gold">R$ {clientTotal.toFixed(2).replace(".", ",")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Total gasto</p><p className="font-semibold text-gold">{formatBRL(clientTotal)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Pontos de fidelidade</p><p className="font-semibold text-gold flex items-center gap-1"><Star className="w-3 h-3 fill-gold" /> {clientPoints}</p></div>
               </div>
               {clientOrders.length > 0 && (
@@ -181,7 +182,7 @@ const AdminClientes = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={`${STATUS_COLORS[o.status] || ""} text-[10px] capitalize`}>{o.status}</Badge>
-                          <span className="font-medium text-xs">R$ {Number(o.total).toFixed(2).replace(".", ",")}</span>
+                          <span className="font-medium text-xs">{formatBRL(o.total)}</span>
                         </div>
                       </div>
                     ))}

@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -64,7 +65,7 @@ const CafesPage = () => {
   // Get actual price range from products
   const actualPriceRange = useMemo(() => {
     if (produtos.length === 0) return [0, 500];
-    const prices = produtos.map((p) => p.preco_promocional || p.preco);
+    const prices = produtos.map((p) => p.preco_promocional ?? p.preco);
     return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
   }, [produtos]);
 
@@ -112,14 +113,14 @@ const CafesPage = () => {
     if (scaMin) result = result.filter((p) => (p.sca_score || 0) >= scaMin);
     if (priceFilterActive) {
       result = result.filter((p) => {
-        const price = p.preco_promocional || p.preco;
+        const price = p.preco_promocional ?? p.preco;
         return price >= priceRange[0] && price <= priceRange[1];
       });
     }
 
     switch (sort) {
-      case "preco_asc": result.sort((a, b) => a.preco - b.preco); break;
-      case "preco_desc": result.sort((a, b) => b.preco - a.preco); break;
+      case "preco_asc": result.sort((a, b) => (a.preco_promocional ?? a.preco) - (b.preco_promocional ?? b.preco)); break;
+      case "preco_desc": result.sort((a, b) => (b.preco_promocional ?? b.preco) - (a.preco_promocional ?? a.preco)); break;
       case "sca_desc": result.sort((a, b) => (b.sca_score || 0) - (a.sca_score || 0)); break;
       case "nome": result.sort((a, b) => a.nome.localeCompare(b.nome)); break;
       default: result.sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
@@ -233,8 +234,8 @@ const CafesPage = () => {
                     className="mb-2"
                   />
                   <div className="flex justify-between text-[10px] font-body text-muted-foreground">
-                    <span>R$ {priceRange[0]}</span>
-                    <span>R$ {priceRange[1]}</span>
+                    <span>{formatBRL(priceRange[0])}</span>
+                    <span>{formatBRL(priceRange[1])}</span>
                   </div>
                 </div>
               </div>
@@ -248,7 +249,7 @@ const CafesPage = () => {
             {selectedTorra && <Badge variant="secondary" className="font-body gap-1">Torra {TORRA_LABELS[selectedTorra]}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedTorra(null)} /></Badge>}
             {selectedNotas.map((n) => <Badge key={n} variant="secondary" className="font-body gap-1">{n}<X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedNotas(selectedNotas.filter((x) => x !== n))} /></Badge>)}
             {scaMin && <Badge variant="secondary" className="font-body gap-1">SCA ≥ {scaMin}<X className="w-3 h-3 cursor-pointer" onClick={() => setScaMin(null)} /></Badge>}
-            {priceFilterActive && <Badge variant="secondary" className="font-body gap-1">R$ {priceRange[0]}–{priceRange[1]}<X className="w-3 h-3 cursor-pointer" onClick={() => { setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]); }} /></Badge>}
+            {priceFilterActive && <Badge variant="secondary" className="font-body gap-1">{formatBRL(priceRange[0])}–{formatBRL(priceRange[1])}<X className="w-3 h-3 cursor-pointer" onClick={() => { setPriceFilterActive(false); setPriceRange(actualPriceRange as [number, number]); }} /></Badge>}
           </div>
         )}
 
@@ -315,7 +316,7 @@ function CompareBar() {
 }
 
 function ProductCard({ produto, index, onQuickView }: { produto: Produto; index: number; onQuickView: () => void }) {
-  const pixPrice = produto.preco_promocional || produto.preco * 0.9;
+  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
   const comparing = isComparing(produto.id);
@@ -331,7 +332,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
       produtoId: produto.id,
       nome: produto.nome,
       preco: produto.preco,
-      precoPromocional: produto.preco_promocional || undefined,
+      precoPromocional: produto.preco_promocional ?? undefined,
       quantidade: 1,
       imagemUrl: produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url,
       slug: produto.slug,
@@ -359,7 +360,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           )}
           {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
           {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
-          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
+          {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-primary-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {soldOut && (
             <div className="absolute inset-0 bg-brown-deep/45 flex items-center justify-center">
               <span className="bg-cream-50 text-brown-dark text-[10px] font-body font-semibold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full">
@@ -402,22 +403,22 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
             <div className="flex items-end justify-between">
               <div>
                 {produto.preco_promocional ? (
-                  <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                  <><span className="text-xs text-cream-700 font-body line-through">{formatBRL(produto.preco)}</span><span className="block font-mono font-bold text-lg text-brown-dark">{formatBRL(produto.preco_promocional)}</span></>
                 ) : (
-                  <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-mono font-bold text-lg text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
-              <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
+              <span className="text-[10px] text-gold font-body font-medium">{formatBRL(pixPrice)} no Pix</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-body">
-              ou 12x de R$ {((produto.preco_promocional || produto.preco) / 12).toFixed(2).replace(".", ",")} sem juros
+              ou 12x de {formatBRL(((produto.preco_promocional ?? produto.preco) / 12))} sem juros
             </p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button
               size="sm"
               disabled={soldOut}
-              className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 disabled:opacity-60"
+              className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark tracking-wide uppercase transition-all duration-300 disabled:opacity-60"
               onClick={handleQuickAdd}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />

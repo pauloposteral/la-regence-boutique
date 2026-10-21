@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Coffee, Gift, Truck, Star, ArrowRight, RefreshCw } from "lucide-react";
@@ -256,7 +257,7 @@ const AssinaturaPage = () => {
             </p>
             <Button
               size="lg"
-              className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
+              className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
               onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conhecer Planos <ArrowRight className="w-4 h-4 ml-1" />
@@ -327,7 +328,7 @@ const AssinaturaPage = () => {
                   <div>
                     <p className="font-body text-xs text-muted-foreground">Valor</p>
                     <p className="font-body text-sm font-semibold">
-                      R$ {Number(assinatura.preco).toFixed(2).replace(".", ",")}/mês
+                      {formatBRL(assinatura.preco)}/mês
                     </p>
                   </div>
                 </div>
@@ -335,7 +336,7 @@ const AssinaturaPage = () => {
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
                   <Button
                     size="sm"
-                    className="bg-gold text-white hover:bg-gold-dark font-body text-xs gap-1.5 rounded-full"
+                    className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-xs gap-1.5 rounded-full"
                     onClick={handleManage}
                     disabled={submitting}
                   >
@@ -368,14 +369,14 @@ const AssinaturaPage = () => {
                       }`}
                     >
                       {plan.badge && (
-                        <Badge className="absolute -top-2.5 left-4 bg-gold text-white font-body text-[10px] shadow-sm rounded-full">
+                        <Badge className="absolute -top-2.5 left-4 bg-gold text-primary-foreground font-body text-[10px] shadow-sm rounded-full">
                           {plan.badge}
                         </Badge>
                       )}
                       <p className="font-display text-lg font-semibold mb-1">{plan.label}</p>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="font-display text-2xl font-bold">
-                          R$ {plan.price.toFixed(2).replace(".", ",")}
+                          {formatBRL(plan.price)}
                         </span>
                         <span className="font-body text-xs text-muted-foreground">{plan.period}</span>
                       </div>
@@ -490,11 +491,11 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-gold text-white hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300 rounded-full"
+                  className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300 rounded-full"
                   onClick={handleSubscribe}
                   disabled={submitting || (!cafeSurpresa && !selectedCafe)}
                 >
-                  {submitting ? "Redirecionando…" : `Assinar agora — R$ ${PLANS.find((p) => p.tipo === selectedPlan)!.price.toFixed(2).replace(".", ",")}/mês`}
+                  {submitting ? "Redirecionando…" : `Assinar agora — ${formatBRL(PLANS.find((p) => p.tipo === selectedPlan)!.price)}/mês`}
                 </Button>
                 <p className="font-body text-xs text-muted-foreground mt-3">
                   Cancele quando quiser · Primeira entrega em até 7 dias
@@ -552,7 +553,7 @@ const AssinaturaPage = () => {
               onClick={() => setAddressOpen(false)} disabled={submitting}>
               Voltar
             </Button>
-            <Button className="rounded-full bg-gold text-white hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
+            <Button className="rounded-full bg-gold text-primary-foreground hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
               onClick={handleConfirmAddress} disabled={submitting}>
               {submitting ? "Abrindo pagamento…" : "Ir para o pagamento"}
             </Button>

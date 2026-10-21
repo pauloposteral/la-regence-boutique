@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X, Heart } from "lucide-react";
@@ -141,7 +142,7 @@ const Header = () => {
                   <Link to="/favoritos">
                     <Heart className="w-4 h-4" />
                     {favCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center">{favCount}</span>
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{favCount}</span>
                     )}
                   </Link>
                 </Button>
@@ -164,7 +165,7 @@ const Header = () => {
                     key={totalItems}
                     initial={{ scale: 0.5 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center badge-bounce"
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center badge-bounce"
                   >
                     {totalItems}
                   </motion.span>
@@ -217,11 +218,11 @@ const Header = () => {
                         <div className="text-right shrink-0">
                           {r.preco_promocional ? (
                             <>
-                              <span className="font-mono text-[10px] text-cream-700 line-through block">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
-                              <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                              <span className="font-mono text-[10px] text-cream-700 line-through block">{formatBRL(r.preco)}</span>
+                              <span className="font-mono text-sm font-semibold text-gold">{formatBRL(r.preco_promocional)}</span>
                             </>
                           ) : (
-                            <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                            <span className="font-mono text-sm font-semibold text-gold">{formatBRL(r.preco)}</span>
                           )}
                         </div>
                       </Link>
@@ -262,7 +263,7 @@ const Header = () => {
                 ))}
                 <Link
                   to="/assinatura"
-                  className="mt-4 inline-flex items-center justify-center bg-gold text-white rounded-full px-6 py-3 font-body text-sm font-medium tracking-wider uppercase border-2 border-gold hover:bg-gold-dark transition-all duration-300"
+                  className="mt-4 inline-flex items-center justify-center bg-gold text-primary-foreground rounded-full px-6 py-3 font-body text-sm font-medium tracking-wider uppercase border-2 border-gold hover:bg-gold-dark transition-all duration-300"
                   onClick={() => setMobileOpen(false)}
                 >
                   Assinar Café

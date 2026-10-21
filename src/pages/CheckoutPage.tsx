@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package, ArrowRight } from "lucide-react";
@@ -476,7 +477,7 @@ const CheckoutPage = () => {
                               <span className={`font-mono text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold" : ""}`}>
                                 {opt.free || opt.price === 0
                                   ? "Grátis"
-                                  : `R$ ${Number(opt.price).toFixed(2).replace(".", ",")}`}
+                                  : formatBRL(opt.price)}
                               </span>
                             </label>
                           );
@@ -555,8 +556,8 @@ const CheckoutPage = () => {
                       {form.metodoPagamento === "pix" && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="bg-gold/10 border border-gold/20 rounded-lg p-4 text-center">
-                            <p className="font-body text-sm text-gold font-semibold">💰 Desconto Pix: -R$ {pixDesconto.toFixed(2).replace(".", ",")}</p>
-                            <p className="font-mono text-xs text-muted-foreground mt-1">Novo total: R$ {total.toFixed(2).replace(".", ",")}</p>
+                            <p className="font-body text-sm text-gold font-semibold">💰 Desconto Pix: -{formatBRL(pixDesconto)}</p>
+                            <p className="font-mono text-xs text-muted-foreground mt-1">Novo total: {formatBRL(total)}</p>
                           </div>
                         </motion.div>
                       )}
@@ -666,7 +667,7 @@ const CheckoutPage = () => {
                         <p className="text-[10px] text-muted-foreground font-body">Qtd: {item.quantidade}</p>
                       </div>
                       <span className="font-mono text-xs font-semibold shrink-0 text-gold">
-                        R$ {((item.precoPromocional || item.preco) * item.quantidade).toFixed(2).replace(".", ",")}
+                        {formatBRL(((item.precoPromocional ?? item.preco) * item.quantidade))}
                       </span>
                     </div>
                   ))}
@@ -675,12 +676,12 @@ const CheckoutPage = () => {
                 <div className="border-t border-border pt-3 space-y-2 text-sm font-body">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span className="font-mono">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-mono">{formatBRL(subtotal)}</span>
                   </div>
                   {desconto > 0 && (
                     <div className="flex justify-between text-gold">
                       <span>Cupom ({cupom})</span>
-                      <span className="font-mono">-R$ {desconto.toFixed(2).replace(".", ",")}</span>
+                      <span className="font-mono">-{formatBRL(desconto)}</span>
                     </div>
                   )}
                   {freteZeradoPorCupom && (
@@ -692,18 +693,18 @@ const CheckoutPage = () => {
                   <div className="flex justify-between text-muted-foreground">
                     <span>Frete</span>
                     <span className={`font-mono ${custoFrete === 0 ? "text-gold" : ""}`}>
-                      {custoFrete === 0 ? "Grátis" : `R$ ${custoFrete.toFixed(2).replace(".", ",")}`}
+                      {custoFrete === 0 ? "Grátis" : formatBRL(custoFrete)}
                     </span>
                   </div>
                   {pixDesconto > 0 && (
                     <div className="flex justify-between text-gold">
                       <span>Desconto Pix</span>
-                      <span className="font-mono">-R$ {pixDesconto.toFixed(2).replace(".", ",")}</span>
+                      <span className="font-mono">-{formatBRL(pixDesconto)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-semibold text-base pt-3 border-t border-border">
                     <span>Total</span>
-                    <span className="font-mono text-gold">R$ {total.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-mono text-gold">{formatBRL(total)}</span>
                   </div>
                 </div>
 

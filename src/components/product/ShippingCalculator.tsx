@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { Truck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -130,7 +131,7 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
                 {opt.free || opt.price === 0 ? (
                   <span className="text-gold">Grátis</span>
                 ) : (
-                  `R$ ${opt.price.toFixed(2).replace(".", ",")}`
+                  formatBRL(opt.price)
                 )}
               </span>
             </div>

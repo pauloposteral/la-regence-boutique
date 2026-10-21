@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, ShoppingBag, Minus, Plus, X, Eye } from "lucide-react";
@@ -21,15 +22,15 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
   if (!produto) return null;
 
   const mainImg = produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url;
-  const pixPrice = (produto.preco_promocional || produto.preco) * 0.9;
-  const displayPrice = produto.preco_promocional || produto.preco;
+  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
+  const displayPrice = produto.preco_promocional ?? produto.preco;
 
   const handleAdd = () => {
     addItem({
       produtoId: produto.id,
       nome: produto.nome,
       preco: produto.preco,
-      precoPromocional: produto.preco_promocional || undefined,
+      precoPromocional: produto.preco_promocional ?? undefined,
       quantidade,
       imagemUrl: mainImg,
       slug: produto.slug,
@@ -59,7 +60,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               </div>
             )}
             {produto.preco_promocional && (
-              <div className="absolute top-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">
+              <div className="absolute top-3 left-3 bg-gold text-primary-foreground text-[10px] font-body font-bold px-2.5 py-1 rounded-full">
                 {Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF
               </div>
             )}
@@ -89,18 +90,18 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               <div className="flex items-end gap-2">
                 {produto.preco_promocional ? (
                   <>
-                    <span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-xs text-cream-700 font-body line-through">{formatBRL(produto.preco)}</span>
+                    <span className="font-mono font-bold text-2xl text-brown-dark">{formatBRL(produto.preco_promocional)}</span>
                   </>
                 ) : (
-                  <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-mono font-bold text-2xl text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
               <p className="text-[10px] text-gold font-body font-semibold mt-1">
-                R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)
+                {formatBRL(pixPrice)} no Pix (10% off)
               </p>
               <p className="text-[10px] text-muted-foreground font-body">
-                ou 12x de R$ {(displayPrice / 12).toFixed(2).replace(".", ",")} sem juros
+                ou 12x de {formatBRL((displayPrice / 12))} sem juros
               </p>
             </div>
 
@@ -117,7 +118,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
                   </button>
                 </div>
                 <Button
-                  className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark tracking-wide uppercase rounded-full transition-all duration-300"
+                  className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark tracking-wide uppercase rounded-full transition-all duration-300"
                   disabled={produto.estoque === 0}
                   onClick={handleAdd}
                 >

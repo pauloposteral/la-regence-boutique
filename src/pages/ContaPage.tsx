@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -188,13 +189,13 @@ const ContaPage = () => {
       user_id: user.id,
       pontos: -pontos,
       tipo: "resgate",
-      descricao: `Resgate: cupom ${codigo} (R$ ${desconto})`,
+      descricao: `Resgate: cupom ${codigo} (${formatBRL(desconto)})`,
     });
     if (pontosError) { toast.error("Erro ao registrar resgate"); setRedeeming(false); return; }
 
     queryClient.invalidateQueries({ queryKey: ["pontos"] });
     setRedeeming(false);
-    toast.success(`Cupom ${codigo} criado! R$ ${desconto} de desconto, válido por 30 dias.`, { duration: 8000 });
+    toast.success(`Cupom ${codigo} criado! ${formatBRL(desconto)} de desconto, válido por 30 dias.`, { duration: 8000 });
   };
 
   const saveProfile = async () => {
@@ -453,7 +454,7 @@ const ContaPage = () => {
                         <Button variant="ghost" size="sm" className="font-body text-xs gap-1" onClick={() => reorderItems(pedido)}>
                           <RefreshCw className="w-3 h-3" /> Comprar novamente
                         </Button>
-                        <p className="font-body font-semibold text-sm">R$ {Number(pedido.total).toFixed(2).replace(".", ",")}</p>
+                        <p className="font-body font-semibold text-sm">{formatBRL(pedido.total)}</p>
                       </div>
                     </div>
                   </div>
@@ -480,7 +481,7 @@ const ContaPage = () => {
                   ].map((opt) => (
                     <div key={opt.pontos} className="bg-card border border-border rounded-lg p-4 text-center">
                       <p className="font-display text-lg font-bold">{opt.pontos} pts</p>
-                      <p className="font-body text-sm text-gold font-medium">R$ {opt.desconto} de desconto</p>
+                      <p className="font-body text-sm text-gold font-medium">{formatBRL(opt.desconto)} de desconto</p>
                       <Button
                         size="sm"
                         variant={(pontosData?.total || 0) >= opt.pontos ? "default" : "outline"}
@@ -576,7 +577,7 @@ const ContaPage = () => {
                         </Link>
                         <div className="flex-1 min-w-0">
                           <Link to={`/cafe/${p.slug}`} className="font-body font-medium text-sm hover:text-gold transition-colors duration-300">{p.nome}</Link>
-                          <p className="font-body text-sm font-semibold mt-1">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
+                          <p className="font-body text-sm font-semibold mt-1">{formatBRL(p.preco)}</p>
                           <button onClick={() => removeFavorite(fav.id)} className="text-xs font-body text-destructive hover:underline mt-2">Remover</button>
                         </div>
                       </div>
@@ -667,7 +668,7 @@ const ContaPage = () => {
                         <p className="font-body text-xs text-muted-foreground">
                           {s.proxima_entrega ? `Próxima cobrança: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
                         </p>
-                        <p className="font-mono text-sm font-semibold">R$ {Number(s.preco).toFixed(2).replace(".", ",")}/mês</p>
+                        <p className="font-mono text-sm font-semibold">{formatBRL(s.preco)}/mês</p>
                       </div>
                     </div>
 

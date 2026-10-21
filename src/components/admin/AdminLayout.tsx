@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -92,7 +93,7 @@ const AdminLayout = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-count"] });
         if (payload.eventType === "INSERT") {
-          const total = payload.new?.total ? Number(payload.new.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
+          const total = formatBRL(payload.new?.total);
           toast.success(`Novo pedido recebido ${total}`, { duration: 6000 });
         }
       })

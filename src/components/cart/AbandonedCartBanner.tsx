@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ArrowRight } from "lucide-react";
@@ -77,14 +78,14 @@ const AbandonedCartBanner = () => {
                   Você tem {totalItems} {totalItems === 1 ? "item" : "itens"} esperando no carrinho!
                 </p>
                 <p className="font-body text-[11px] text-cream-500">
-                  R$ {subtotal.toFixed(2).replace(".", ",")} · Complete sua compra antes que acabe
+                  {formatBRL(subtotal)} · Complete sua compra antes que acabe
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
-                className="bg-gold text-white hover:bg-gold-light font-body text-xs tracking-wider uppercase rounded-full gap-1.5"
+                className="bg-gold text-primary-foreground hover:bg-gold-light font-body text-xs tracking-wider uppercase rounded-full gap-1.5"
                 onClick={handleOpen}
               >
                 Ver Carrinho <ArrowRight className="w-3.5 h-3.5" />

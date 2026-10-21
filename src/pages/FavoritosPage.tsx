@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/money";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -91,14 +92,14 @@ const FavoritosPage = () => {
                   </Link>
                   <div className="p-4">
                     <Link to={`/cafe/${p.slug}`} className="font-display text-lg font-semibold hover:text-gold transition-colors duration-300">{p.nome}</Link>
-                    <p className="font-mono font-bold text-foreground mt-1">R$ {Number(p.preco_promocional || p.preco).toFixed(2).replace(".", ",")}</p>
+                    <p className="font-mono font-bold text-foreground mt-1">{formatBRL(p.preco_promocional ?? p.preco)}</p>
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
-                        className="flex-1 font-body text-xs bg-gold text-white hover:bg-gold-dark rounded-full uppercase tracking-wide"
+                        className="flex-1 font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark rounded-full uppercase tracking-wide"
                         disabled={p.estoque === 0}
                         onClick={() => {
-                          addItem({ produtoId: p.id, nome: p.nome, preco: p.preco, precoPromocional: p.preco_promocional || undefined, quantidade: 1, imagemUrl: img, slug: p.slug });
+                          addItem({ produtoId: p.id, nome: p.nome, preco: p.preco, precoPromocional: p.preco_promocional ?? undefined, quantidade: 1, imagemUrl: img, slug: p.slug });
                           toast.success(`${p.nome} adicionado ao carrinho!`);
                         }}
                       >
