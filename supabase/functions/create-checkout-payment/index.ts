@@ -198,7 +198,7 @@ serve(async (req) => {
           throw new Error(`Variante indisponível para "${produto.nome}"`);
         }
         unitPrice = requireAmount(variante.preco);
-        if (promoRatio != null) unitPrice = round2(unitPrice * promoRatio);
+        if (promoRatio != null && unitPrice !== offerPrice) unitPrice = round2(unitPrice * promoRatio);
         stock = variante.estoque;
         if (variante.peso) pesoKg = Number(variante.peso);
       } else {
@@ -371,7 +371,7 @@ serve(async (req) => {
       lineItems.push({
         price_data: {
           currency: "brl",
-          product_data: { name: "Frete" },
+          product_data: { name: "Frete", description: "Entrega do pedido" },
           unit_amount: Math.round(custoFrete * 100),
         },
         quantity: 1,

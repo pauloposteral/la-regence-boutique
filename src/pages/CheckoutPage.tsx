@@ -56,8 +56,9 @@ const CheckoutPage = () => {
 
   const freteZeradoPorCupom = cupomTipo === "frete_gratis";
   const custoFrete = freteZeradoPorCupom ? 0 : form.fretePreco;
-  const pixDesconto = form.metodoPagamento === "pix" ? roundMoney(Math.max(0, subtotal - desconto) * 0.1) : 0;
-  const total = roundMoney(Math.max(0, subtotal - desconto - pixDesconto + custoFrete));
+  const amountsValid = Number.isFinite(subtotal) && Number.isFinite(desconto) && Number.isFinite(custoFrete);
+  const pixDesconto = amountsValid && form.metodoPagamento === "pix" ? roundMoney(Math.max(0, subtotal - desconto) * 0.1) : amountsValid ? 0 : NaN;
+  const total = amountsValid ? roundMoney(Math.max(0, subtotal - desconto - pixDesconto + custoFrete)) : NaN;
 
   const updateField = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -172,6 +173,7 @@ const CheckoutPage = () => {
   }, [step, form.cep, form.estado, items.length, subtotal]);
 
   const finalizarPedido = async () => {
+    if (!amountsValid) { toast.error("Valores inválidos. Revise o carrinho antes de pagar."); return; }
     if (submitting) return; // Prevent double-submit
     setSubmitting(true);
     const idempotencyKey = crypto.randomUUID();
@@ -182,7 +184,7 @@ const CheckoutPage = () => {
         items.map((i) => ({
           id: i.produtoId,
           name: i.nome,
-          price: i.precoPromocional || i.preco,
+          price: i.precoPromocional ?? i.preco,
           quantity: i.quantidade,
         }))
       );
@@ -208,6 +210,11 @@ const CheckoutPage = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.url) {
+        const validatedTotal = moneyValue(data.validated?.total);
+        if (Math.round(validatedTotal * 100) !== Math.round(total * 100)) {
+          toast.error(`O total confirmado é ${formatBRL(validatedTotal)}. Revise valores e frete antes de pagar.`);
+          return;
+        }
         // Save address for logged-in users
         if (user) {
           const { data: existing } = await supabase.from("enderecos").select("id").eq("user_id", user.id).limit(1);

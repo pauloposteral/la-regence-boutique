@@ -44,5 +44,7 @@ export function variantPromo(base: unknown, promo: unknown, variant: unknown): n
   const price = moneyValue(base);
   const selected = moneyValue(variant);
   if (price <= 0 || selected < 0) throw new RangeError("Preço inválido");
+  // Legacy catalogue variants can already contain the exact base promotional price.
+  if (promo != null && selected === effectivePrice(base, promo)) return selected;
   return promo == null ? undefined : roundMoney(selected * effectivePrice(base, promo) / price);
 }

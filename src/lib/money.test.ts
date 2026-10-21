@@ -26,6 +26,7 @@ describe("BRL in reais; explicit Stripe centavos boundary", () => {
     expect(variantPromo(79.9, 69.9, 159.8)).toBe(139.8);
     expect(variantPromo(79.9, null, 159.8)).toBeUndefined();
     expect(pixPrice(159.8, 139.8)).toBe(125.82);
+    expect(variantPromo(79.9, 69.9, 69.9)).toBe(69.9);
   });
   it("rejects invalid offers rather than falling back to base", () => {
     expect(() => effectivePrice(79.9, "bad")).toThrow();

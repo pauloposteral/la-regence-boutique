@@ -136,7 +136,7 @@ serve(async (req) => {
           if (v) {
             if (v.peso) pesoKg = Number(v.peso);
             preco = requireAmount(v.preco);
-            if (offerPrice != null) preco = Math.round(preco * offerPrice / basePrice * 100) / 100;
+            if (offerPrice != null && preco !== offerPrice) preco = Math.round(preco * offerPrice / basePrice * 100) / 100;
           }
         }
         // Normalizar peso: se vier em gramas (>10) converter
