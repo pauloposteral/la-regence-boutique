@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Truck } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -20,7 +21,7 @@ const FreeShippingBar = () => {
           <div className="flex items-center justify-between text-[11px] font-body mb-1">
             {falta > 0 ? (
               <span className="text-brown-light">
-                Faltam <strong className="text-brown-dark">R$ {falta.toFixed(2).replace(".", ",")}</strong> para frete grátis
+                Faltam <strong className="text-brown-dark">{formatBRL(falta)}</strong> para frete grátis
               </span>
             ) : (
               <span className="text-gold font-medium">🎉 Você ganhou frete grátis!</span>

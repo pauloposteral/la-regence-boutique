@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Coffee, Gift, Truck, Star, ArrowRight, RefreshCw } from "lucide-react";
@@ -327,7 +328,7 @@ const AssinaturaPage = () => {
                   <div>
                     <p className="font-body text-xs text-muted-foreground">Valor</p>
                     <p className="font-body text-sm font-semibold">
-                      R$ {Number(assinatura.preco).toFixed(2).replace(".", ",")}/mês
+                      {formatBRL(assinatura.preco)}/mês
                     </p>
                   </div>
                 </div>
@@ -375,7 +376,7 @@ const AssinaturaPage = () => {
                       <p className="font-display text-lg font-semibold mb-1">{plan.label}</p>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="font-display text-2xl font-bold">
-                          R$ {plan.price.toFixed(2).replace(".", ",")}
+                          {formatBRL(plan.price)}
                         </span>
                         <span className="font-body text-xs text-muted-foreground">{plan.period}</span>
                       </div>
@@ -494,7 +495,7 @@ const AssinaturaPage = () => {
                   onClick={handleSubscribe}
                   disabled={submitting || (!cafeSurpresa && !selectedCafe)}
                 >
-                  {submitting ? "Redirecionando…" : `Assinar agora — R$ ${PLANS.find((p) => p.tipo === selectedPlan)!.price.toFixed(2).replace(".", ",")}/mês`}
+                  {submitting ? "Redirecionando…" : `Assinar agora — ${formatBRL(PLANS.find((p) => p.tipo === selectedPlan)!.price)}/mês`}
                 </Button>
                 <p className="font-body text-xs text-muted-foreground mt-3">
                   Cancele quando quiser · Primeira entrega em até 7 dias

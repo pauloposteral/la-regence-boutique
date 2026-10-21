@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -169,8 +170,8 @@ const AdminPedidos = () => {
   const printOrder = (p: any) => {
     const w = window.open("", "_blank");
     if (!w) return;
-    const items = (p.itens_pedido || []).map((i: any) => `<tr><td>${i.produtos?.nome || "Produto"}</td><td>${i.quantidade}</td><td>R$ ${Number(i.subtotal).toFixed(2)}</td></tr>`).join("");
-    w.document.write(`<html><head><title>Pedido ${formatOrderId(p)}</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}</style></head><body><h2>Pedido ${formatOrderId(p)}</h2><p>Data: ${new Date(p.created_at).toLocaleString("pt-BR")}</p><p>Status: ${p.status}</p><table><tr><th>Produto</th><th>Qtd</th><th>Subtotal</th></tr>${items}</table><p><strong>Total: R$ ${Number(p.total).toFixed(2)}</strong></p></body></html>`);
+    const items = (p.itens_pedido || []).map((i: any) => `<tr><td>${i.produtos?.nome || "Produto"}</td><td>${i.quantidade}</td><td>${formatBRL(i.subtotal)}</td></tr>`).join("");
+    w.document.write(`<html><head><title>Pedido ${formatOrderId(p)}</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}</style></head><body><h2>Pedido ${formatOrderId(p)}</h2><p>Data: ${new Date(p.created_at).toLocaleString("pt-BR")}</p><p>Status: ${p.status}</p><table><tr><th>Produto</th><th>Qtd</th><th>Subtotal</th></tr>${items}</table><p><strong>Total: ${formatBRL(p.total)}</strong></p></body></html>`);
     w.document.close();
     w.print();
   };
@@ -190,7 +191,7 @@ const AdminPedidos = () => {
     toast.success("CSV exportado!");
   };
 
-  const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+  const fmt = (v: number) => `${formatBRL(v)}`;
 
   return (
     <div className="space-y-6">

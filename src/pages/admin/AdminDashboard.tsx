@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -171,7 +172,7 @@ const AdminDashboard = () => {
     },
   });
 
-  const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+  const fmt = (v: number) => `${formatBRL(v)}`;
 
   const cards = [
     { label: "Receita no período", value: fmt(stats?.revenue || 0), icon: TrendingUp, color: "text-green-600", change: stats?.revenueChange },

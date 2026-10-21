@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package, ArrowRight } from "lucide-react";
@@ -254,7 +255,7 @@ const CheckoutPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="font-display text-2xl font-semibold">Checkout</h1>
-            <span className="font-mono text-xs text-muted-foreground">
+            <span className="font-body tabular-nums text-xs text-muted-foreground">
               {step + 1} de {STEPS.length}
             </span>
           </div>
@@ -473,10 +474,10 @@ const CheckoutPage = () => {
                                   <p className="text-xs text-muted-foreground font-body">{prazoTxt}</p>
                                 </div>
                               </div>
-                              <span className={`font-mono text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold" : ""}`}>
+                              <span className={`font-body tabular-nums text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold" : ""}`}>
                                 {opt.free || opt.price === 0
                                   ? "Grátis"
-                                  : `R$ ${Number(opt.price).toFixed(2).replace(".", ",")}`}
+                                  : `${formatBRL(opt.price)}`}
                               </span>
                             </label>
                           );
@@ -543,7 +544,7 @@ const CheckoutPage = () => {
                             </div>
                           </div>
                           {opt.badge && form.metodoPagamento === opt.value && (
-                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-[10px] font-mono font-bold bg-gold text-primary-foreground px-2 py-0.5 rounded-full">
+                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-[10px] font-body tabular-nums font-bold bg-gold text-primary-foreground px-2 py-0.5 rounded-full">
                               {opt.badge}
                             </motion.span>
                           )}
@@ -555,8 +556,8 @@ const CheckoutPage = () => {
                       {form.metodoPagamento === "pix" && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="bg-gold/10 border border-gold/20 rounded-lg p-4 text-center">
-                            <p className="font-body text-sm text-gold font-semibold">💰 Desconto Pix: -R$ {pixDesconto.toFixed(2).replace(".", ",")}</p>
-                            <p className="font-mono text-xs text-muted-foreground mt-1">Novo total: R$ {total.toFixed(2).replace(".", ",")}</p>
+                            <p className="font-body text-sm text-gold font-semibold">💰 Desconto Pix: -{formatBRL(pixDesconto)}</p>
+                            <p className="font-body tabular-nums text-xs text-muted-foreground mt-1">Novo total: {formatBRL(total)}</p>
                           </div>
                         </motion.div>
                       )}
@@ -653,7 +654,7 @@ const CheckoutPage = () => {
               <div className="p-5 space-y-4">
                 <h3 className="font-display text-lg font-semibold flex items-center gap-2">
                   Resumo
-                  <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{items.length} {items.length === 1 ? "item" : "itens"}</span>
+                  <span className="text-[10px] font-body tabular-nums text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{items.length} {items.length === 1 ? "item" : "itens"}</span>
                 </h3>
                 <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                   {items.map((item) => (
@@ -665,8 +666,8 @@ const CheckoutPage = () => {
                         <p className="font-body text-xs font-medium truncate">{item.nome}</p>
                         <p className="text-[10px] text-muted-foreground font-body">Qtd: {item.quantidade}</p>
                       </div>
-                      <span className="font-mono text-xs font-semibold shrink-0 text-gold">
-                        R$ {((item.precoPromocional || item.preco) * item.quantidade).toFixed(2).replace(".", ",")}
+                      <span className="font-body tabular-nums text-xs font-semibold shrink-0 text-gold">
+                        {formatBRL(((item.precoPromocional || item.preco) * item.quantidade))}
                       </span>
                     </div>
                   ))}
@@ -675,35 +676,35 @@ const CheckoutPage = () => {
                 <div className="border-t border-border pt-3 space-y-2 text-sm font-body">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span className="font-mono">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-body tabular-nums">{formatBRL(subtotal)}</span>
                   </div>
                   {desconto > 0 && (
                     <div className="flex justify-between text-gold">
                       <span>Cupom ({cupom})</span>
-                      <span className="font-mono">-R$ {desconto.toFixed(2).replace(".", ",")}</span>
+                      <span className="font-body tabular-nums">-{formatBRL(desconto)}</span>
                     </div>
                   )}
                   {freteZeradoPorCupom && (
                     <div className="flex justify-between text-gold">
                       <span>Cupom ({cupom})</span>
-                      <span className="font-mono">Frete grátis</span>
+                      <span className="font-body tabular-nums">Frete grátis</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Frete</span>
-                    <span className={`font-mono ${custoFrete === 0 ? "text-gold" : ""}`}>
-                      {custoFrete === 0 ? "Grátis" : `R$ ${custoFrete.toFixed(2).replace(".", ",")}`}
+                    <span className={`font-body tabular-nums ${custoFrete === 0 ? "text-gold" : ""}`}>
+                      {custoFrete === 0 ? "Grátis" : `${formatBRL(custoFrete)}`}
                     </span>
                   </div>
                   {pixDesconto > 0 && (
                     <div className="flex justify-between text-gold">
                       <span>Desconto Pix</span>
-                      <span className="font-mono">-R$ {pixDesconto.toFixed(2).replace(".", ",")}</span>
+                      <span className="font-body tabular-nums">-{formatBRL(pixDesconto)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-semibold text-base pt-3 border-t border-border">
                     <span>Total</span>
-                    <span className="font-mono text-gold">R$ {total.toFixed(2).replace(".", ",")}</span>
+                    <span className="font-body tabular-nums text-gold">{formatBRL(total)}</span>
                   </div>
                 </div>
 

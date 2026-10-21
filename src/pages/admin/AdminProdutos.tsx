@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -360,8 +361,8 @@ const AdminProdutos = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3 font-body text-sm">
-                    R$ {Number(p.preco).toFixed(2).replace(".", ",")}
-                    {p.preco_promocional && <span className="block text-[10px] text-gold">Promo: R$ {Number(p.preco_promocional).toFixed(2).replace(".", ",")}</span>}
+                    {formatBRL(p.preco)}
+                    {p.preco_promocional && <span className="block text-[10px] text-gold">Promo: {formatBRL(p.preco_promocional)}</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">

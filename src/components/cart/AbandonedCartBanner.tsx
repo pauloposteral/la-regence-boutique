@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, ArrowRight } from "lucide-react";
@@ -77,7 +78,7 @@ const AbandonedCartBanner = () => {
                   Você tem {totalItems} {totalItems === 1 ? "item" : "itens"} esperando no carrinho!
                 </p>
                 <p className="font-body text-[11px] text-cream-500">
-                  R$ {subtotal.toFixed(2).replace(".", ",")} · Complete sua compra antes que acabe
+                  {formatBRL(subtotal)} · Complete sua compra antes que acabe
                 </p>
               </div>
             </div>

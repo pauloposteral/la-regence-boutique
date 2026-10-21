@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -68,11 +69,11 @@ const CompararPage = () => {
         <div className="text-center">
           {p.preco_promocional ? (
             <>
-              <span className="line-through text-muted-foreground text-xs">R$ {p.preco.toFixed(2).replace(".", ",")}</span>
-              <p className="font-display text-lg font-bold text-gold">R$ {p.preco_promocional.toFixed(2).replace(".", ",")}</p>
+              <span className="line-through text-muted-foreground text-xs">{formatBRL(p.preco)}</span>
+              <p className="font-display text-lg font-bold text-gold">{formatBRL(p.preco_promocional)}</p>
             </>
           ) : (
-            <p className="font-display text-lg font-bold">R$ {p.preco.toFixed(2).replace(".", ",")}</p>
+            <p className="font-display text-lg font-bold">{formatBRL(p.preco)}</p>
           )}
         </div>
       ),

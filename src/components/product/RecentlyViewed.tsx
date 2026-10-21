@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { Star } from "lucide-react";
@@ -39,7 +40,7 @@ const RecentlyViewed = ({ currentProductId }: Props) => {
             <div className="p-2.5">
               <h3 className="font-display text-xs font-semibold truncate">{p.nome}</h3>
               <span className="font-body font-semibold text-xs mt-1 block text-accent">
-                R$ {p.preco.toFixed(2).replace(".", ",")}
+                {formatBRL(p.preco)}
               </span>
             </div>
           </Link>

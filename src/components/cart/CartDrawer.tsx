@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -57,7 +58,7 @@ const CartDrawer = () => {
       if (tipo === "frete_gratis") {
         toast.success(`Cupom "${code}" aplicado! Frete grátis 🚚`);
       } else {
-        toast.success(`Cupom "${code}" aplicado! -R$ ${desc.toFixed(2).replace(".", ",")}`);
+        toast.success(`Cupom "${code}" aplicado! -${formatBRL(desc)}`);
       }
     } catch { toast.error("Erro ao validar cupom"); }
     finally { setCupomLoading(false); }
@@ -95,7 +96,7 @@ const CartDrawer = () => {
                   {faltaFreteGratis > 0 ? (
                     <>
                       <span className="text-brown-light">
-                        Faltam <strong className="text-brown-dark">R$ {faltaFreteGratis.toFixed(2).replace(".", ",")}</strong> para frete grátis
+                        Faltam <strong className="text-brown-dark">{formatBRL(faltaFreteGratis)}</strong> para frete grátis
                       </span>
                       <span className="text-cream-700">R$ {FRETE_GRATIS_MIN},00</span>
                     </>
@@ -139,7 +140,7 @@ const CartDrawer = () => {
                         <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block text-brown-dark hover:text-gold transition-colors duration-300" onClick={closeCart}>{item.nome}</Link>
                         <p className="text-[10px] text-cream-700 font-body">
                           {item.moagem && MOAGEM_LABELS[item.moagem]}{item.peso && ` · ${item.peso >= 1000 ? `${item.peso / 1000}kg` : `${item.peso}g`}`}
-                          <span className="ml-1 text-cream-700">· R$ {unit.toFixed(2).replace(".", ",")} un.</span>
+                          <span className="ml-1 text-cream-700">· {formatBRL(unit)} un.</span>
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center border border-cream-400 rounded-full">
@@ -160,7 +161,7 @@ const CartDrawer = () => {
                             </button>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="font-body font-semibold text-sm text-brown-dark">R$ {(unit * item.quantidade).toFixed(2).replace(".", ",")}</span>
+                            <span className="font-body font-semibold text-sm text-brown-dark">{formatBRL((unit * item.quantidade))}</span>
                             <button
                               aria-label="Remover item"
                               onClick={() => { removeItem(item.produtoId, item.varianteId); toast.success("Item removido"); }}
@@ -202,17 +203,17 @@ const CartDrawer = () => {
                 ) : (
 
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
-                    <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-R$ {desconto.toFixed(2).replace(".", ",")})</span>
+                    <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-{formatBRL(desconto)})</span>
                     <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
                 <div className="space-y-1 text-sm font-body">
-                  <div className="flex justify-between text-brown-light"><span>Subtotal</span><span>R$ {subtotal.toFixed(2).replace(".", ",")}</span></div>
-                  {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-R$ {desconto.toFixed(2).replace(".", ",")}</span></div>}
+                  <div className="flex justify-between text-brown-light"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
+                  {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
                   <div className="flex justify-between text-brown-light"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
-                  <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>R$ {total.toFixed(2).replace(".", ",")}</span></div>
-                  <p className="text-[10px] text-gold text-right font-medium">R$ {(total * 0.9).toFixed(2).replace(".", ",")} no Pix (10% off)</p>
+                  <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>{formatBRL(total)}</span></div>
+                  <p className="text-[10px] text-gold text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>

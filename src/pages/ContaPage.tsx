@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -453,7 +454,7 @@ const ContaPage = () => {
                         <Button variant="ghost" size="sm" className="font-body text-xs gap-1" onClick={() => reorderItems(pedido)}>
                           <RefreshCw className="w-3 h-3" /> Comprar novamente
                         </Button>
-                        <p className="font-body font-semibold text-sm">R$ {Number(pedido.total).toFixed(2).replace(".", ",")}</p>
+                        <p className="font-body font-semibold text-sm">{formatBRL(pedido.total)}</p>
                       </div>
                     </div>
                   </div>
@@ -576,7 +577,7 @@ const ContaPage = () => {
                         </Link>
                         <div className="flex-1 min-w-0">
                           <Link to={`/cafe/${p.slug}`} className="font-body font-medium text-sm hover:text-gold transition-colors duration-300">{p.nome}</Link>
-                          <p className="font-body text-sm font-semibold mt-1">R$ {Number(p.preco).toFixed(2).replace(".", ",")}</p>
+                          <p className="font-body text-sm font-semibold mt-1">{formatBRL(p.preco)}</p>
                           <button onClick={() => removeFavorite(fav.id)} className="text-xs font-body text-destructive hover:underline mt-2">Remover</button>
                         </div>
                       </div>
@@ -667,7 +668,7 @@ const ContaPage = () => {
                         <p className="font-body text-xs text-muted-foreground">
                           {s.proxima_entrega ? `Próxima cobrança: ${new Date(s.proxima_entrega).toLocaleDateString("pt-BR")}` : "Aguardando primeira entrega"}
                         </p>
-                        <p className="font-mono text-sm font-semibold">R$ {Number(s.preco).toFixed(2).replace(".", ",")}/mês</p>
+                        <p className="font-body tabular-nums text-sm font-semibold">{formatBRL(s.preco)}/mês</p>
                       </div>
                     </div>
 
@@ -696,7 +697,7 @@ function TrackingCode({ code }: { code: string }) {
   return (
     <div className="flex items-center gap-2 bg-muted/50 rounded px-3 py-1.5 mb-3">
       <span className="font-body text-xs text-muted-foreground">Rastreamento:</span>
-      <span className="font-mono text-xs font-medium">{code}</span>
+      <span className="font-body tabular-nums text-xs font-medium">{code}</span>
       <button onClick={handleCopy} className="ml-auto p-1 hover:bg-muted rounded transition-colors" aria-label="Copiar código">
         {copied ? <Check className="w-3 h-3 text-accent" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
       </button>

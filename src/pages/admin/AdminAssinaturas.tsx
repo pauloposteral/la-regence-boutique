@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -121,7 +122,7 @@ const AdminAssinaturas = () => {
     }
   };
 
-  const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+  const fmt = (v: number) => `${formatBRL(v)}`;
 
 
   const exportCSV = () => {

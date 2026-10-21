@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -174,7 +175,7 @@ const CafesPage = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar por nome, nota sensorial, origem..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 font-body" />
+            <Input aria-label="Buscar cafés" placeholder="Buscar por nome, nota sensorial, origem..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 font-body" />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <Button variant="outline" className="font-body relative flex-1 sm:flex-none min-h-11" onClick={() => setShowFilters(!showFilters)}>
@@ -357,7 +358,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
           ) : (
             <span className="text-6xl group-hover:scale-110 transition-transform duration-500">☕</span>
           )}
-          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
+          {produto.sca_score && <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-body tabular-nums text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"><Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}</div>}
           {produto.destaque && <div className="absolute top-3 left-3 bg-brown text-cream-100 text-[10px] font-body font-semibold px-2.5 py-1 rounded-full">Destaque</div>}
           {produto.preco_promocional && <div className="absolute bottom-3 left-3 bg-gold text-white text-[10px] font-body font-bold px-2.5 py-1 rounded-full">{Math.round((1 - produto.preco_promocional / produto.preco) * 100)}% OFF</div>}
           {soldOut && (
@@ -385,7 +386,7 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
                     <Star key={n} className={`w-3 h-3 ${n <= Math.round(rating.media) ? "fill-gold text-gold" : "text-cream-400"}`} />
                   ))}
                 </div>
-                <span className="font-mono text-[10px] text-brown-light">{rating.media.toFixed(1)}</span>
+                <span className="font-body tabular-nums text-[10px] text-brown-light">{rating.media.toFixed(1)}</span>
                 <span className="font-body text-[10px] text-muted-foreground">({rating.total})</span>
               </>
             ) : (
@@ -402,16 +403,14 @@ function ProductCard({ produto, index, onQuickView }: { produto: Produto; index:
             <div className="flex items-end justify-between">
               <div>
                 {produto.preco_promocional ? (
-                  <><span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span><span className="block font-mono font-bold text-lg text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span></>
+                  <><span className="text-xs text-cream-700 font-body line-through">{formatBRL(produto.preco)}</span><span className="block font-body tabular-nums font-bold text-lg text-brown-dark">{formatBRL(produto.preco_promocional)}</span></>
                 ) : (
-                  <span className="font-mono font-bold text-lg text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-body tabular-nums font-bold text-lg text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
-              <span className="text-[10px] text-gold font-body font-medium">R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix</span>
+              <span className="text-[10px] text-gold font-body font-medium">{formatBRL(pixPrice)} no Pix</span>
             </div>
-            <p className="text-[10px] text-muted-foreground font-body">
-              ou 12x de R$ {((produto.preco_promocional || produto.preco) / 12).toFixed(2).replace(".", ",")} sem juros
-            </p>
+            <p className="text-[10px] text-muted-foreground font-body">Consulte as condições de parcelamento no pagamento</p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button

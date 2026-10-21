@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useMemo } from "react";
 import { useProdutos } from "@/hooks/useProdutos";
 import { useCart } from "@/contexts/CartContext";
@@ -68,7 +69,7 @@ const CrossSellProducts = () => {
               <div className="min-w-0">
                 <p className="font-display text-xs font-semibold text-brown-dark leading-tight line-clamp-2">{p.nome}</p>
                 <p className="font-body text-[11px] text-brown-light mt-0.5">
-                  R$ {preco.toFixed(2).replace(".", ",")}
+                  {formatBRL(preco)}
                 </p>
               </div>
               <Button

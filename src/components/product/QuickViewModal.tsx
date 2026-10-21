@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, ShoppingBag, Minus, Plus, X, Eye } from "lucide-react";
@@ -54,7 +55,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               <div className="w-full h-full flex items-center justify-center text-6xl">☕</div>
             )}
             {produto.sca_score && (
-              <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+              <div className="absolute top-3 right-3 bg-cream-50/90 text-brown font-body tabular-nums text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
                 <Star className="w-3 h-3 fill-gold text-gold" />SCA {produto.sca_score}
               </div>
             )}
@@ -89,19 +90,17 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
               <div className="flex items-end gap-2">
                 {produto.preco_promocional ? (
                   <>
-                    <span className="text-xs text-cream-700 font-body line-through">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
-                    <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco_promocional.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-xs text-cream-700 font-body line-through">{formatBRL(produto.preco)}</span>
+                    <span className="font-body tabular-nums font-bold text-2xl text-brown-dark">{formatBRL(produto.preco_promocional)}</span>
                   </>
                 ) : (
-                  <span className="font-mono font-bold text-2xl text-brown-dark">R$ {produto.preco.toFixed(2).replace(".", ",")}</span>
+                  <span className="font-body tabular-nums font-bold text-2xl text-brown-dark">{formatBRL(produto.preco)}</span>
                 )}
               </div>
               <p className="text-[10px] text-gold font-body font-semibold mt-1">
-                R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix (10% off)
+                {formatBRL(pixPrice)} no Pix (10% off)
               </p>
-              <p className="text-[10px] text-muted-foreground font-body">
-                ou 12x de R$ {(displayPrice / 12).toFixed(2).replace(".", ",")} sem juros
-              </p>
+              <p className="text-[10px] text-muted-foreground font-body">Consulte as condições de parcelamento no pagamento</p>
             </div>
 
             <div className="mt-auto space-y-3">

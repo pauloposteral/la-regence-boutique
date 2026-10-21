@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -63,9 +64,9 @@ const CoffeeCarousel = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {items.map((coffee, i) => {
-              const basePrice = coffee.preco_promocional || coffee.preco;
+              const basePrice = coffee.preco_promocional ?? coffee.preco;
               const pixPrice = basePrice * 0.9;
-              const parcela = coffee.preco / 3;
+
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
@@ -92,7 +93,7 @@ const CoffeeCarousel = () => {
                         <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                       )}
                       {coffee.sca_score && (
-                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
+                        <div className="absolute top-3 right-3 bg-white/90 text-foreground font-body tabular-nums text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
                           <Star className="w-3 h-3 fill-gold text-gold" />
                           SCA {coffee.sca_score}
                         </div>
@@ -140,16 +141,14 @@ const CoffeeCarousel = () => {
                         </div>
                       )}
 
-                      <p className="font-mono font-bold text-xl text-brown-dark mt-4">
-                        R$ {coffee.preco.toFixed(2).replace(".", ",")}
+                      <p className="font-body tabular-nums font-bold text-xl text-brown-dark mt-4">
+                        {formatBRL(basePrice)}
                       </p>
-                      <p className="text-[11px] text-muted-foreground font-body mt-0.5">
-                        Em até 3x de R$ {parcela.toFixed(2).replace(".", ",")} s/ juros
-                      </p>
+                      <p className="text-[11px] text-muted-foreground font-body mt-0.5">Consulte as condições de parcelamento no pagamento</p>
 
                       <div className="mt-3 border border-gold/20 rounded-xl px-3 py-2 text-center bg-gold/[0.04]">
                         <span className="text-xs font-body font-semibold text-gold flex items-center justify-center gap-1.5">
-                          À vista R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
+                          À vista {formatBRL(pixPrice)} no Pix
                         </span>
                       </div>
 

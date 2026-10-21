@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState } from "react";
 import { Truck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -78,12 +79,12 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
         Calcular frete
       </div>
       <div className="flex gap-2">
-        <Input
+        <Input aria-label="CEP para calcular o frete"
           placeholder="00000-000"
           value={cep}
           onChange={(e) => setCep(formatCep(e.target.value))}
           onKeyDown={(e) => e.key === "Enter" && handleCalculate()}
-          className="font-mono text-sm h-9"
+          className="font-body tabular-nums text-sm h-9"
           maxLength={9}
         />
         <Button
@@ -126,11 +127,11 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
                     : ""}
                 </p>
               </div>
-              <span className="font-mono text-sm font-semibold text-foreground">
+              <span className="font-body tabular-nums text-sm font-semibold text-foreground">
                 {opt.free || opt.price === 0 ? (
                   <span className="text-gold">Grátis</span>
                 ) : (
-                  `R$ ${opt.price.toFixed(2).replace(".", ",")}`
+                  `${formatBRL(opt.price)}`
                 )}
               </span>
             </div>

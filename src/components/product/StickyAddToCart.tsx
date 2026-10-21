@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
             <div className="min-w-0 flex-1">
               <p className="font-display text-sm font-semibold truncate text-brown-dark">{productName}</p>
               <p className="text-xs font-body text-gold font-medium">
-                R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
+                {formatBRL(pixPrice)} no Pix
               </p>
             </div>
             <Button
@@ -45,7 +46,7 @@ const StickyAddToCart = ({ productName, price, pixPrice, onAddToCart, disabled }
               disabled={disabled}
             >
               <ShoppingBag className="w-3.5 h-3.5 mr-1" />
-              R$ {price.toFixed(2).replace(".", ",")}
+              {formatBRL(price)}
             </Button>
           </div>
         </motion.div>

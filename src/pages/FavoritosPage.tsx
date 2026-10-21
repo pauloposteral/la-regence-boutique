@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -91,7 +92,7 @@ const FavoritosPage = () => {
                   </Link>
                   <div className="p-4">
                     <Link to={`/cafe/${p.slug}`} className="font-display text-lg font-semibold hover:text-gold transition-colors duration-300">{p.nome}</Link>
-                    <p className="font-mono font-bold text-foreground mt-1">R$ {Number(p.preco_promocional || p.preco).toFixed(2).replace(".", ",")}</p>
+                    <p className="font-body tabular-nums font-bold text-foreground mt-1">{formatBRL(p.preco_promocional || p.preco)}</p>
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"

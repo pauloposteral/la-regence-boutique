@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -110,7 +111,7 @@ const CollectionsSection = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {collection.produtos.map((product: any, pi: number) => {
-                const pixPrice = (product.preco_promocional || product.preco) * 0.9;
+                const pixPrice = (product.preco_promocional ?? product.preco) * 0.9;
                 const imgUrl = product.imagens?.find((i: any) => i.principal)?.url || product.imagens?.[0]?.url;
 
                 return (
@@ -137,7 +138,7 @@ const CollectionsSection = () => {
                           <span className="text-6xl group-hover:scale-110 transition-transform duration-700">☕</span>
                         )}
                         {product.sca_score && (
-                          <div className="absolute top-3 right-3 bg-card/90 text-brown font-mono text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                          <div className="absolute top-3 right-3 bg-card/90 text-brown font-body tabular-nums text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
                             <Star className="w-3 h-3 fill-gold text-gold" /> SCA {product.sca_score}
                           </div>
                         )}
@@ -159,12 +160,12 @@ const CollectionsSection = () => {
                         )}
 
                         <div className="mt-3 flex items-baseline gap-2">
-                          <span className="font-mono font-bold text-lg text-brown-dark">
-                            R$ {product.preco.toFixed(2).replace(".", ",")}
+                          <span className="font-body tabular-nums font-bold text-lg text-brown-dark">
+                            {formatBRL(product.preco_promocional ?? product.preco)}
                           </span>
                         </div>
                         <p className="text-[10px] text-gold font-body font-medium mt-0.5">
-                          R$ {pixPrice.toFixed(2).replace(".", ",")} no Pix
+                          {formatBRL(pixPrice)} no Pix
                         </p>
 
                         <Button

@@ -1,3 +1,4 @@
+import { formatBRL } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X, Heart } from "lucide-react";
@@ -217,11 +218,11 @@ const Header = () => {
                         <div className="text-right shrink-0">
                           {r.preco_promocional ? (
                             <>
-                              <span className="font-mono text-[10px] text-cream-700 line-through block">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
-                              <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco_promocional).toFixed(2).replace(".", ",")}</span>
+                              <span className="font-body tabular-nums text-[10px] text-cream-700 line-through block">{formatBRL(r.preco)}</span>
+                              <span className="font-body tabular-nums text-sm font-semibold text-gold">{formatBRL(r.preco_promocional)}</span>
                             </>
                           ) : (
-                            <span className="font-mono text-sm font-semibold text-gold">R$ {Number(r.preco).toFixed(2).replace(".", ",")}</span>
+                            <span className="font-body tabular-nums text-sm font-semibold text-gold">{formatBRL(r.preco)}</span>
                           )}
                         </div>
                       </Link>

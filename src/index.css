@@ -280,3 +280,21 @@
     contain-intrinsic-size: 1px 800px;
   }
 }
+
+
+/* BAM-181: readable storefront, preserving the established brand and admin/TV styles. */
+.storefront { font-family: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.6; }
+.storefront .tabular-nums { font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
+.storefront label { font-size: 0.8125rem; font-weight: 500; color: hsl(var(--foreground)); }
+.storefront input:not([type="checkbox"]):not([type="radio"]), .storefront select, .storefront textarea { font-size: 16px; min-height: 44px; }
+.storefront button:not([role="checkbox"]):not([role="radio"]) { min-height: 44px; }
+.storefront button.bg-gold { color: hsl(var(--foreground)); font-weight: 600; }
+.storefront :focus-visible { outline: 2px solid hsl(var(--espresso)); outline-offset: 3px; }
+.storefront .auth-panel { line-height: 1.6; }
+.storefront .auth-panel .text-muted-foreground { color: hsl(30 16% 36%); }
+.storefront .auth-panel .text-gold { color: hsl(35 45% 32%); }
+.storefront .auth-panel p, .storefront .auth-panel button { font-weight: 400; }
+@media (max-width: 640px) {
+  .storefront .auth-panel { padding: 1.5rem; }
+  .storefront .auth-panel label { letter-spacing: 0.06em; }
+}
