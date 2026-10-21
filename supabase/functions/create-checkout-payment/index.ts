@@ -54,7 +54,7 @@ const PESO_PADRAO_KG = 0.25;
 const UA_ME = "La Regence Cafes (contato@cafelaregence.com.br)";
 
 function round2(n: number) {
-  return Math.round(n * 100) / 100;
+  return amountCents(n) / 100;
 }
 
 async function calcularFreteServidor(

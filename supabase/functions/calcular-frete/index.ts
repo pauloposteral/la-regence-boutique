@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
-import { requireAmount } from "../_shared/checkoutAmounts.ts";
+import { requireAmount, amountCents } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,12 +137,12 @@ serve(async (req) => {
           if (v) {
             if (v.peso) pesoKg = Number(v.peso);
             preco = requireAmount(v.preco);
-            if (offerPrice != null && preco !== offerPrice) preco = Math.round(preco * offerPrice / basePrice * 100) / 100;
+            if (offerPrice != null && preco !== offerPrice) preco = amountCents(preco * offerPrice / basePrice) / 100;
           }
         }
         // Normalizar peso: se vier em gramas (>10) converter
         if (pesoKg > 10) pesoKg = pesoKg / 1000;
-        subtotalServidor += preco * item.quantidade;
+        subtotalServidor += amountCents(preco * item.quantidade) / 100;
         meProducts.push({
           id: String(idx + 1),
           width: CAIXA.width,
