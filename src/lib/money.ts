@@ -1,3 +1,4 @@
+import { checkoutTotals } from "../../supabase/functions/_shared/checkoutAmounts";
 /** Database, cart and shipping amounts are BRL reais. Stripe alone uses centavos. */
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -37,7 +38,7 @@ export function effectivePrice(base: unknown, promo?: unknown): number {
 }
 
 export function pixPrice(base: unknown, promo?: unknown): number {
-  return roundMoney(effectivePrice(base, promo) * 0.9);
+  return checkoutTotals(effectivePrice(base, promo), 0, 0, true).total;
 }
 
 export function variantPromo(base: unknown, promo: unknown, variant: unknown): number | undefined {

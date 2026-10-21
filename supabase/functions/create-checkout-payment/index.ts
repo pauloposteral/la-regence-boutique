@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
-import { requireAmount, allocateCheckoutCents } from "../_shared/checkoutAmounts.ts";
+import { requireAmount, allocateCheckoutCents, amountCents, checkoutTotals } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +13,6 @@ const corsHeaders = {
 // === Server-side business rules (single source of truth) ===
 const FALLBACK_FRETE_GRATIS_MIN = 150; // usado apenas se a tabela regras_frete_gratis estiver vazia
 const FRETE_FALLBACK = 19.90;
-const PIX_DISCOUNT = 0.10;
 
 async function isFreteGratisPorRegra(
   // deno-lint-ignore no-explicit-any
@@ -252,9 +251,9 @@ serve(async (req) => {
 
     // === 4. Pix discount (applied on subtotal-after-coupon) ===
     const isPix = metodoPagamento === "pix";
-    const subtotalAfterCoupon = Math.max(0, round2(subtotal - desconto));
-    const pixDescontoValor = isPix ? round2(subtotalAfterCoupon * PIX_DISCOUNT) : 0;
-    const subtotalAposDescontos = round2(subtotalAfterCoupon - pixDescontoValor);
+    const discounted = checkoutTotals(subtotal, desconto, 0, isPix);
+    const pixDescontoValor = discounted.pixDiscount;
+    const subtotalAposDescontos = discounted.merchandiseTotal;
 
     // === 3.b Coupon type ("desconto" | "frete_gratis") ===
     let cupomTipo: string | null = null;
@@ -306,7 +305,7 @@ serve(async (req) => {
       }
     }
 
-    const total = round2(subtotalAposDescontos + custoFrete);
+    const total = checkoutTotals(subtotal, desconto, custoFrete, isPix).total;
 
     // === 6. Create order with server-validated values ===
     const { data: pedido, error: pedidoError } = await supabaseAdmin
@@ -373,7 +372,7 @@ serve(async (req) => {
         price_data: {
           currency: "brl",
           product_data: { name: "Frete", description: "Entrega do pedido" },
-          unit_amount: Math.round(custoFrete * 100),
+          unit_amount: amountCents(custoFrete),
         },
         quantity: 1,
       });

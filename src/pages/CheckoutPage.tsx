@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { checkoutSchema } from "@/lib/validation";
 import { trackBeginCheckout } from "@/lib/analytics";
+import { amountCents, checkoutTotals } from "../../supabase/functions/_shared/checkoutAmounts";
 
 const STEPS = [
   { id: "identificacao", label: "Identificação", icon: User },
@@ -57,8 +58,10 @@ const CheckoutPage = () => {
   const freteZeradoPorCupom = cupomTipo === "frete_gratis";
   const custoFrete = freteZeradoPorCupom ? 0 : form.fretePreco;
   const amountsValid = Number.isFinite(subtotal) && Number.isFinite(desconto) && Number.isFinite(custoFrete);
-  const pixDesconto = amountsValid && form.metodoPagamento === "pix" ? roundMoney(Math.max(0, subtotal - desconto) * 0.1) : amountsValid ? 0 : NaN;
-  const total = amountsValid ? roundMoney(Math.max(0, subtotal - desconto - pixDesconto + custoFrete)) : NaN;
+  const totals = amountsValid && subtotal >= 0 && desconto >= 0 && desconto <= subtotal && custoFrete >= 0
+    ? checkoutTotals(subtotal, desconto, custoFrete, form.metodoPagamento === "pix") : null;
+  const pixDesconto = totals?.pixDiscount ?? NaN;
+  const total = totals?.total ?? NaN;
 
   const updateField = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -211,7 +214,7 @@ const CheckoutPage = () => {
       if (data?.error) throw new Error(data.error);
       if (data?.url) {
         const validatedTotal = moneyValue(data.validated?.total);
-        if (Math.round(validatedTotal * 100) !== Math.round(total * 100)) {
+        if (amountCents(validatedTotal) !== amountCents(total)) {
           toast.error(`O total confirmado é ${formatBRL(validatedTotal)}. Revise valores e frete antes de pagar.`);
           return;
         }
