@@ -40,7 +40,8 @@ function onlyDigits(s: string): string {
 }
 
 async function evaluateFreeShipping(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   subtotal: number,
   uf?: string,
 ): Promise<{ free: boolean; regra: { nome: string; uf: string | null; valor_minimo: number } | null }> {
