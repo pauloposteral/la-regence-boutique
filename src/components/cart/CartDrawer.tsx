@@ -84,7 +84,7 @@ const CartDrawer = () => {
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-brown-dark" />
                 <h2 className="font-display text-xl font-semibold text-brown-dark">Carrinho</h2>
-                <span className="text-xs font-body text-cream-700">({totalItems})</span>
+                <span className="text-xs font-body text-muted-foreground">({totalItems})</span>
               </div>
               <button aria-label="Fechar carrinho" onClick={closeCart} className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-cream-200 rounded-full transition-colors"><X className="w-5 h-5 text-brown" /></button>
             </div>
@@ -95,13 +95,13 @@ const CartDrawer = () => {
                 <div className="flex items-center justify-between text-xs font-body mb-1.5">
                   {faltaFreteGratis > 0 ? (
                     <>
-                      <span className="text-brown-light">
+                      <span className="text-brown">
                         Faltam <strong className="text-brown-dark">{formatBRL(faltaFreteGratis)}</strong> para frete grátis
                       </span>
-                      <span className="text-cream-700">{formatBRL(FRETE_GRATIS_MIN)}</span>
+                      <span className="text-muted-foreground">{formatBRL(FRETE_GRATIS_MIN)}</span>
                     </>
                   ) : (
-                    <span className="text-gold font-medium">🎉 Você ganhou frete grátis!</span>
+                    <span className="text-gold-ink font-medium">🎉 Você ganhou frete grátis!</span>
                   )}
                 </div>
                 <div className="w-full h-1.5 bg-cream-400 rounded-full overflow-hidden">
@@ -115,8 +115,8 @@ const CartDrawer = () => {
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-8">
                   <ShoppingBag className="w-12 h-12 text-cream-500 mb-4" />
-                  <p className="font-display text-lg text-brown-light mb-2">Seu carrinho está vazio</p>
-                  <p className="font-body text-sm text-cream-700 mb-6">Explore nossos cafés e encontre o sabor perfeito.</p>
+                  <p className="font-display text-lg text-brown mb-2">Seu carrinho está vazio</p>
+                  <p className="font-body text-sm text-muted-foreground mb-6">Explore nossos cafés e encontre o sabor perfeito.</p>
                   <Button asChild variant="outline" onClick={closeCart}><Link to="/cafes">Ver Cafés</Link></Button>
                 </div>
               ) : (
@@ -138,9 +138,9 @@ const CartDrawer = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <Link to={`/cafe/${item.slug}`} className="font-display text-sm font-semibold truncate block text-brown-dark hover:text-gold transition-colors duration-300" onClick={closeCart}>{item.nome}</Link>
-                        <p className="text-[10px] text-cream-700 font-body">
+                        <p className="text-[10px] text-muted-foreground font-body">
                           {item.moagem && MOAGEM_LABELS[item.moagem]}{item.peso && ` · ${item.peso >= 1000 ? `${item.peso / 1000}kg` : `${item.peso}g`}`}
-                          <span className="ml-1 text-cream-700">· {formatBRL(unit)} un.</span>
+                          <span className="ml-1 text-muted-foreground">· {formatBRL(unit)} un.</span>
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center border border-cream-400 rounded-full">
@@ -165,7 +165,7 @@ const CartDrawer = () => {
                             <button
                               aria-label="Remover item"
                               onClick={() => { removeItem(item.produtoId, item.varianteId); toast.success("Item removido"); }}
-                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-cream-700 hover:text-destructive transition-colors"
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -194,7 +194,7 @@ const CartDrawer = () => {
                       <button
                         type="button"
                         onClick={() => setCupomInput("PRIMEIRACOMPRA10")}
-                        className="text-[11px] font-body text-gold hover:text-gold-dark transition-colors"
+                        className="text-[11px] font-body text-gold-ink hover:text-gold-dark transition-colors"
                       >
                         Primeira compra? Use PRIMEIRACOMPRA10 e ganhe 10%
                       </button>
@@ -203,21 +203,21 @@ const CartDrawer = () => {
                 ) : (
 
                   <div className="flex items-center justify-between bg-gold/10 rounded-lg px-3 py-2">
-                    <span className="text-xs font-body font-medium text-gold">Cupom: {cupom} (-{formatBRL(desconto)})</span>
-                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-cream-700 hover:text-destructive"><X className="w-4 h-4" /></button>
+                    <span className="text-xs font-body font-medium text-gold-ink">Cupom: {cupom} (-{formatBRL(desconto)})</span>
+                    <button aria-label="Remover cupom" onClick={() => { setCupom(null); setDesconto(0); setCupomTipo(null); }} className="min-w-[36px] min-h-[36px] flex items-center justify-center text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
                   </div>
                 )}
 
                 <div className="space-y-1 text-sm font-body">
-                  <div className="flex justify-between text-brown-light"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
-                  {desconto > 0 && <div className="flex justify-between text-gold"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
-                  <div className="flex justify-between text-brown-light"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
+                  <div className="flex justify-between text-brown"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
+                  {desconto > 0 && <div className="flex justify-between text-gold-ink"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
+                  <div className="flex justify-between text-brown"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
                   <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>{formatBRL(total)}</span></div>
-                  <p className="text-[10px] text-gold text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
+                  <p className="text-[10px] text-gold-ink text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>
-                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-primary-foreground hover:bg-gold-dark transition-all duration-300 min-h-[52px]" size="lg" onClick={closeCart}>
+                  <Button asChild className="w-full font-body text-sm tracking-wider uppercase bg-gold text-foreground hover:bg-gold-dark transition-all duration-300 min-h-[52px]" size="lg" onClick={closeCart}>
                     <Link to="/checkout">Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" /></Link>
                   </Button>
                 </motion.div>

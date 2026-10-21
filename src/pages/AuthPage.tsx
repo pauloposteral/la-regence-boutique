@@ -181,7 +181,7 @@ const AuthPage = () => {
           {/* Brand */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full border border-gold/25 flex items-center justify-center bg-gold/[0.03]">
-              <span className="font-display text-xs font-semibold text-gold">LR</span>
+              <span className="font-display text-xs font-semibold text-gold-ink">LR</span>
             </div>
             <h1 className="font-display text-3xl font-bold text-brown-dark">
               La <span className="text-gradient-gold italic">Régence</span>
@@ -277,8 +277,8 @@ const AuthPage = () => {
                     className="mt-0.5 h-4 w-4 accent-[hsl(var(--gold))]"
                   />
                   <span>
-                    Li e aceito os <Link to="/termos" target="_blank" className="text-gold hover:underline">Termos de Uso</Link> e a{" "}
-                    <Link to="/politica-privacidade" target="_blank" className="text-gold hover:underline">Política de Privacidade</Link>.
+                    Li e aceito os <Link to="/termos" target="_blank" className="text-gold-ink hover:underline">Termos de Uso</Link> e a{" "}
+                    <Link to="/politica-privacidade" target="_blank" className="text-gold-ink hover:underline">Política de Privacidade</Link>.
                   </span>
                 </label>
               </>
@@ -294,7 +294,7 @@ const AuthPage = () => {
               <button
                 type="button"
                 onClick={() => setMode("forgot")}
-                className="text-xs font-body text-gold hover:underline"
+                className="text-xs font-body text-gold-ink hover:underline"
               >
                 Esqueceu a senha?
               </button>
@@ -333,7 +333,7 @@ const AuthPage = () => {
             {mode === "login" && (
               <p className="font-body text-sm text-muted-foreground">
                 Não tem conta?{" "}
-                <button onClick={() => setMode("signup")} className="text-gold hover:underline font-medium">
+                <button onClick={() => setMode("signup")} className="text-gold-ink hover:underline font-medium">
                   Cadastre-se
                 </button>
               </p>
@@ -341,7 +341,7 @@ const AuthPage = () => {
             {(mode === "signup" || mode === "forgot") && (
               <p className="font-body text-sm text-muted-foreground">
                 Já tem conta?{" "}
-                <button onClick={() => setMode("login")} className="text-gold hover:underline font-medium">
+                <button onClick={() => setMode("login")} className="text-gold-ink hover:underline font-medium">
                   Fazer login
                 </button>
               </p>

@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, moneyValue } from "@/lib/money";
 import { useState } from "react";
 import { Truck, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,11 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
       if (fnErr) throw fnErr;
       if (data?.error) throw new Error(data.error);
 
-      const opts: ShippingOption[] = data?.options || [];
+      const opts: ShippingOption[] = (data?.options || []).map((opt: ShippingOption) => {
+        const price = moneyValue(opt.price);
+        if (price < 0 || (opt.free && price !== 0)) throw new Error("Frete inválido");
+        return { ...opt, price };
+      });
       if (opts.length === 0) {
         setError("Nenhum serviço disponível para este CEP.");
       } else {
@@ -80,7 +84,7 @@ const ShippingCalculator = ({ produtoId, varianteId, quantidade = 1, precoUnitar
       </div>
       <div className="flex gap-2">
         <Input
-          placeholder="00000-000"
+          aria-label="CEP para calcular frete" autoComplete="postal-code" inputMode="numeric" placeholder="00000-000"
           value={cep}
           onChange={(e) => setCep(formatCep(e.target.value))}
           onKeyDown={(e) => e.key === "Enter" && handleCalculate()}

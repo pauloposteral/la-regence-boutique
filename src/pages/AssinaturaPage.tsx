@@ -246,7 +246,7 @@ const AssinaturaPage = () => {
         <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full border border-gold/5" />
         <div className="container mx-auto px-4 lg:px-8 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-gold text-xs font-body tracking-[0.3em] uppercase">Clube La Régence</span>
+            <span className="text-gold-ink text-xs font-body tracking-[0.3em] uppercase">Clube La Régence</span>
             <h1 className="font-display text-4xl lg:text-6xl font-light mt-3 mb-6 text-foreground">
               Café especial em sua{" "}
               <span className="italic font-medium text-gradient-gold">porta</span>
@@ -257,7 +257,7 @@ const AssinaturaPage = () => {
             </p>
             <Button
               size="lg"
-              className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
+              className="bg-gold text-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-8 transition-all duration-300"
               onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
             >
               Conhecer Planos <ArrowRight className="w-4 h-4 ml-1" />
@@ -280,7 +280,7 @@ const AssinaturaPage = () => {
                 className="text-center"
               >
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gold/10 flex items-center justify-center">
-                  <b.icon className="w-5 h-5 text-gold" />
+                  <b.icon className="w-5 h-5 text-gold-ink" />
                 </div>
                 <h3 className="font-display text-sm font-semibold mb-1">{b.title}</h3>
                 <p className="font-body text-xs text-muted-foreground leading-relaxed">{b.desc}</p>
@@ -305,7 +305,7 @@ const AssinaturaPage = () => {
                       {PLANS.find((p) => p.tipo === assinatura.tipo)?.label || assinatura.tipo}
                     </p>
                   </div>
-                  <Badge className="bg-gold/15 text-gold font-body text-xs border border-gold/30">Ativa</Badge>
+                  <Badge className="bg-gold/15 text-gold-ink font-body text-xs border border-gold/30">Ativa</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -336,7 +336,7 @@ const AssinaturaPage = () => {
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
                   <Button
                     size="sm"
-                    className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-xs gap-1.5 rounded-full"
+                    className="bg-gold text-foreground hover:bg-gold-dark font-body text-xs gap-1.5 rounded-full"
                     onClick={handleManage}
                     disabled={submitting}
                   >
@@ -369,7 +369,7 @@ const AssinaturaPage = () => {
                       }`}
                     >
                       {plan.badge && (
-                        <Badge className="absolute -top-2.5 left-4 bg-gold text-primary-foreground font-body text-[10px] shadow-sm rounded-full">
+                        <Badge className="absolute -top-2.5 left-4 bg-gold text-foreground font-body text-[10px] shadow-sm rounded-full">
                           {plan.badge}
                         </Badge>
                       )}
@@ -381,14 +381,14 @@ const AssinaturaPage = () => {
                         <span className="font-body text-xs text-muted-foreground">{plan.period}</span>
                       </div>
                       {plan.discount && (
-                        <p className="font-body text-xs text-gold font-medium mb-3">
+                        <p className="font-body text-xs text-gold-ink font-medium mb-3">
                           {plan.discount}
                         </p>
                       )}
                       <ul className="space-y-1.5 mt-3 pt-3 border-t border-cream-400">
                         {plan.features.map((f, i) => (
                           <li key={i} className="flex items-start gap-1.5 font-body text-xs text-brown">
-                            <Check className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
+                            <Check className="w-3 h-3 text-gold-ink flex-shrink-0 mt-0.5" />
                             <span>{f}</span>
                           </li>
                         ))}
@@ -417,7 +417,7 @@ const AssinaturaPage = () => {
                         cafeSurpresa ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                       }`}
                     >
-                      <Gift className="w-5 h-5 text-gold mb-2" />
+                      <Gift className="w-5 h-5 text-gold-ink mb-2" />
                       <p className="font-body text-sm font-medium">Café surpresa</p>
                       <p className="font-body text-xs text-muted-foreground">Curadoria La Régence todo mês</p>
                     </button>
@@ -427,7 +427,7 @@ const AssinaturaPage = () => {
                         !cafeSurpresa ? "border-gold bg-gold/5" : "border-cream-400 hover:border-gold/40"
                       }`}
                     >
-                      <Coffee className="w-5 h-5 text-gold mb-2" />
+                      <Coffee className="w-5 h-5 text-gold-ink mb-2" />
                       <p className="font-body text-sm font-medium">Café fixo</p>
                       <p className="font-body text-xs text-muted-foreground">Escolha seu favorito</p>
                     </button>
@@ -476,7 +476,7 @@ const AssinaturaPage = () => {
                         onClick={() => setMoagem(key)}
                         className={`px-3 py-1.5 rounded-full text-xs font-body transition-all border ${
                           moagem === key
-                            ? "border-gold bg-gold/10 text-gold font-medium"
+                            ? "border-gold bg-gold/10 text-gold-ink font-medium"
                             : "border-border text-muted-foreground hover:border-gold/40"
                         }`}
                       >
@@ -491,7 +491,7 @@ const AssinaturaPage = () => {
               <div className="text-center">
                 <Button
                   size="lg"
-                  className="bg-gold text-primary-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300 rounded-full"
+                  className="bg-gold text-foreground hover:bg-gold-dark font-body text-sm tracking-wider uppercase px-10 transition-all duration-300 rounded-full"
                   onClick={handleSubscribe}
                   disabled={submitting || (!cafeSurpresa && !selectedCafe)}
                 >
@@ -539,7 +539,7 @@ const AssinaturaPage = () => {
       <Dialog open={addressOpen} onOpenChange={(o) => !submitting && setAddressOpen(o)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl">
           <DialogHeader>
-            <span className="font-body text-[11px] tracking-[0.3em] uppercase text-gold">Passo 2 de 2</span>
+            <span className="font-body text-[11px] tracking-[0.3em] uppercase text-gold-ink">Passo 2 de 2</span>
             <DialogTitle className="font-display text-2xl text-brown-dark">Para onde enviamos seu café?</DialogTitle>
             <DialogDescription className="font-body text-sm text-muted-foreground">
               Torramos sob demanda e despachamos em até 3 dias úteis após a confirmação do pagamento.
@@ -553,7 +553,7 @@ const AssinaturaPage = () => {
               onClick={() => setAddressOpen(false)} disabled={submitting}>
               Voltar
             </Button>
-            <Button className="rounded-full bg-gold text-primary-foreground hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
+            <Button className="rounded-full bg-gold text-foreground hover:bg-gold-dark font-body text-xs tracking-[0.2em] uppercase px-8"
               onClick={handleConfirmAddress} disabled={submitting}>
               {submitting ? "Abrindo pagamento…" : "Ir para o pagamento"}
             </Button>

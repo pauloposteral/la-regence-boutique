@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, moneyValue, roundMoney } from "@/lib/money";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Check, MapPin, CreditCard, Truck, User, Gift, ShieldCheck, Lock, Package, ArrowRight } from "lucide-react";
@@ -55,9 +55,9 @@ const CheckoutPage = () => {
   const [freteGratisFlag, setFreteGratisFlag] = useState(false);
 
   const freteZeradoPorCupom = cupomTipo === "frete_gratis";
-  const custoFrete = freteZeradoPorCupom ? 0 : (form.fretePreco || 0);
-  const pixDesconto = form.metodoPagamento === "pix" ? (subtotal - desconto) * 0.1 : 0;
-  const total = Math.max(0, subtotal - desconto - pixDesconto + custoFrete);
+  const custoFrete = freteZeradoPorCupom ? 0 : form.fretePreco;
+  const pixDesconto = form.metodoPagamento === "pix" ? roundMoney(Math.max(0, subtotal - desconto) * 0.1) : 0;
+  const total = roundMoney(Math.max(0, subtotal - desconto - pixDesconto + custoFrete));
 
   const updateField = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -134,7 +134,11 @@ const CheckoutPage = () => {
         if (cancelled) return;
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-        const opts = data?.options || [];
+        const opts = (data?.options || []).map((opt: any) => {
+          const price = moneyValue(opt.price);
+          if (price < 0 || (opt.free && price !== 0)) throw new Error("Frete inválido");
+          return { ...opt, price };
+        });
         setFreteOpts(opts);
         setFreteGratisFlag(!!data?.free_shipping);
         // Auto-select cheapest if none chosen yet
@@ -150,7 +154,7 @@ const CheckoutPage = () => {
             frete: first.id,
             freteNome: first.name,
             freteCompany: first.company,
-            fretePreco: Number(first.price) || 0,
+            fretePreco: first.price,
             fretePrazo: prazoTxt,
           }));
         }
@@ -234,11 +238,11 @@ const CheckoutPage = () => {
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center">
           <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-6">
-            <Package className="w-8 h-8 text-gold" />
+            <Package className="w-8 h-8 text-gold-ink" />
           </div>
           <p className="font-display text-2xl mb-2">Seu carrinho está vazio</p>
           <p className="font-body text-sm text-muted-foreground mb-6">Explore nossos cafés especiais e encontre o seu favorito</p>
-          <Button asChild className="bg-gold text-primary-foreground hover:bg-gold-dark rounded-none uppercase tracking-wider font-body text-xs">
+          <Button asChild className="bg-gold text-foreground hover:bg-gold-dark rounded-full uppercase tracking-wider font-body text-xs">
             <Link to="/cafes">Explorar Cafés</Link>
           </Button>
         </div>
@@ -279,6 +283,7 @@ const CheckoutPage = () => {
               return (
                 <button
                   key={s.id}
+                  aria-label={s.label} aria-current={active ? "step" : undefined}
                   onClick={() => { if (done) setStep(i); }}
                   disabled={!done}
                   className={`flex flex-col items-center gap-1.5 transition-all ${done ? "cursor-pointer" : "cursor-default"}`}
@@ -286,15 +291,15 @@ const CheckoutPage = () => {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                       done
-                        ? "bg-gold text-primary-foreground shadow-[0_0_12px_hsl(var(--gold)/0.3)]"
+                        ? "bg-gold text-foreground shadow-[0_0_12px_hsl(var(--gold)/0.3)]"
                         : active
-                        ? "bg-gold/15 text-gold ring-2 ring-gold/40"
+                        ? "bg-gold/15 text-gold-ink ring-2 ring-gold/40"
                         : "bg-muted/50 text-muted-foreground"
                     }`}
                   >
                     {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                   </div>
-                  <span className={`text-[10px] font-body hidden sm:block ${active ? "text-gold font-semibold" : done ? "text-foreground" : "text-muted-foreground"}`}>
+                  <span className={`text-[10px] font-body hidden sm:block ${active ? "text-gold-ink font-semibold" : done ? "text-foreground" : "text-muted-foreground"}`}>
                     {s.label}
                   </span>
                 </button>
@@ -304,10 +309,10 @@ const CheckoutPage = () => {
         </div>
 
         {/* Trust badges */}
-        <div className="flex items-center justify-center gap-6 mb-8 py-3 border-y border-border/50">
+        <div className="flex items-center justify-center flex-wrap gap-3 sm:gap-6 mb-8 py-3 border-y border-border/50">
           {TRUST_BADGES.map((b) => (
             <div key={b.label} className="flex items-center gap-1.5 text-muted-foreground">
-              <b.icon className="w-3.5 h-3.5 text-gold" />
+              <b.icon className="w-3.5 h-3.5 text-gold-ink" />
               <span className="font-body text-[10px] font-medium tracking-wide uppercase">{b.label}</span>
             </div>
           ))}
@@ -323,7 +328,7 @@ const CheckoutPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
-                className="bg-card border border-border rounded-lg p-6 lg:p-8"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8"
               >
                 {/* Step 0: Identificação */}
                 {step === 0 && (
@@ -332,20 +337,21 @@ const CheckoutPage = () => {
                       <h2 className="font-display text-xl font-semibold">Identificação</h2>
                       <p className="font-body text-xs text-muted-foreground mt-1">Informe seus dados para o pedido</p>
                     </div>
+                    {!user && <Button asChild variant="outline" className="w-full"><Link to="/auth?next=%2Fcheckout">Entrar na minha conta</Link></Button>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label className="font-body text-xs text-muted-foreground">Nome completo *</Label>
-                        <Input value={form.nome} onChange={(e) => updateField("nome", e.target.value)} className={`font-body mt-1 ${errors.nome ? "border-destructive" : ""}`} />
-                        {errors.nome && <p className="text-[10px] text-destructive mt-1">{errors.nome}</p>}
+                        <Label htmlFor="checkout-nome" className="font-body text-xs text-muted-foreground">Nome completo *</Label>
+                        <Input id="checkout-nome" aria-invalid={!!errors.nome} aria-describedby={errors.nome ? "checkout-nome-error" : undefined} autoComplete="name" value={form.nome} onChange={(e) => updateField("nome", e.target.value)} className={`font-body mt-1 ${errors.nome ? "border-destructive" : ""}`} />
+                        {errors.nome && <p id="checkout-nome-error" role="alert" className="text-[10px] text-destructive mt-1">{errors.nome}</p>}
                       </div>
                       <div>
-                        <Label className="font-body text-xs text-muted-foreground">E-mail *</Label>
-                        <Input type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} className={`font-body mt-1 ${errors.email ? "border-destructive" : ""}`} />
-                        {errors.email && <p className="text-[10px] text-destructive mt-1">{errors.email}</p>}
+                        <Label htmlFor="checkout-email" className="font-body text-xs text-muted-foreground">E-mail *</Label>
+                        <Input id="checkout-email" aria-invalid={!!errors.email} aria-describedby={errors.email ? "checkout-email-error" : undefined} autoComplete="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} className={`font-body mt-1 ${errors.email ? "border-destructive" : ""}`} />
+                        {errors.email && <p id="checkout-email-error" role="alert" className="text-[10px] text-destructive mt-1">{errors.email}</p>}
                       </div>
                       <div>
-                        <Label className="font-body text-xs text-muted-foreground">Telefone</Label>
-                        <Input value={form.telefone} onChange={(e) => {
+                        <Label htmlFor="checkout-telefone" className="font-body text-xs text-muted-foreground">Telefone</Label>
+                        <Input id="checkout-telefone" aria-invalid={!!errors.telefone} aria-describedby={errors.telefone ? "checkout-telefone-error" : undefined} autoComplete="tel" value={form.telefone} onChange={(e) => {
                           let v = e.target.value.replace(/\D/g, "").slice(0, 11);
                           if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
                           else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
@@ -354,8 +360,8 @@ const CheckoutPage = () => {
                         }} className="font-body mt-1" placeholder="(00) 00000-0000" />
                       </div>
                       <div>
-                        <Label className="font-body text-xs text-muted-foreground">CPF</Label>
-                        <Input value={form.cpf} onChange={(e) => {
+                        <Label htmlFor="checkout-cpf" className="font-body text-xs text-muted-foreground">CPF</Label>
+                        <Input id="checkout-cpf" aria-invalid={!!errors.cpf} aria-describedby={errors.cpf ? "checkout-cpf-error" : undefined} value={form.cpf} onChange={(e) => {
                           let v = e.target.value.replace(/\D/g, "").slice(0, 11);
                           if (v.length > 9) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6,9)}-${v.slice(9)}`;
                           else if (v.length > 6) v = `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6)}`;
@@ -376,33 +382,33 @@ const CheckoutPage = () => {
                     </div>
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <Label className="font-body text-xs text-muted-foreground">CEP *</Label>
-                        <Input value={form.cep} onChange={(e) => {
+                        <Label htmlFor="checkout-cep" className="font-body text-xs text-muted-foreground">CEP *</Label>
+                        <Input id="checkout-cep" aria-invalid={!!errors.cep} aria-describedby={errors.cep ? "checkout-cep-error" : undefined} autoComplete="postal-code" value={form.cep} onChange={(e) => {
                           let v = e.target.value.replace(/\D/g, "").slice(0, 8);
                           if (v.length > 5) v = `${v.slice(0,5)}-${v.slice(5)}`;
                           updateField("cep", v);
                         }} placeholder="00000-000" className={`font-body mt-1 ${errors.cep ? "border-destructive" : ""}`} />
-                        {errors.cep && <p className="text-[10px] text-destructive mt-1">{errors.cep}</p>}
+                        {errors.cep && <p id="checkout-cep-error" role="alert" className="text-[10px] text-destructive mt-1">{errors.cep}</p>}
                       </div>
-                      <Button variant="outline" className="self-end font-body text-xs h-10 border-gold/30 text-gold hover:bg-gold/10" onClick={buscarCep} disabled={cepLoading}>
+                      <Button variant="outline" className="self-end font-body text-xs h-10 border-gold/30 text-gold-ink hover:bg-gold/10" onClick={buscarCep} disabled={cepLoading}>
                         {cepLoading ? "..." : "Buscar CEP"}
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="sm:col-span-2">
-                        <Label className="font-body text-xs text-muted-foreground">Logradouro *</Label>
-                        <Input value={form.logradouro} onChange={(e) => updateField("logradouro", e.target.value)} className={`font-body mt-1 ${errors.logradouro ? "border-destructive" : ""}`} />
+                        <Label htmlFor="checkout-logradouro" className="font-body text-xs text-muted-foreground">Logradouro *</Label>
+                        <Input id="checkout-logradouro" aria-invalid={!!errors.logradouro} aria-describedby={errors.logradouro ? "checkout-logradouro-error" : undefined} autoComplete="address-line1" value={form.logradouro} onChange={(e) => updateField("logradouro", e.target.value)} className={`font-body mt-1 ${errors.logradouro ? "border-destructive" : ""}`} />
                       </div>
                       <div>
-                        <Label className="font-body text-xs text-muted-foreground">Número *</Label>
-                        <Input value={form.numero} onChange={(e) => updateField("numero", e.target.value)} className={`font-body mt-1 ${errors.numero ? "border-destructive" : ""}`} />
+                        <Label htmlFor="checkout-numero" className="font-body text-xs text-muted-foreground">Número *</Label>
+                        <Input id="checkout-numero" aria-invalid={!!errors.numero} aria-describedby={errors.numero ? "checkout-numero-error" : undefined} value={form.numero} onChange={(e) => updateField("numero", e.target.value)} className={`font-body mt-1 ${errors.numero ? "border-destructive" : ""}`} />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div><Label className="font-body text-xs text-muted-foreground">Complemento</Label><Input value={form.complemento} onChange={(e) => updateField("complemento", e.target.value)} className="font-body mt-1" /></div>
-                      <div><Label className="font-body text-xs text-muted-foreground">Bairro *</Label><Input value={form.bairro} onChange={(e) => updateField("bairro", e.target.value)} className={`font-body mt-1 ${errors.bairro ? "border-destructive" : ""}`} /></div>
-                      <div><Label className="font-body text-xs text-muted-foreground">Cidade *</Label><Input value={form.cidade} onChange={(e) => updateField("cidade", e.target.value)} className={`font-body mt-1 ${errors.cidade ? "border-destructive" : ""}`} /></div>
-                      <div><Label className="font-body text-xs text-muted-foreground">Estado *</Label><Input value={form.estado} onChange={(e) => updateField("estado", e.target.value)} className={`font-body mt-1 ${errors.estado ? "border-destructive" : ""}`} maxLength={2} /></div>
+                      <div><Label htmlFor="checkout-complemento" className="font-body text-xs text-muted-foreground">Complemento</Label><Input id="checkout-complemento" aria-invalid={!!errors.complemento} aria-describedby={errors.complemento ? "checkout-complemento-error" : undefined} value={form.complemento} onChange={(e) => updateField("complemento", e.target.value)} className="font-body mt-1" /></div>
+                      <div><Label htmlFor="checkout-bairro" className="font-body text-xs text-muted-foreground">Bairro *</Label><Input id="checkout-bairro" aria-invalid={!!errors.bairro} aria-describedby={errors.bairro ? "checkout-bairro-error" : undefined} value={form.bairro} onChange={(e) => updateField("bairro", e.target.value)} className={`font-body mt-1 ${errors.bairro ? "border-destructive" : ""}`} /></div>
+                      <div><Label htmlFor="checkout-cidade" className="font-body text-xs text-muted-foreground">Cidade *</Label><Input id="checkout-cidade" aria-invalid={!!errors.cidade} aria-describedby={errors.cidade ? "checkout-cidade-error" : undefined} autoComplete="address-level2" value={form.cidade} onChange={(e) => updateField("cidade", e.target.value)} className={`font-body mt-1 ${errors.cidade ? "border-destructive" : ""}`} /></div>
+                      <div><Label htmlFor="checkout-estado" className="font-body text-xs text-muted-foreground">Estado *</Label><Input id="checkout-estado" aria-invalid={!!errors.estado} aria-describedby={errors.estado ? "checkout-estado-error" : undefined} autoComplete="address-level1" value={form.estado} onChange={(e) => updateField("estado", e.target.value)} className={`font-body mt-1 ${errors.estado ? "border-destructive" : ""}`} maxLength={2} /></div>
                     </div>
                   </div>
                 )}
@@ -443,30 +449,26 @@ const CheckoutPage = () => {
                           return (
                             <label
                               key={opt.id}
-                              className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
+                              className={`flex items-center gap-3 justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                                 selected
                                   ? "border-gold bg-gold/5 shadow-[0_0_16px_hsl(var(--gold)/0.08)]"
                                   : "border-border hover:border-gold/30"
                               }`}
-                              onClick={() => {
+                            >
+                              <input type="radio" name="shipping" aria-label={`${opt.company} · ${opt.name}`} checked={selected} className="h-5 w-5 shrink-0 accent-gold"
+                                onChange={() => {
                                 setForm((prev) => ({
                                   ...prev,
                                   frete: opt.id,
                                   freteNome: opt.name,
                                   freteCompany: opt.company,
-                                  fretePreco: Number(opt.price) || 0,
+                                  fretePreco: opt.price,
                                   fretePrazo: prazoTxt,
                                 }));
-                              }}
-                            >
+                                }}
+                              />
+
                               <div className="flex items-center gap-3">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                  selected ? "border-gold" : "border-muted-foreground/40"
-                                }`}>
-                                  {selected && (
-                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-gold" />
-                                  )}
-                                </div>
                                 <div>
                                   <p className="font-body font-medium text-sm">
                                     {opt.company} · {opt.name}
@@ -474,7 +476,7 @@ const CheckoutPage = () => {
                                   <p className="text-xs text-muted-foreground font-body">{prazoTxt}</p>
                                 </div>
                               </div>
-                              <span className={`font-mono text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold" : ""}`}>
+                              <span className={`font-mono text-sm font-semibold ${opt.free || opt.price === 0 ? "text-gold-ink" : ""}`}>
                                 {opt.free || opt.price === 0
                                   ? "Grátis"
                                   : formatBRL(opt.price)}
@@ -487,7 +489,7 @@ const CheckoutPage = () => {
 
                     {freteGratisFlag && (
                       <div className="bg-gold/10 rounded-lg p-3 text-center">
-                        <p className="font-body text-xs text-gold font-medium">🎉 Frete grátis aplicado ao seu pedido!</p>
+                        <p className="font-body text-xs text-gold-ink font-medium">🎉 Frete grátis aplicado ao seu pedido!</p>
                       </div>
                     )}
 
@@ -495,12 +497,12 @@ const CheckoutPage = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <Checkbox checked={form.presente} onCheckedChange={(v) => updateField("presente", !!v)} id="presente" />
                         <Label htmlFor="presente" className="font-body text-sm flex items-center gap-1.5 cursor-pointer">
-                          <Gift className="w-4 h-4 text-gold" /> É um presente
+                          <Gift className="w-4 h-4 text-gold-ink" /> É um presente
                         </Label>
                       </div>
                       {form.presente && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}>
-                          <Input placeholder="Mensagem personalizada (opcional)" value={form.mensagemPresente} onChange={(e) => updateField("mensagemPresente", e.target.value)} className="font-body text-sm" />
+                          <Input aria-label="Mensagem do presente" placeholder="Mensagem personalizada (opcional)" value={form.mensagemPresente} onChange={(e) => updateField("mensagemPresente", e.target.value)} className="font-body text-sm" />
                         </motion.div>
                       )}
                     </div>
@@ -516,26 +518,19 @@ const CheckoutPage = () => {
                     </div>
                     <div className="space-y-3">
                       {[
-                        { value: "card", label: "Cartão de Crédito", desc: "Parcelamento em até 3x sem juros", icon: "💳" },
-                        { value: "pix", label: "Pix (desconto no cartão)", desc: "10% de desconto aplicado ao pagamento", icon: "⚡", badge: "-10%" },
+                        { value: "card", label: "Cartão de Crédito", desc: "Parcelamento em até 12x sem juros", icon: "💳" },
+                        { value: "pix", label: "Pix", desc: "10% de desconto aplicado ao pagamento", icon: "⚡", badge: "-10%" },
                       ].map((opt) => (
                         <label
                           key={opt.value}
-                          className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
+                          className={`flex items-center gap-3 justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                             form.metodoPagamento === opt.value
                               ? "border-gold bg-gold/5 shadow-[0_0_16px_hsl(var(--gold)/0.08)]"
                               : "border-border hover:border-gold/30"
                           }`}
-                          onClick={() => updateField("metodoPagamento", opt.value)}
                         >
+                          <input type="radio" name="payment" aria-label={opt.label} checked={form.metodoPagamento === opt.value} onChange={() => updateField("metodoPagamento", opt.value)} className="h-5 w-5 shrink-0 accent-gold" />
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                              form.metodoPagamento === opt.value ? "border-gold" : "border-muted-foreground/40"
-                            }`}>
-                              {form.metodoPagamento === opt.value && (
-                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 rounded-full bg-gold" />
-                              )}
-                            </div>
                             <div>
                               <p className="font-body font-medium text-sm flex items-center gap-2">
                                 <span>{opt.icon}</span> {opt.label}
@@ -544,7 +539,7 @@ const CheckoutPage = () => {
                             </div>
                           </div>
                           {opt.badge && form.metodoPagamento === opt.value && (
-                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-[10px] font-mono font-bold bg-gold text-primary-foreground px-2 py-0.5 rounded-full">
+                            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-[10px] font-mono font-bold bg-gold text-foreground px-2 py-0.5 rounded-full">
                               {opt.badge}
                             </motion.span>
                           )}
@@ -556,7 +551,7 @@ const CheckoutPage = () => {
                       {form.metodoPagamento === "pix" && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="bg-gold/10 border border-gold/20 rounded-lg p-4 text-center">
-                            <p className="font-body text-sm text-gold font-semibold">💰 Desconto Pix: -{formatBRL(pixDesconto)}</p>
+                            <p className="font-body text-sm text-gold-ink font-semibold">💰 Desconto Pix: -{formatBRL(pixDesconto)}</p>
                             <p className="font-mono text-xs text-muted-foreground mt-1">Novo total: {formatBRL(total)}</p>
                           </div>
                         </motion.div>
@@ -574,7 +569,7 @@ const CheckoutPage = () => {
                   <div className="space-y-5">
                     <div className="text-center">
                       <div className="w-14 h-14 rounded-full bg-gold/15 flex items-center justify-center mx-auto mb-3">
-                        <Check className="w-6 h-6 text-gold" />
+                        <Check className="w-6 h-6 text-gold-ink" />
                       </div>
                       <h2 className="font-display text-xl font-semibold">Revisar Pedido</h2>
                       <p className="font-body text-xs text-muted-foreground mt-1">Confira os dados antes de finalizar</p>
@@ -594,7 +589,7 @@ const CheckoutPage = () => {
                           </div>
                           <button
                             onClick={() => setStep(item.step)}
-                            className="font-body text-[10px] text-gold hover:underline underline-offset-2 shrink-0 mt-1"
+                            className="font-body text-[10px] text-gold-ink hover:underline underline-offset-2 shrink-0 mt-1"
                           >
                             Editar
                           </button>
@@ -602,7 +597,7 @@ const CheckoutPage = () => {
                       ))}
                       {form.presente && (
                         <div className="p-3 bg-gold/5 rounded-lg border border-gold/20">
-                          <p className="font-body text-[10px] text-gold uppercase tracking-wider flex items-center gap-1"><Gift className="w-3 h-3" /> Presente</p>
+                          <p className="font-body text-[10px] text-gold-ink uppercase tracking-wider flex items-center gap-1"><Gift className="w-3 h-3" /> Presente</p>
                           <p className="font-body text-sm mt-0.5">{form.mensagemPresente || "Sem mensagem"}</p>
                         </div>
                       )}
@@ -611,7 +606,7 @@ const CheckoutPage = () => {
                 )}
 
                 {/* Navigation */}
-                <div className="flex justify-between mt-8 pt-5 border-t border-border">
+                <div className="flex flex-wrap gap-3 justify-between mt-8 pt-5 border-t border-border">
                   {step > 0 ? (
                     <Button variant="ghost" onClick={prevStep} className="font-body text-xs text-muted-foreground hover:text-foreground">
                       <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
@@ -623,7 +618,7 @@ const CheckoutPage = () => {
                   )}
                   {step < 4 ? (
                     <motion.div whileTap={{ scale: 0.97 }}>
-                      <Button onClick={nextStep} className="font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark rounded-none uppercase tracking-[0.15em] px-8 h-11">
+                      <Button onClick={nextStep} className="font-body text-xs bg-gold text-foreground hover:bg-gold-dark rounded-full uppercase tracking-wide px-4 sm:px-8 h-11">
                         Continuar <ArrowRight className="w-3.5 h-3.5 ml-2" />
                       </Button>
                     </motion.div>
@@ -632,7 +627,7 @@ const CheckoutPage = () => {
                       <Button
                         onClick={finalizarPedido}
                         disabled={submitting}
-                        className="font-body text-xs bg-gold text-primary-foreground hover:bg-gold-dark rounded-none uppercase tracking-[0.15em] px-8 h-11 shadow-[0_0_20px_hsl(var(--gold)/0.2)]"
+                        className="font-body text-xs bg-gold text-foreground hover:bg-gold-dark rounded-full uppercase tracking-wide px-4 sm:px-8 h-11 shadow-[0_0_20px_hsl(var(--gold)/0.2)]"
                       >
                         {submitting ? (
                           <span className="flex items-center gap-2"><span className="btn-spinner" /> Processando…</span>
@@ -652,10 +647,10 @@ const CheckoutPage = () => {
             <div className="bg-card border border-border rounded-lg overflow-hidden sticky top-24">
               <div className="h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-light" />
               <div className="p-5 space-y-4">
-                <h3 className="font-display text-lg font-semibold flex items-center gap-2">
+                <h2 className="font-display text-lg font-semibold flex items-center gap-2">
                   Resumo
                   <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{items.length} {items.length === 1 ? "item" : "itens"}</span>
-                </h3>
+                </h2>
                 <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                   {items.map((item) => (
                     <div key={`${item.produtoId}-${item.varianteId}`} className="flex gap-3">
@@ -666,7 +661,7 @@ const CheckoutPage = () => {
                         <p className="font-body text-xs font-medium truncate">{item.nome}</p>
                         <p className="text-[10px] text-muted-foreground font-body">Qtd: {item.quantidade}</p>
                       </div>
-                      <span className="font-mono text-xs font-semibold shrink-0 text-gold">
+                      <span className="font-mono text-xs font-semibold shrink-0 text-gold-ink">
                         {formatBRL(((item.precoPromocional ?? item.preco) * item.quantidade))}
                       </span>
                     </div>
@@ -679,39 +674,39 @@ const CheckoutPage = () => {
                     <span className="font-mono">{formatBRL(subtotal)}</span>
                   </div>
                   {desconto > 0 && (
-                    <div className="flex justify-between text-gold">
+                    <div className="flex justify-between text-gold-ink">
                       <span>Cupom ({cupom})</span>
                       <span className="font-mono">-{formatBRL(desconto)}</span>
                     </div>
                   )}
                   {freteZeradoPorCupom && (
-                    <div className="flex justify-between text-gold">
+                    <div className="flex justify-between text-gold-ink">
                       <span>Cupom ({cupom})</span>
                       <span className="font-mono">Frete grátis</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Frete</span>
-                    <span className={`font-mono ${custoFrete === 0 ? "text-gold" : ""}`}>
-                      {custoFrete === 0 ? "Grátis" : formatBRL(custoFrete)}
+                    <span className={`font-mono ${custoFrete === 0 ? "text-gold-ink" : ""}`}>
+                      {!form.frete ? "A calcular" : custoFrete === 0 ? "Grátis" : formatBRL(custoFrete)}
                     </span>
                   </div>
                   {pixDesconto > 0 && (
-                    <div className="flex justify-between text-gold">
+                    <div className="flex justify-between text-gold-ink">
                       <span>Desconto Pix</span>
                       <span className="font-mono">-{formatBRL(pixDesconto)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-semibold text-base pt-3 border-t border-border">
                     <span>Total</span>
-                    <span className="font-mono text-gold">{formatBRL(total)}</span>
+                    <span className="font-mono text-gold-ink">{formatBRL(total)}</span>
                   </div>
                 </div>
 
                 {/* Security footer */}
                 <div className="pt-3 border-t border-border/50 flex items-center justify-center gap-4">
                   {TRUST_BADGES.slice(0, 2).map((b) => (
-                    <div key={b.label} className="flex items-center gap-1 text-muted-foreground/60">
+                    <div key={b.label} className="flex items-center gap-1 text-muted-foreground">
                       <b.icon className="w-3 h-3" />
                       <span className="text-[9px] font-body">{b.label}</span>
                     </div>
