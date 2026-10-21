@@ -66,7 +66,6 @@ const CoffeeCarousel = () => {
             {items.map((coffee, i) => {
               const basePrice = coffee.preco_promocional ?? coffee.preco;
               const pixPrice = basePrice * 0.9;
-              const parcela = basePrice / 12;
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
