@@ -45,7 +45,6 @@ const AuthPage = () => {
     if (error || sessionError) {
       consumeOAuthNext(sessionStorage, next);
       setAuthError(translateAuthError(error || sessionError?.message || ""));
-      if (error) window.history.replaceState(null, "", `/auth?next=${encodeURIComponent(next)}`);
     }
   }, [next, sessionError]);
 
