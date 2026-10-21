@@ -19,7 +19,8 @@ export async function checkRateLimit(
   windowSeconds: number
 ): Promise<boolean> {
   try {
-    const { data, error } = await admin().rpc("check_rate_limit", {
+    // deno-lint-ignore no-explicit-any
+    const { data, error } = await (admin().rpc as any)("check_rate_limit", {
       _key: key,
       _max_requests: maxRequests,
       _window_seconds: windowSeconds,

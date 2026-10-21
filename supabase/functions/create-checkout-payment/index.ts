@@ -16,7 +16,8 @@ const FRETE_FALLBACK = 19.90;
 const PIX_DISCOUNT = 0.10;
 
 async function isFreteGratisPorRegra(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   subtotal: number,
   uf?: string,
 ): Promise<{ free: boolean; nome: string | null }> {
@@ -36,7 +37,7 @@ async function isFreteGratisPorRegra(
         .filter((r: any) => subtotal >= requireAmount(r.valor_minimo))
       .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
     if (aplicaveis.length > 0) {
-      return { free: true, nome: aplicaveis[0].nome };
+      return { free: true, nome: (aplicaveis[0] as { nome: string }).nome };
     }
     return { free: false, nome: null };
   } catch (e) {
