@@ -66,7 +66,6 @@ const CoffeeCarousel = () => {
             {items.map((coffee, i) => {
               const basePrice = coffee.preco_promocional ?? coffee.preco;
               const pixPrice = basePrice * 0.9;
-              const parcela = basePrice / 12;
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (
@@ -145,7 +144,7 @@ const CoffeeCarousel = () => {
                         {formatBRL(basePrice)}
                       </p>
                       <p className="text-[11px] text-muted-foreground font-body mt-0.5">
-                        Em até 12x de {formatBRL(parcela)} s/ juros
+                        Consulte as condições no pagamento
                       </p>
 
                       <div className="mt-3 border border-gold/20 rounded-xl px-3 py-2 text-center bg-gold/[0.04]">
