@@ -50,7 +50,7 @@ const CheckoutPage = () => {
   });
 
   const [cepLoading, setCepLoading] = useState(false);
-  const [freteOpts, setFreteOpts] = useState<any[]>([]);
+  const [freteOpts, setFreteOpts] = useState<FreteOption[]>([]);
   const [freteLoading, setFreteLoading] = useState(false);
   const [freteErr, setFreteErr] = useState("");
   const [freteGratisFlag, setFreteGratisFlag] = useState(false);
@@ -63,7 +63,7 @@ const CheckoutPage = () => {
   const pixDesconto = totals?.pixDiscount ?? NaN;
   const total = totals?.total ?? NaN;
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: string | number | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
@@ -138,7 +138,7 @@ const CheckoutPage = () => {
         if (cancelled) return;
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-        const opts = (data?.options || []).map((opt: any) => {
+        const opts = ((data?.options || []) as FreteOption[]).map((opt) => {
           const price = moneyValue(opt.price);
           if (price < 0 || (opt.free && price !== 0)) throw new Error("Frete inválido");
           return { ...opt, price };
@@ -162,7 +162,7 @@ const CheckoutPage = () => {
             fretePrazo: prazoTxt,
           }));
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (cancelled) return;
         console.error(e);
         setFreteErr("Não foi possível calcular o frete. Verifique o CEP e tente novamente.");
@@ -236,8 +236,8 @@ const CheckoutPage = () => {
         }
         window.location.href = data.url;
       } else { throw new Error("URL de pagamento não recebida"); }
-    } catch (err: any) {
-      toast.error("Erro ao processar pagamento: " + (err.message || "Tente novamente"));
+    } catch (err: unknown) {
+      toast.error("Erro ao processar pagamento: " + ((err instanceof Error && err.message) || "Tente novamente"));
     } finally {
       setSubmitting(false);
     }
@@ -730,5 +730,17 @@ const CheckoutPage = () => {
     </Layout>
   );
 };
+
+interface FreteOption {
+  id: string;
+  name: string;
+  company: string;
+  company_picture?: string | null;
+  price: number;
+  original_price?: number;
+  free?: boolean;
+  delivery_time?: number | null;
+  delivery_range?: { min: number; max: number } | null;
+}
 
 export default CheckoutPage;

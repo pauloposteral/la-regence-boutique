@@ -15,5 +15,6 @@
 - [x] Full tests, lint, available build diagnostics, incognito Chromium/WebKit; record failed lint and unverified independent frontend typecheck.
 - [x] Read-only Stripe/webhook availability; live webhook enabled, dedicated test environment not established; no configuration changes.
 - [x] Save readiness evidence, revision and blockers; no frontend publication or CI changes.
-- [ ] Resolve remaining dependency advisories: fixes require unvalidated major migrations or have no reported compatible fix; no forced upgrades.
+- [x] Migrate Vite 6.4.5, Vitest 4.1.12, React Router 7.18.4, selector-parser 7.1.7; only braces (no upstream fix) remains, documented.
+- [x] Changed-file lint clean; legacy debt listed in evidence.
 - [ ] Measure production initial JS bytes and confirm independent frontend typecheck: harness exposes build OK, not a size/typecheck report; external CI validation required.

@@ -31,7 +31,7 @@ function showPage() {
   return render(
     <HelmetProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={["/video"]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter initialEntries={["/video"]}>
           <VideoPage />
         </MemoryRouter>
       </QueryClientProvider>
