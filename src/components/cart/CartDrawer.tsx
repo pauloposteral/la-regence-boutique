@@ -1,4 +1,4 @@
-import { formatBRL, moneyValue } from "@/lib/money";
+import { cartPixTotal, formatBRL, moneyValue } from "@/lib/money";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -210,7 +210,7 @@ const CartDrawer = () => {
                   {desconto > 0 && <div className="flex justify-between text-gold-ink"><span>Desconto</span><span>-{formatBRL(desconto)}</span></div>}
                   <div className="flex justify-between text-brown"><span>Frete</span><span>{subtotal >= FRETE_GRATIS_MIN ? "Grátis" : "Calculado no checkout"}</span></div>
                   <div className="flex justify-between font-semibold text-base text-brown-dark pt-1.5 border-t border-cream-400"><span>Total</span><span>{formatBRL(total)}</span></div>
-                  <p className="text-[10px] text-gold-ink text-right font-medium">{formatBRL((total * 0.9))} no Pix (10% off)</p>
+                  <p className="text-[10px] text-gold-ink text-right font-medium">{formatBRL(cartPixTotal(subtotal, desconto))} no Pix (10% off)</p>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>

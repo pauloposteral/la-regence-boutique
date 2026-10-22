@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, safePixPrice } from "@/lib/money";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -65,7 +65,7 @@ const CoffeeCarousel = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {items.map((coffee, i) => {
               const basePrice = coffee.preco_promocional ?? coffee.preco;
-              const pixPrice = basePrice * 0.9;
+              const pixPrice = safePixPrice(coffee.preco, coffee.preco_promocional);
               const lowStock = coffee.estoque > 0 && coffee.estoque <= 5;
 
               return (

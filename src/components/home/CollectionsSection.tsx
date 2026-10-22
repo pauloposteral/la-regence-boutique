@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, safePixPrice } from "@/lib/money";
 import { motion } from "framer-motion";
 import { Star, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -111,7 +111,7 @@ const CollectionsSection = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {collection.produtos.map((product: any, pi: number) => {
-                const pixPrice = (product.preco_promocional ?? product.preco) * 0.9;
+                const pixPrice = safePixPrice(product.preco, product.preco_promocional);
                 const imgUrl = product.imagens?.find((i: any) => i.principal)?.url || product.imagens?.[0]?.url;
 
                 return (

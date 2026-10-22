@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, safePixPrice } from "@/lib/money";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, ShoppingBag, Minus, Plus, X, Eye } from "lucide-react";
@@ -22,7 +22,7 @@ const QuickViewModal = ({ produto, open, onOpenChange }: QuickViewModalProps) =>
   if (!produto) return null;
 
   const mainImg = produto.imagens?.find((i) => i.principal)?.url || produto.imagens?.[0]?.url;
-  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
+  const pixPrice = safePixPrice(produto.preco, produto.preco_promocional);
   const displayPrice = produto.preco_promocional ?? produto.preco;
 
   const handleAdd = () => {
