@@ -282,7 +282,7 @@ Total do repositório: 304 erros/20 avisos → **263 erros/20 avisos em 69 arqui
 | `supabase/functions/order-ship/index.ts` | 1 | 0 |
 
 ### Implantação
-`create-checkout-payment` reimplantada (somente tipagem; comportamento igual), SHA-256 da fonte `96a6fd6f…88cf5`. `calcular-frete` não reimplantada (aguarda decisão). Conta Stripe da chave configurada continua não confirmada.
+`create-checkout-payment` reimplantada (somente tipagem; comportamento igual), SHA-256 da fonte `96a6fd6f…88cf5`. `calcular-frete` implantada após `deno check` exit 0 (2026-10-22 ~00:21 UTC), SHA-256 da fonte `8a9fe91d…f5ebad`; POST inválido respondeu 400 `Valor monetário inválido`. Checkout sem mudanças após `96a6fd6f`, não reimplantado. Conta Stripe da chave configurada continua não confirmada.
 
 ### Pendências
 - 8/6 advisories high de braces sem correção upstream (risco residual documentado acima).
