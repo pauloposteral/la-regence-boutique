@@ -42,3 +42,29 @@ export function allocateCheckoutCents(lines: { unitPrice: number; quantidade: nu
   for (const row of order) { if (remainder <= 0) break; amounts[row.index] += 1; remainder -= 1; }
   return amounts;
 }
+/** Authoritative free-shipping policy shared by quote and checkout: base is merchandise AFTER coupon and Pix. */
+export interface FreeShippingRule { nome: string; uf: string | null; valor_minimo: number | string }
+export function pickFreeShippingRule(
+  regras: FreeShippingRule[],
+  base: number,
+  uf: string | undefined,
+  fallbackMin: number,
+): { free: boolean; regra: { nome: string; uf: string | null; valor_minimo: number } | null } {
+  if (regras.length === 0) {
+    const ok = base >= fallbackMin;
+    return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: fallbackMin } : null };
+  }
+  const ufUp = (uf || "").toUpperCase();
+  const aplicaveis = regras
+    .filter((r) => !r.uf || r.uf.toUpperCase() === ufUp)
+    .filter((r) => base >= requireAmount(r.valor_minimo))
+    .sort((a, b) => Number(a.valor_minimo) - Number(b.valor_minimo));
+  if (aplicaveis.length === 0) return { free: false, regra: null };
+  const r = aplicaveis[0];
+  return { free: true, regra: { nome: r.nome, uf: r.uf, valor_minimo: Number(r.valor_minimo) } };
+}
+
+/** Free-shipping base used by both server functions. */
+export function freeShippingBase(subtotal: unknown, couponDiscount: unknown, pix: boolean): number {
+  return checkoutTotals(subtotal, couponDiscount, 0, pix).merchandiseTotal;
+}
