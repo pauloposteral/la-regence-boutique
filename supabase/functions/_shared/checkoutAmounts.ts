@@ -6,15 +6,35 @@ export function requireAmount(value: unknown): number {
   return amount;
 }
 
+/** Round decimal reais to cents without binary half-cent drift. */
+export function amountCents(value: unknown): number {
+  const amount = requireAmount(value);
+  const [coefficient, exponent = "0"] = String(amount).split("e");
+  const cents = Math.round(Number(`${coefficient}e${Number(exponent) + 2}`));
+  if (!Number.isSafeInteger(cents)) throw new Error("Valor monetário inválido");
+  return cents;
+}
+
+export function checkoutTotals(subtotal: unknown, discount: unknown, shipping: unknown, pix: boolean) {
+  const subtotalCents = amountCents(subtotal);
+  const discountCents = amountCents(discount);
+  if (discountCents > subtotalCents) throw new Error("Desconto inválido");
+  const afterCoupon = subtotalCents - discountCents;
+  const pixCents = pix ? Math.round(afterCoupon / 10) : 0;
+  const merchandiseCents = afterCoupon - pixCents;
+  return { pixDiscount: pixCents / 100, merchandiseTotal: merchandiseCents / 100,
+    total: (merchandiseCents + amountCents(shipping)) / 100 };
+}
+
 /** Allocate the exact discounted merchandise total, never round each unit twice. */
 export function allocateCheckoutCents(lines: { unitPrice: number; quantidade: number }[], merchandiseTotal: number): number[] {
   const weights = lines.map((line) => {
     if (!Number.isSafeInteger(line.quantidade) || line.quantidade <= 0) throw new Error("Quantidade inválida");
     return requireAmount(line.unitPrice) * line.quantidade;
   });
-  const target = Math.round(requireAmount(merchandiseTotal) * 100);
+  const target = amountCents(merchandiseTotal);
   const sum = weights.reduce((acc, value) => acc + value, 0);
-  if (sum <= 0 || target > Math.round(sum * 100)) throw new Error("Total inválido");
+  if (sum <= 0 || target > amountCents(sum)) throw new Error("Total inválido");
   const exact = weights.map((weight) => target * weight / sum);
   const amounts = exact.map(Math.floor);
   let remainder = target - amounts.reduce((acc, value) => acc + value, 0);

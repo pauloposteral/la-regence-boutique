@@ -1,50 +1,39 @@
 import { useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
-
-const PREFETCH_MAP: Record<string, string[]> = {
-  "/": ["/cafes", "/assinatura"],
-  "/cafes": ["/checkout"],
-  "/assinatura": ["/auth"],
+const ROUTE_LOADERS: Record<string, () => Promise<unknown>> = {
+  "/cafes": () => import("@/pages/CafesPage"),
+  "/cafe": () => import("@/pages/ProdutoPage"),
+  "/checkout": () => import("@/pages/CheckoutPage"),
+  "/assinatura": () => import("@/pages/AssinaturaPage"),
+  "/auth": () => import("@/pages/AuthPage"),
 };
 
 const prefetched = new Set<string>();
 
 function prefetchRoute(route: string) {
-  if (prefetched.has(route)) return;
-  prefetched.add(route);
-  const link = document.createElement("link");
-  link.rel = "prefetch";
-  link.href = route;
-  link.as = "document";
-  document.head.appendChild(link);
+  const key = route.startsWith("/cafe/") ? "/cafe" : route.split(/[?#]/)[0];
+  const load = ROUTE_LOADERS[key];
+  if (!load || prefetched.has(key)) return;
+  prefetched.add(key);
+  void load().catch(() => prefetched.delete(key));
 }
 
 /**
- * Prefetch likely next routes based on current path (automatic)
- * + exposes hover-based prefetch for links.
+ * Warm actual route modules only on pointer/keyboard navigation intent.
  */
 export function usePrefetchRoutes() {
-  const { pathname } = useLocation();
-
   useEffect(() => {
-    const routes = PREFETCH_MAP[pathname];
-    if (!routes) return;
-    const timeout = setTimeout(() => routes.forEach(prefetchRoute), 2000);
-    return () => clearTimeout(timeout);
-  }, [pathname]);
-
-  // Hover-based prefetch for product links
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement).closest("a[href]");
+    const handler = (e: Event) => {
+      if (!(e.target instanceof Element)) return;
+      const anchor = e.target.closest("a[href]");
       if (!anchor) return;
       const href = anchor.getAttribute("href");
-      if (href && href.startsWith("/cafe/") && !prefetched.has(href)) {
+      if (href?.startsWith("/") && !href.startsWith("//")) {
         prefetchRoute(href);
       }
     };
     document.addEventListener("mouseover", handler, { passive: true });
-    return () => document.removeEventListener("mouseover", handler);
+    document.addEventListener("focusin", handler);
+    return () => { document.removeEventListener("mouseover", handler); document.removeEventListener("focusin", handler); };
   }, []);
 }
 
