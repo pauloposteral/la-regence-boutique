@@ -170,3 +170,120 @@ The table records the installed remediation version, not a claimed first-ever fi
 - `supabase/functions/calcular-frete/index.ts`
 - `supabase/functions/create-checkout-payment/index.ts`
 - `docs/evidence/bam181-readiness.md` (this report)
+
+
+---
+
+## Etapa final de segurança — 2026-10-22
+
+Base: revisão `4224a38` (após o complemento Pix/checkout). Nada publicado no frontend; nenhuma credencial, preço, dado ou transação alterado.
+
+### Migrações (verificadas)
+| Pacote | Antes | Depois | Motivo |
+|---|---|---|---|
+| vite | 5.4.21 | 6.4.5 | Linha 5 sem suporte; 6.4 recebe segurança (vite.dev/releases). `@vitejs/plugin-react-swc` 3.11 e `lovable-tagger` (peer vite >=5 <8) compatíveis. |
+| vitest | 3.2.7 | 4.1.12 | Remove `tinypool`/`vite-node` da árvore; Node v22.22.0 (engines `^22`). 5.x não necessário. |
+| react-router-dom | 6.30.6 | 7.18.4 | Advisories de redirect por barra invertida/SSR só corrigidos na 7. API declarativa (`BrowserRouter`/`Routes`) mantida; apenas removidas as props `future` v6 obsoletas em 2 testes de TV (sem mudança no player). |
+| postcss-selector-parser (override) | 6.1.5 | 7.1.7 | Usado por Tailwind 3/typography/postcss-nested; build e comparação visual OK. |
+
+`package-lock.json` regenerado (npm arborist falhava com `edgesOut` ao aplicar o override sobre o lock antigo); `bun.lock` migrado do lock npm. Diferença entre os locks: apenas os aliases `*-cjs` (string-width/strip-ansi/wrap-ansi), mesmas versões.
+
+### Comandos e resultados
+| Comando | Resultado |
+|---|---|
+| `npm audit --json --registry=https://registry.npmjs.org` | exit 1 — **8 high** (antes 17: 2 critical/6 high/9 moderate) |
+| `npm audit --omit=dev --json …` | exit 1 — **6 high** (antes 10: 5 high/5 moderate) |
+| Scanner de dependências do projeto (bun.lock, produção) | 0 vulnerabilidades em 54 pacotes |
+| `npm ci` | exit 0 (duas vezes, após alterações finais) |
+| `bunx vitest run` | exit 0 — 23 arquivos, **218 testes** |
+| `npx tsc --noEmit -p tsconfig.app.json` | exit 0 |
+| `deno check` checkout + frete | exit 0 |
+| `npx eslint` nos 16 arquivos alterados desde d774546 + novos | **0 problemas** |
+| Playwright Chromium+WebKit (home, /auth?next=/checkout, checkout vazio, mobile) | exit 0, sem erros JS, escritas bloqueadas, sem overflow |
+| Varredura de 41 rotas (Chromium, escritas abortadas, incl. rota inexistente) | 0 erros de página |
+| Comparação visual home antes/depois (1280×1800) | 0,2% dos pixels diferem, todos na faixa y=1457–1556 (faixa animada); resto idêntico |
+
+### Advisory residual: braces (GHSA-vfj7-8cjw-p6xm, <=3.0.3, sem release corrigido)
+Cadeia única: `tailwindcss@3.4.19 → micromatch@4.0.8 / chokidar@3.6.0 → braces@3.0.3` (+ `fast-glob`, `tailwindcss-animate`, `@tailwindcss/typography`, `lovable-tagger` reportados por dependerem de tailwind). Alcance: só build/dev, expandindo os globs estáticos de `tailwind.config.ts` (`content`) e caminhos observados pelo watcher; nada é enviado ao navegador e nenhuma entrada de usuário chega ao braces. Dev server roda isolado no sandbox. Mitigação testável: `src/lib/tailwindContentGlobs.test.ts` exige globs literais, profundidade de chaves <=1 e tamanho <80. **O advisory continua reportado pelo npm**; não migrado Tailwind 4 só para o contador.
+
+### Lint
+Total do repositório: 304 erros/20 avisos → **263 erros/20 avisos em 69 arquivos** (regras: no-explicit-any 258, only-export-components 12, exhaustive-deps 8, no-empty 2, no-empty-object-type 2, no-control-regex 1). Nenhuma regra desativada. Corrigidos 41 `any` em `create-checkout-payment`, `calcular-frete` e `CheckoutPage` com tipos explícitos (removidas também as 2 supressões `deno-lint-ignore`). Dívida legada por arquivo:
+
+| Arquivo | Erros | Avisos |
+|---|---|---|
+| `src/pages/admin/AdminProdutos.tsx` | 33 | 0 |
+| `supabase/functions/stripe-webhook/index.ts` | 25 | 0 |
+| `src/pages/admin/AdminPedidos.tsx` | 20 | 0 |
+| `src/pages/ContaPage.tsx` | 16 | 0 |
+| `src/pages/admin/AdminClientes.tsx` | 13 | 1 |
+| `src/pages/ProdutoPage.tsx` | 10 | 3 |
+| `src/pages/admin/AdminAssinaturas.tsx` | 12 | 1 |
+| `supabase/functions/_shared/subscriptions.ts` | 10 | 0 |
+| `src/pages/admin/AdminBanners.tsx` | 7 | 0 |
+| `src/pages/admin/AdminCollections.tsx` | 7 | 0 |
+| `supabase/functions/subscription-address/index.ts` | 7 | 0 |
+| `supabase/functions/subscriptions-reconcile/index.ts` | 6 | 0 |
+| `src/components/home/CollectionsSection.tsx` | 5 | 0 |
+| `src/hooks/useProdutos.ts` | 5 | 0 |
+| `src/pages/CompararPage.tsx` | 4 | 1 |
+| `src/pages/QuizPage.tsx` | 5 | 0 |
+| `src/pages/admin/AdminCupons.tsx` | 5 | 0 |
+| `supabase/functions/subscription-admin/index.ts` | 5 | 0 |
+| `src/pages/AssinaturaPage.tsx` | 4 | 0 |
+| `src/pages/admin/AdminBlog.tsx` | 4 | 0 |
+| `src/pages/admin/AdminCategorias.tsx` | 4 | 0 |
+| `src/pages/admin/AdminDashboard.tsx` | 4 | 0 |
+| `supabase/functions/create-subscription-checkout/index.ts` | 4 | 0 |
+| `supabase/functions/process-restock-notifications/index.ts` | 4 | 0 |
+| `src/components/layout/Header.tsx` | 3 | 0 |
+| `src/contexts/CartContext.tsx` | 2 | 1 |
+| `supabase/functions/send-email/index.ts` | 3 | 0 |
+| `src/components/product/ProductReviews.tsx` | 2 | 0 |
+| `src/components/product/ShippingCalculator.tsx` | 2 | 0 |
+| `src/components/subscription/AddressForm.tsx` | 0 | 2 |
+| `src/pages/FavoritosPage.tsx` | 2 | 0 |
+| `supabase/functions/order-track/index.ts` | 2 | 0 |
+| `supabase/functions/send-review-requests/index.ts` | 2 | 0 |
+| `supabase/functions/subscription-status/index.ts` | 2 | 0 |
+| `src/components/SEOHead.tsx` | 1 | 0 |
+| `src/components/admin/AddressDisplay.tsx` | 1 | 0 |
+| `src/components/admin/AdminLayout.tsx` | 1 | 0 |
+| `src/components/cart/CrossSellProducts.tsx` | 0 | 1 |
+| `src/components/home/DynamicBanners.tsx` | 1 | 0 |
+| `src/components/layout/CookieBanner.tsx` | 1 | 0 |
+| `src/components/layout/PWAInstallPrompt.tsx` | 1 | 0 |
+| `src/components/product/ProductGallery.tsx` | 1 | 0 |
+| `src/components/product/PromotionCountdown.tsx` | 0 | 1 |
+| `src/components/product/SocialProofToast.tsx` | 1 | 0 |
+| `src/components/ui/badge.tsx` | 0 | 1 |
+| `src/components/ui/button.tsx` | 0 | 1 |
+| `src/components/ui/command.tsx` | 1 | 0 |
+| `src/components/ui/form.tsx` | 0 | 1 |
+| `src/components/ui/navigation-menu.tsx` | 0 | 1 |
+| `src/components/ui/optimized-image.tsx` | 0 | 1 |
+| `src/components/ui/sidebar.tsx` | 0 | 1 |
+| `src/components/ui/sonner.tsx` | 0 | 1 |
+| `src/components/ui/textarea.tsx` | 1 | 0 |
+| `src/components/ui/toggle.tsx` | 0 | 1 |
+| `src/contexts/CompareContext.tsx` | 0 | 1 |
+| `src/lib/analytics.ts` | 1 | 0 |
+| `src/lib/businessDays.ts` | 1 | 0 |
+| `src/pages/AssinaturaSucessoPage.tsx` | 1 | 0 |
+| `src/pages/BlogPage.tsx` | 1 | 0 |
+| `src/pages/InstitucionalPages.tsx` | 1 | 0 |
+| `src/pages/NewsletterConfirmPage.tsx` | 1 | 0 |
+| `src/pages/PagamentoSucessoPage.tsx` | 1 | 0 |
+| `src/pages/RastreioPage.tsx` | 1 | 0 |
+| `src/pages/admin/AdminFreteGratis.tsx` | 1 | 0 |
+| `supabase/functions/_shared/rateLimit.ts` | 1 | 0 |
+| `supabase/functions/abandoned-cart-recovery/index.ts` | 1 | 0 |
+| `supabase/functions/newsletter-confirm/index.ts` | 1 | 0 |
+| `supabase/functions/newsletter-subscribe/index.ts` | 1 | 0 |
+| `supabase/functions/order-ship/index.ts` | 1 | 0 |
+
+### Implantação
+`create-checkout-payment` reimplantada (somente tipagem; comportamento igual), SHA-256 da fonte `96a6fd6f…88cf5`. `calcular-frete` não reimplantada (aguarda decisão). Conta Stripe da chave configurada continua não confirmada.
+
+### Pendências
+- 8/6 advisories high de braces sem correção upstream (risco residual documentado acima).
+- Medição de bytes do JS inicial e build de produção: validação externa no CI.
