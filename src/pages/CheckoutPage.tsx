@@ -745,7 +745,7 @@ const CheckoutPage = () => {
 };
 
 /** Form fields for a chosen shipping option (price always from the latest quote). */
-export function freteSelection(opt: { id: string; name: string; company: string; price: number; delivery_time?: number | null; delivery_range?: { min: number; max: number } | null }) {
+function freteSelection(opt: { id: string; name: string; company: string; price: number; delivery_time?: number | null; delivery_range?: { min: number; max: number } | null }) {
   const fretePrazo = opt.delivery_range
     ? `${opt.delivery_range.min}-${opt.delivery_range.max} dias úteis`
     : opt.delivery_time ? `até ${opt.delivery_time} dias úteis` : "";
