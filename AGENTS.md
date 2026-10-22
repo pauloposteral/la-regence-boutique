@@ -7,3 +7,4 @@
 - Share checkout cent rounding and Pix discount subtraction between browser and Edge Functions so reviewed totals match gateway line totals exactly.
 - Keep catalog/product route modules lazy and prefetch their JS only on navigation intent; never eagerly warm secondary routes on page boot.
 - Resolve OAuth storage through a callback inside the guarded helper because browser storage getters themselves can throw.
+- Keep npm and Bun lock version sets equivalent; migrate Bun from the validated npm lock when version-qualified npm overrides are not honored by Bun, then verify frozen installation and npm ci. Retain only the text Bun lock to avoid an obsolete binary lock taking precedence.

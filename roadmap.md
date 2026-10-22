@@ -6,12 +6,14 @@
 - [x] Run unit tests, lint, preview build diagnostics and Chromium/WebKit checks; record evidence and limitations.
 - [x] Record diff and revision; no publication, backend price changes or manual Git state changes.
 - [ ] Complete Google consent/session and real Stripe payment validation: requires authorized provider interaction/test environment; no real payment performed.
-- [ ] Resolve existing lint debt (301 errors/20 warnings) and intermittent WebKit ratings request failure: outside this correction batch.
+- [ ] Resolve existing lint debt (304 errors/20 warnings): unchanged in this readiness batch; requires a separately scoped cleanup. Latest public-route WebKit smoke check passed.
 
 ## BAM-181 readiness — 2026-10-21
-- [ ] Audit full/production dependencies, compatible fixes, synchronize both locks and validate npm ci.
-- [ ] Reduce actual initial imports; preserve TV behavior and measure initial JS graph.
-- [ ] Reproduce storage getter and Pix rounding bugs; integrated mocked auth/checkout regression tests.
-- [ ] Full tests, lint, available types/build diagnostics, incognito Chromium/WebKit.
-- [ ] Read-only Stripe/webhook availability; no transactions or configuration changes.
-- [ ] Save readiness evidence, revision and blockers; no frontend publication or CI changes.
+- [x] Audit full/production dependencies, compatible fixes, synchronize both locks and validate npm ci.
+- [x] Reduce eager catalog/product/auth imports; preserve TV behavior. Initial production byte comparison remains unverified because harness build sizes are unavailable.
+- [x] Reproduce storage getter and Pix rounding bugs; integrated mocked auth/checkout regression tests.
+- [x] Full tests, lint, available build diagnostics, incognito Chromium/WebKit; record failed lint and unverified independent frontend typecheck.
+- [x] Read-only Stripe/webhook availability; live webhook enabled, dedicated test environment not established; no configuration changes.
+- [x] Save readiness evidence, revision and blockers; no frontend publication or CI changes.
+- [ ] Resolve remaining dependency advisories: fixes require unvalidated major migrations or have no reported compatible fix; no forced upgrades.
+- [ ] Measure production initial JS bytes and confirm independent frontend typecheck: harness exposes build OK, not a size/typecheck report; external CI validation required.
