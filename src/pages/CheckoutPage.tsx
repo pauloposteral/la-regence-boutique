@@ -223,10 +223,6 @@ const CheckoutPage = () => {
         setStep(2);
         return;
       }
-      if (false) await supabase.functions.invoke("create-checkout-payment", {
-        body: {
-        },
-      });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.url) {
