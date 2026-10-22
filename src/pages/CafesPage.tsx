@@ -1,4 +1,4 @@
-import { formatBRL } from "@/lib/money";
+import { formatBRL, safePixPrice } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -316,7 +316,7 @@ function CompareBar() {
 }
 
 function ProductCard({ produto, index, onQuickView }: { produto: Produto; index: number; onQuickView: () => void }) {
-  const pixPrice = (produto.preco_promocional ?? produto.preco) * 0.9;
+  const pixPrice = safePixPrice(produto.preco, produto.preco_promocional);
   const { addItem, openCart } = useCart();
   const { toggleCompare, isComparing } = useCompare();
   const comparing = isComparing(produto.id);

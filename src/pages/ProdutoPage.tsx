@@ -1,4 +1,4 @@
-import { formatBRL, variantPromo } from "@/lib/money";
+import { formatBRL, safePixPrice, variantPromo } from "@/lib/money";
 import { useState, useMemo, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -69,7 +69,7 @@ const ProdutoPage = () => {
   try { currentPromoPrice = produto ? variantPromo(produto.preco, produto.preco_promocional, currentPrice) : undefined; }
   catch { currentPromoPrice = NaN; }
   const effectivePrice = currentPromoPrice ?? currentPrice;
-  const pixPrice = effectivePrice * 0.9;
+  const pixPrice = safePixPrice(effectivePrice);
 
   const related = useMemo(() => {
     if (!produto) return [];

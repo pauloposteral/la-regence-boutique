@@ -287,3 +287,12 @@ Total do repositório: 304 erros/20 avisos → **263 erros/20 avisos em 69 arqui
 ### Pendências
 - 8/6 advisories high de braces sem correção upstream (risco residual documentado acima).
 - Medição de bytes do JS inicial e build de produção: validação externa no CI.
+
+## Fechamento de inconsistência Pix nas telas — 2026-10-22
+
+- `CoffeeCarousel`, `CollectionsSection`, `QuickViewModal`, `CafesPage`, `ProdutoPage` (alimenta `StickyAddToCart`) trocaram `* 0.9` por `safePixPrice` (mesma regra em centavos de `checkoutTotals`; dado inválido/carregando vira NaN → "Valor inválido", sem crash).
+- `CartDrawer` usa `cartPixTotal(subtotal, cupom)`: Pix sobre mercadoria após cupom, nunca frete. Descontos comerciais inalterados.
+- Testes de render reais (`src/components/pixDisplay.render.test.tsx`): QuickView 23,65 → "21,28 no Pix"; carrinho 23,65 → 21,28 e 100 − cupom 10 → 81,00; helper 0,05 → 0,04.
+- `tailwindcss-animate` usado só em `tailwind.config.ts` (build) → movido para devDependencies; locks sincronizados (bun migrado do npm), `npm ci` exit 0.
+- `npm audit` full: 8 high (braces/tailwind, visível); `--omit=dev`: **0** (antes 6 — eram trazidos pelo animate em dependencies, alcance real só build).
+- Vitest: **221 testes** passando; `tsc` exit 0; lint dos arquivos tocados sem problemas novos (legado inalterado: CollectionsSection 5, ProdutoPage 10+3).

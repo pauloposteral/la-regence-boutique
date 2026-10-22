@@ -41,6 +41,16 @@ export function pixPrice(base: unknown, promo?: unknown): number {
   return checkoutTotals(effectivePrice(base, promo), 0, 0, true).total;
 }
 
+/** Display-safe Pix price: same shared cent rule; invalid or loading data stays NaN ("Valor inválido"), never throws. */
+export function safePixPrice(base: unknown, promo?: unknown): number {
+  try { return pixPrice(base, promo); } catch { return NaN; }
+}
+
+/** Cart Pix total: 10% applies to merchandise after coupon, never to shipping. */
+export function cartPixTotal(subtotal: unknown, coupon: unknown): number {
+  try { return checkoutTotals(subtotal, coupon, 0, true).merchandiseTotal; } catch { return NaN; }
+}
+
 export function variantPromo(base: unknown, promo: unknown, variant: unknown): number | undefined {
   const price = moneyValue(base);
   const selected = moneyValue(variant);
