@@ -1,8 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
 import { requireAmount, allocateCheckoutCents, amountCents, checkoutTotals } from "../_shared/checkoutAmounts.ts";
+
+interface FreteGratisRegra { nome: string; uf: string | null; valor_minimo: number | string }
+interface FreteOpcao { id: string | number; name: string; price: string | number; error?: unknown; company?: { name?: string } | string }
+interface CheckoutItemInput { produtoId: string; varianteId?: string | null; quantidade: number; nome?: string; moagem?: string }
+interface ProdutoRow { id: string; nome: string; preco: number | string; preco_promocional: number | string | null; estoque: number; ativo: boolean; peso_padrao: number | string | null }
+interface VarianteRow { id: string; preco: number | string; estoque: number; ativo: boolean; produto_id: string; peso: number | string | null }
+interface ValidatedItem extends CheckoutItemInput { nome: string; unitPrice: number; pesoKg: number; lineSubtotal: number }
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,8 +22,7 @@ const FALLBACK_FRETE_GRATIS_MIN = 150; // usado apenas se a tabela regras_frete_
 const FRETE_FALLBACK = 19.90;
 
 async function isFreteGratisPorRegra(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient,
   subtotal: number,
   uf?: string,
 ): Promise<{ free: boolean; nome: string | null }> {
@@ -25,18 +31,18 @@ async function isFreteGratisPorRegra(
       .from("regras_frete_gratis")
       .select("nome, uf, valor_minimo")
       .eq("ativa", true);
-    const regras = Array.isArray(data) ? data : [];
+    const regras: FreteGratisRegra[] = Array.isArray(data) ? data : [];
     if (regras.length === 0) {
       const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
       return { free: ok, nome: ok ? "Frete grátis Brasil" : null };
     }
     const ufUp = (uf || "").toUpperCase();
     const aplicaveis = regras
-      .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
-        .filter((r: any) => subtotal >= requireAmount(r.valor_minimo))
-      .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
+      .filter((r) => !r.uf || r.uf.toUpperCase() === ufUp)
+        .filter((r) => subtotal >= requireAmount(r.valor_minimo))
+      .sort((a, b) => Number(a.valor_minimo) - Number(b.valor_minimo));
     if (aplicaveis.length > 0) {
-      return { free: true, nome: (aplicaveis[0] as { nome: string }).nome };
+      return { free: true, nome: aplicaveis[0].nome };
     }
     return { free: false, nome: null };
   } catch (e) {
@@ -60,7 +66,7 @@ function round2(n: number) {
 async function calcularFreteServidor(
   cepDestino: string,
   produtos: Array<{ preco: number; peso_kg: number; quantidade: number }>,
-): Promise<any[]> {
+): Promise<FreteOpcao[]> {
   const token = Deno.env.get("MELHOR_ENVIO_TOKEN");
   if (!token) return [];
   const meProducts = produtos.map((p, idx) => ({
@@ -91,8 +97,8 @@ async function calcularFreteServidor(
       console.error("[create-checkout] ME erro", res.status, await res.text());
       return [];
     }
-    const raw = await res.json();
-    return (Array.isArray(raw) ? raw : []).filter((s: any) => !s.error && s.price);
+    const raw: unknown = await res.json();
+    return (Array.isArray(raw) ? raw as FreteOpcao[] : []).filter((s) => !s.error && s.price);
   } catch (e) {
     console.error("[create-checkout] ME exception", e);
     return [];
@@ -117,7 +123,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const {
-      items,
+      items: rawItems,
       form,
       cupomCodigo,            // server validates the code, NOT the discount value
       metodoPagamento,
@@ -125,9 +131,10 @@ serve(async (req) => {
       idempotencyKey,
     } = body;
 
-    if (!Array.isArray(items) || items.length === 0) {
+    if (!Array.isArray(rawItems) || rawItems.length === 0) {
       throw new Error("Carrinho vazio");
     }
+    const items: CheckoutItemInput[] = rawItems;
     if (!form?.email) {
       throw new Error("E-mail é obrigatório");
     }
@@ -147,8 +154,8 @@ serve(async (req) => {
     }
 
     // === 1. Fetch authoritative prices from DB ===
-    const produtoIds = [...new Set(items.map((i: any) => i.produtoId))];
-    const varianteIds = items.filter((i: any) => i.varianteId).map((i: any) => i.varianteId);
+    const produtoIds = [...new Set(items.map((i) => i.produtoId))];
+    const varianteIds = items.filter((i) => i.varianteId).map((i) => i.varianteId);
 
     const { data: produtos, error: prodErr } = await supabaseAdmin
       .from("produtos")
@@ -156,7 +163,7 @@ serve(async (req) => {
       .in("id", produtoIds);
     if (prodErr) throw prodErr;
 
-    let variantes: any[] = [];
+    let variantes: VarianteRow[] = [];
     if (varianteIds.length > 0) {
       const { data: v, error: varErr } = await supabaseAdmin
         .from("variantes")
@@ -166,12 +173,12 @@ serve(async (req) => {
       variantes = v || [];
     }
 
-    const prodMap = new Map((produtos || []).map((p: any) => [p.id, p]));
-    const varMap = new Map(variantes.map((v: any) => [v.id, v]));
+    const prodMap = new Map(((produtos || []) as ProdutoRow[]).map((p) => [p.id, p]));
+    const varMap = new Map(variantes.map((v) => [v.id, v]));
 
     // === 2. Recalculate subtotal + validate stock from server data ===
     let subtotal = 0;
-    const validatedItems: any[] = [];
+    const validatedItems: ValidatedItem[] = [];
 
     for (const item of items) {
       if (!Number.isSafeInteger(item.quantidade) || item.quantidade <= 0) throw new Error("Quantidade inválida");
@@ -283,7 +290,7 @@ serve(async (req) => {
       const cepDestino = (form?.cep || "").replace(/\D/g, "");
       if (cepDestino.length !== 8) throw new Error("CEP inválido");
 
-      const produtosParaFrete = validatedItems.map((i: any) => ({
+      const produtosParaFrete = validatedItems.map((i) => ({
         preco: i.unitPrice,
         peso_kg: i.pesoKg,
         quantidade: i.quantidade,
@@ -295,13 +302,13 @@ serve(async (req) => {
         freteNomeServico = "Envio padrão";
       } else {
         const escolhido = freteServicoId
-          ? opcoes.find((o: any) => String(o.id) === String(freteServicoId))
+          ? opcoes.find((o) => String(o.id) === String(freteServicoId))
           : null;
         const selecionado = escolhido || opcoes.sort(
-          (a: any, b: any) => Number(a.price) - Number(b.price)
+          (a, b) => Number(a.price) - Number(b.price)
         )[0];
         custoFrete = round2(requireAmount(selecionado.price));
-        freteNomeServico = `${selecionado.company?.name || selecionado.company || ""} · ${selecionado.name}`.trim();
+        freteNomeServico = `${typeof selecionado.company === "string" ? selecionado.company : selecionado.company?.name || ""} · ${selecionado.name}`.trim();
       }
     }
 
@@ -335,7 +342,7 @@ serve(async (req) => {
       .single();
     if (pedidoError) throw pedidoError;
 
-    const itensInsert = validatedItems.map((item: any) => ({
+    const itensInsert = validatedItems.map((item) => ({
       pedido_id: pedido.id,
       produto_id: item.produtoId,
       variante_id: item.varianteId || null,
@@ -353,7 +360,7 @@ serve(async (req) => {
     });
 
     const allocatedCents = allocateCheckoutCents(validatedItems, subtotalAposDescontos);
-    const lineItems = validatedItems.map((item: any, index: number) => {
+    const lineItems = validatedItems.map((item, index: number) => {
       return {
         price_data: {
           currency: "brl",
@@ -386,7 +393,7 @@ serve(async (req) => {
       /^http:\/\/localhost(:\d+)?$/.test(reqOrigin);
     const origin = allowedOrigin ? reqOrigin : FALLBACK_ORIGIN;
 
-    const sessionConfig: any = {
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/pagamento-sucesso?pedido=${pedido.id}`,
@@ -416,9 +423,10 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Checkout error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? "Erro no checkout";
+    return new Response(JSON.stringify({ error: message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });

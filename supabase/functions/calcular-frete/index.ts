@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.2";
 import { requireAmount, amountCents } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
@@ -25,6 +25,11 @@ type IncomingItem = {
   preco?: number;
 };
 
+interface FreteGratisRegra { nome: string; uf: string | null; valor_minimo: number | string }
+interface ProdutoFreteRow { id: string; preco: number | string; preco_promocional: number | string | null; peso_padrao: number | string | null }
+interface VarianteFreteRow { id: string; preco: number | string; peso: number | string | null; produto_id: string }
+interface MEService { id: string | number; name: string; price: string | number; error?: unknown; delivery_time?: number | string; delivery_range?: unknown; company?: { name?: string; picture?: string } }
+
 type MEProduct = {
   id: string;
   width: number;
@@ -40,8 +45,7 @@ function onlyDigits(s: string): string {
 }
 
 async function evaluateFreeShipping(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient,
   subtotal: number,
   uf?: string,
 ): Promise<{ free: boolean; regra: { nome: string; uf: string | null; valor_minimo: number } | null }> {
@@ -51,7 +55,7 @@ async function evaluateFreeShipping(
       .select("nome, uf, valor_minimo, prioridade")
       .eq("ativa", true)
       .order("prioridade", { ascending: true });
-    const regras = Array.isArray(data) ? data : [];
+    const regras: FreteGratisRegra[] = Array.isArray(data) ? data : [];
     if (regras.length === 0) {
       const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
       return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: FALLBACK_FRETE_GRATIS_MIN } : null };
@@ -59,11 +63,11 @@ async function evaluateFreeShipping(
     const ufUp = (uf || "").toUpperCase();
     // Ordena: regras aplicáveis com menor valor mínimo primeiro
     const aplicaveis = regras
-      .filter((r: any) => !r.uf || r.uf.toUpperCase() === ufUp)
-      .filter((r: any) => subtotal >= requireAmount(r.valor_minimo))
-      .sort((a: any, b: any) => Number(a.valor_minimo) - Number(b.valor_minimo));
+      .filter((r) => !r.uf || r.uf.toUpperCase() === ufUp)
+      .filter((r) => subtotal >= requireAmount(r.valor_minimo))
+      .sort((a, b) => Number(a.valor_minimo) - Number(b.valor_minimo));
     if (aplicaveis.length > 0) {
-      const r: any = aplicaveis[0];
+      const r = aplicaveis[0];
       return { free: true, regra: { nome: r.nome, uf: r.uf, valor_minimo: Number(r.valor_minimo) } };
     }
     return { free: false, regra: null };
@@ -110,7 +114,7 @@ serve(async (req) => {
         .select("id, preco, preco_promocional, peso_padrao")
         .in("id", produtoIds);
 
-      let variantes: any[] = [];
+      let variantes: VarianteFreteRow[] = [];
       if (varianteIds.length > 0) {
         const { data: v } = await supabaseAdmin
           .from("variantes")
@@ -119,12 +123,12 @@ serve(async (req) => {
         variantes = v || [];
       }
 
-      const prodMap = new Map((produtos || []).map((p: any) => [p.id, p]));
-      const varMap = new Map(variantes.map((v: any) => [v.id, v]));
+      const prodMap = new Map(((produtos || []) as ProdutoFreteRow[]).map((p) => [p.id, p]));
+      const varMap = new Map(variantes.map((v) => [v.id, v]));
 
       items.forEach((item, idx) => {
         if (!Number.isSafeInteger(item.quantidade) || item.quantidade <= 0) throw new Error("Quantidade inválida");
-        const p: any = item.produtoId ? prodMap.get(item.produtoId) : null;
+        const p = item.produtoId ? prodMap.get(item.produtoId) : null;
         if (!p) throw new Error("Produto indisponível");
         let pesoKg = Number(p.peso_padrao) || PESO_PADRAO_KG;
         const basePrice = requireAmount(p.preco);
@@ -132,7 +136,7 @@ serve(async (req) => {
         if (basePrice <= 0 || (offerPrice != null && offerPrice > basePrice)) throw new Error("Preço inválido");
         let preco = offerPrice ?? basePrice;
         if (item.varianteId) {
-          const v: any = varMap.get(item.varianteId);
+          const v = varMap.get(item.varianteId);
           if (!v || v.produto_id !== p.id) throw new Error("Variante indisponível");
           if (v) {
             if (v.peso) pesoKg = Number(v.peso);
@@ -197,13 +201,13 @@ serve(async (req) => {
       );
     }
 
-    const raw = await meRes.json();
-    const services = (Array.isArray(raw) ? raw : []).filter((s: any) => !s.error && s.price);
+    const raw: unknown = await meRes.json();
+    const services = (Array.isArray(raw) ? raw as MEService[] : []).filter((s) => !s.error && s.price);
 
     // Free shipping rules (dinâmicas via tabela regras_frete_gratis)
     const { free: isFreeShipping, regra: regraFrete } = await evaluateFreeShipping(supabaseAdmin, subtotalEfetivo, uf);
 
-    const options = services.map((s: any) => {
+    const options = services.map((s) => {
       const originalPrice = requireAmount(s.price);
       return {
         id: String(s.id),
@@ -233,10 +237,10 @@ serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[calcular-frete] erro", err);
     return new Response(
-      JSON.stringify({ error: err.message || "Erro ao calcular frete" }),
+      JSON.stringify({ error: (err instanceof Error && err.message) || "Erro ao calcular frete" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

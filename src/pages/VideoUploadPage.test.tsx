@@ -11,7 +11,7 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc } }));
 vi.mock("@/hooks/useTVVideos", () => ({ useTVVideos: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }) }));
 
 function mount() {
-  return render(<HelmetProvider><QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/video/enviar"]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><Routes><Route path="/video/enviar" element={<VideoUploadPage />} /><Route path="/auth" element={<p>Login necessário</p>} /></Routes></MemoryRouter></QueryClientProvider></HelmetProvider>);
+  return render(<HelmetProvider><QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/video/enviar"]}><Routes><Route path="/video/enviar" element={<VideoUploadPage />} /><Route path="/auth" element={<p>Login necessário</p>} /></Routes></MemoryRouter></QueryClientProvider></HelmetProvider>);
 }
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
