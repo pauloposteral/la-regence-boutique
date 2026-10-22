@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "npm:stripe@18.5.0";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.2";
 import { checkRateLimit, callerKey } from "../_shared/rateLimit.ts";
-import { requireAmount, allocateCheckoutCents, amountCents, checkoutTotals } from "../_shared/checkoutAmounts.ts";
+import { requireAmount, allocateCheckoutCents, amountCents, checkoutTotals, pickFreeShippingRule } from "../_shared/checkoutAmounts.ts";
 
 interface FreteGratisRegra { nome: string; uf: string | null; valor_minimo: number | string }
 interface FreteOpcao { id: string | number; name: string; price: string | number; error?: unknown; company?: { name?: string } | string }
@@ -32,23 +32,12 @@ async function isFreteGratisPorRegra(
       .select("nome, uf, valor_minimo")
       .eq("ativa", true);
     const regras: FreteGratisRegra[] = Array.isArray(data) ? data : [];
-    if (regras.length === 0) {
-      const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
-      return { free: ok, nome: ok ? "Frete grátis Brasil" : null };
-    }
-    const ufUp = (uf || "").toUpperCase();
-    const aplicaveis = regras
-      .filter((r) => !r.uf || r.uf.toUpperCase() === ufUp)
-        .filter((r) => subtotal >= requireAmount(r.valor_minimo))
-      .sort((a, b) => Number(a.valor_minimo) - Number(b.valor_minimo));
-    if (aplicaveis.length > 0) {
-      return { free: true, nome: aplicaveis[0].nome };
-    }
-    return { free: false, nome: null };
+    const r = pickFreeShippingRule(regras, subtotal, uf, FALLBACK_FRETE_GRATIS_MIN);
+    return { free: r.free, nome: r.regra?.nome ?? null };
   } catch (e) {
     console.error("[create-checkout] isFreteGratisPorRegra erro", e);
-    const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
-    return { free: ok, nome: ok ? "Frete grátis Brasil" : null };
+    const r = pickFreeShippingRule([], subtotal, uf, FALLBACK_FRETE_GRATIS_MIN);
+    return { free: r.free, nome: r.regra?.nome ?? null };
   }
 }
 
@@ -129,6 +118,7 @@ serve(async (req) => {
       metodoPagamento,
       freteServicoId,         // id do serviço Melhor Envio escolhido
       idempotencyKey,
+      expectedTotal,          // client total: drift detection only, never used for charging
     } = body;
 
     if (!Array.isArray(rawItems) || rawItems.length === 0) {
@@ -232,27 +222,27 @@ serve(async (req) => {
 
     subtotal = round2(subtotal);
 
-    // === 3. Coupon — atomic redeem via SECURITY DEFINER function ===
+    // === 3. Coupon — read-only preview first (STABLE RPC, nothing reserved) ===
+    const reasonMap: Record<string, string> = {
+      invalido: "Cupom inválido",
+      expirado: "Cupom expirado",
+      esgotado: "Cupom esgotado",
+      valor_minimo: "Valor mínimo do cupom não atingido",
+    };
+    const codigoCupom = typeof cupomCodigo === "string" ? cupomCodigo.trim() : "";
     let cupomId: string | null = null;
     let desconto = 0;
-    if (cupomCodigo && typeof cupomCodigo === "string" && cupomCodigo.trim().length > 0) {
-      const { data: redeem, error: cupErr } = await supabaseAdmin.rpc("redeem_coupon", {
-        _codigo: cupomCodigo.trim(),
+    let cupomTipo: string | null = null;
+    if (codigoCupom.length > 0) {
+      const { data: preview, error: prevErr } = await supabaseAdmin.rpc("preview_coupon", {
+        _codigo: codigoCupom,
         _subtotal: subtotal,
       });
-      if (cupErr) throw cupErr;
-      const r = Array.isArray(redeem) ? redeem[0] : redeem;
-      if (!r || r.motivo !== "ok") {
-        const reasonMap: Record<string, string> = {
-          invalido: "Cupom inválido",
-          expirado: "Cupom expirado",
-          esgotado: "Cupom esgotado",
-          valor_minimo: "Valor mínimo do cupom não atingido",
-        };
-        throw new Error(reasonMap[r?.motivo] || "Cupom inválido");
-      }
-      cupomId = r.cupom_id;
-      desconto = requireAmount(r.desconto);
+      if (prevErr) throw prevErr;
+      const p = Array.isArray(preview) ? preview[0] : preview;
+      if (!p || p.motivo !== "ok") throw new Error(reasonMap[p?.motivo] || "Cupom inválido");
+      cupomTipo = (p.tipo as string) || "desconto";
+      desconto = cupomTipo === "frete_gratis" ? 0 : requireAmount(p.desconto);
       if (desconto > subtotal) throw new Error("Desconto inválido");
     }
 
@@ -262,16 +252,6 @@ serve(async (req) => {
     const pixDescontoValor = discounted.pixDiscount;
     const subtotalAposDescontos = discounted.merchandiseTotal;
 
-    // === 3.b Coupon type ("desconto" | "frete_gratis") ===
-    let cupomTipo: string | null = null;
-    if (cupomId) {
-      const { data: cupRow } = await supabaseAdmin
-        .from("cupons")
-        .select("tipo")
-        .eq("id", cupomId)
-        .maybeSingle();
-      cupomTipo = (cupRow?.tipo as string) || "desconto";
-    }
     const cupomZeraFrete = cupomTipo === "frete_gratis";
 
     // === 5. Server-side shipping — revalidate with Melhor Envio ===
@@ -313,6 +293,32 @@ serve(async (req) => {
     }
 
     const total = checkoutTotals(subtotal, desconto, custoFrete, isPix).total;
+
+    // === 5.b Drift check BEFORE consuming the coupon or creating order/session ===
+    if (expectedTotal != null && amountCents(expectedTotal) !== amountCents(total)) {
+      return new Response(
+        JSON.stringify({
+          error: "O total foi recalculado. Revise frete e valores antes de pagar.",
+          code: "total_drift",
+          validated: { subtotal, desconto, pixDesconto: pixDescontoValor, frete: custoFrete, total },
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // === 5.c Atomic coupon redeem — only now, right before creating the order ===
+    if (codigoCupom.length > 0) {
+      const { data: redeem, error: cupErr } = await supabaseAdmin.rpc("redeem_coupon", {
+        _codigo: codigoCupom,
+        _subtotal: subtotal,
+      });
+      if (cupErr) throw cupErr;
+      const r = Array.isArray(redeem) ? redeem[0] : redeem;
+      if (!r || r.motivo !== "ok") throw new Error(reasonMap[r?.motivo] || "Cupom inválido");
+      const redeemed = cupomTipo === "frete_gratis" ? 0 : requireAmount(r.desconto);
+      if (amountCents(redeemed) !== amountCents(desconto)) throw new Error("Cupom alterado durante o checkout. Tente novamente.");
+      cupomId = r.cupom_id;
+    }
 
     // === 6. Create order with server-validated values ===
     const { data: pedido, error: pedidoError } = await supabaseAdmin

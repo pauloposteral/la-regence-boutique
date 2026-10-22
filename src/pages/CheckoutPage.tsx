@@ -54,6 +54,13 @@ const CheckoutPage = () => {
   const [freteLoading, setFreteLoading] = useState(false);
   const [freteErr, setFreteErr] = useState("");
   const [freteGratisFlag, setFreteGratisFlag] = useState(false);
+  // Inputs that the shipping quote depends on; a quote is valid only for the exact key it was computed with.
+  const freteQuoteKey = JSON.stringify([
+    form.cep.replace(/\D/g, ""), form.estado, cupom || "", form.metodoPagamento,
+    items.map((i) => [i.produtoId, i.varianteId || null, i.quantidade]),
+  ]);
+  const [freteQuotedKey, setFreteQuotedKey] = useState<string | null>(null);
+  const freteQuoteFresh = !freteLoading && freteQuotedKey === freteQuoteKey;
 
   const freteZeradoPorCupom = cupomTipo === "frete_gratis";
   const custoFrete = freteZeradoPorCupom ? 0 : form.fretePreco;
@@ -100,6 +107,10 @@ const CheckoutPage = () => {
         return;
       }
     }
+    if (step >= 2 && !freteQuoteFresh) {
+      toast.error(freteLoading ? "Aguarde o cálculo do frete" : "Recalcule o frete antes de continuar");
+      return;
+    }
     if (step === 2 && !form.frete) {
       toast.error("Selecione uma opção de envio");
       return;
@@ -110,16 +121,17 @@ const CheckoutPage = () => {
 
   const prevStep = () => { if (step > 0) setStep(step - 1); };
 
-  // Fetch Melhor Envio quotes when reaching step 2
+  // Fetch Melhor Envio quotes from step 2 on; re-quote whenever address, items, coupon or payment method change
   useEffect(() => {
-    if (step !== 2) return;
+    if (step < 2) return;
     const cepDigits = form.cep.replace(/\D/g, "");
     if (cepDigits.length !== 8 || items.length === 0) return;
 
     let cancelled = false;
+    const quoteKey = freteQuoteKey;
     setFreteLoading(true);
     setFreteErr("");
-    setFreteOpts([]);
+    setFreteQuotedKey(null);
 
     (async () => {
       try {
@@ -128,6 +140,8 @@ const CheckoutPage = () => {
             cep_destino: cepDigits,
             estado: form.estado,
             subtotal,
+            cupom_codigo: cupom || null,
+            metodo_pagamento: form.metodoPagamento,
             items: items.map((i) => ({
               produtoId: i.produtoId,
               varianteId: i.varianteId || null,
@@ -145,23 +159,13 @@ const CheckoutPage = () => {
         });
         setFreteOpts(opts);
         setFreteGratisFlag(!!data?.free_shipping);
-        // Auto-select cheapest if none chosen yet
-        if (opts.length > 0 && !form.frete) {
-          const first = opts[0];
-          const prazoTxt = first.delivery_range
-            ? `${first.delivery_range.min}-${first.delivery_range.max} dias úteis`
-            : first.delivery_time
-            ? `até ${first.delivery_time} dias úteis`
-            : "";
-          setForm((prev) => ({
-            ...prev,
-            frete: first.id,
-            freteNome: first.name,
-            freteCompany: first.company,
-            fretePreco: first.price,
-            fretePrazo: prazoTxt,
-          }));
-        }
+        // Keep the chosen service if it is still offered (with its NEW price); otherwise pick the cheapest.
+        setForm((prev) => {
+          const chosen = (prev.frete && opts.find((o) => String(o.id) === String(prev.frete))) || opts[0];
+          if (!chosen) return { ...prev, frete: "", freteNome: "", freteCompany: "", fretePreco: 0, fretePrazo: "" };
+          return { ...prev, ...freteSelection(chosen) };
+        });
+        setFreteQuotedKey(quoteKey);
       } catch (e: unknown) {
         if (cancelled) return;
         console.error(e);
@@ -173,11 +177,12 @@ const CheckoutPage = () => {
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, form.cep, form.estado, items.length, subtotal]);
+  }, [step, freteQuoteKey, subtotal]);
 
   const finalizarPedido = async () => {
     if (!amountsValid) { toast.error("Valores inválidos. Revise o carrinho antes de pagar."); return; }
     if (submitting) return; // Prevent double-submit
+    if (!freteQuoteFresh || !form.frete) { toast.error("Aguarde o frete atualizado antes de pagar."); return; }
     setSubmitting(true);
     const idempotencyKey = crypto.randomUUID();
     try {
@@ -208,8 +213,16 @@ const CheckoutPage = () => {
           metodoPagamento: form.metodoPagamento,
           freteServicoId: form.frete,
           idempotencyKey,
+          expectedTotal: total, // drift detection only; server computes the charge
         },
       });
+      const drift = await readTotalDrift(error);
+      if (drift != null) {
+        toast.error(`O total confirmado é ${formatBRL(drift)}. Revise valores e frete antes de pagar.`);
+        setFreteQuotedKey(null);
+        setStep(2);
+        return;
+      }
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.url) {
@@ -730,6 +743,24 @@ const CheckoutPage = () => {
     </Layout>
   );
 };
+
+/** Form fields for a chosen shipping option (price always from the latest quote). */
+function freteSelection(opt: { id: string; name: string; company: string; price: number; delivery_time?: number | null; delivery_range?: { min: number; max: number } | null }) {
+  const fretePrazo = opt.delivery_range
+    ? `${opt.delivery_range.min}-${opt.delivery_range.max} dias úteis`
+    : opt.delivery_time ? `até ${opt.delivery_time} dias úteis` : "";
+  return { frete: opt.id, freteNome: opt.name, freteCompany: opt.company, fretePreco: opt.price, fretePrazo };
+}
+
+/** Reads the server's 409 total_drift response (thrown by functions.invoke as an HTTP error). */
+async function readTotalDrift(error: unknown): Promise<number | null> {
+  const ctx = (error as { context?: { status?: number; json?: () => Promise<unknown> } } | null)?.context;
+  if (!ctx || ctx.status !== 409 || typeof ctx.json !== "function") return null;
+  try {
+    const body = (await ctx.json()) as { code?: string; validated?: { total?: unknown } };
+    return body.code === "total_drift" ? moneyValue(body.validated?.total) : null;
+  } catch { return null; }
+}
 
 interface FreteOption {
   id: string;

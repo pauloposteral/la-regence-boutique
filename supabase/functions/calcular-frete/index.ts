@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.2";
-import { requireAmount, amountCents } from "../_shared/checkoutAmounts.ts";
+import { requireAmount, amountCents, pickFreeShippingRule, freeShippingBase } from "../_shared/checkoutAmounts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,7 +46,7 @@ function onlyDigits(s: string): string {
 
 async function evaluateFreeShipping(
   supabase: SupabaseClient,
-  subtotal: number,
+  base: number,
   uf?: string,
 ): Promise<{ free: boolean; regra: { nome: string; uf: string | null; valor_minimo: number } | null }> {
   try {
@@ -56,26 +56,20 @@ async function evaluateFreeShipping(
       .eq("ativa", true)
       .order("prioridade", { ascending: true });
     const regras: FreteGratisRegra[] = Array.isArray(data) ? data : [];
-    if (regras.length === 0) {
-      const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
-      return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: FALLBACK_FRETE_GRATIS_MIN } : null };
-    }
-    const ufUp = (uf || "").toUpperCase();
-    // Ordena: regras aplicáveis com menor valor mínimo primeiro
-    const aplicaveis = regras
-      .filter((r) => !r.uf || r.uf.toUpperCase() === ufUp)
-      .filter((r) => subtotal >= requireAmount(r.valor_minimo))
-      .sort((a, b) => Number(a.valor_minimo) - Number(b.valor_minimo));
-    if (aplicaveis.length > 0) {
-      const r = aplicaveis[0];
-      return { free: true, regra: { nome: r.nome, uf: r.uf, valor_minimo: Number(r.valor_minimo) } };
-    }
-    return { free: false, regra: null };
+    return pickFreeShippingRule(regras, base, uf, FALLBACK_FRETE_GRATIS_MIN);
   } catch (e) {
     console.error("[calcular-frete] evaluateFreeShipping erro", e);
-    const ok = subtotal >= FALLBACK_FRETE_GRATIS_MIN;
-    return { free: ok, regra: ok ? { nome: "Frete grátis Brasil", uf: null, valor_minimo: FALLBACK_FRETE_GRATIS_MIN } : null };
+    return pickFreeShippingRule([], base, uf, FALLBACK_FRETE_GRATIS_MIN);
   }
+}
+
+/** Read-only coupon preview (STABLE RPC): never reserves or consumes the coupon. */
+async function previewCoupon(supabase: SupabaseClient, codigo: string, subtotal: number) {
+  const { data, error } = await supabase.rpc("preview_coupon", { _codigo: codigo, _subtotal: subtotal });
+  if (error) throw error;
+  const r = Array.isArray(data) ? data[0] : data;
+  if (!r || r.motivo !== "ok") return { valid: false, desconto: 0, tipo: null as string | null, motivo: r?.motivo ?? "invalido" };
+  return { valid: true, desconto: r.tipo === "frete_gratis" ? 0 : requireAmount(r.desconto), tipo: (r.tipo as string) || "desconto", motivo: "ok" };
 }
 
 serve(async (req) => {
@@ -95,6 +89,8 @@ serve(async (req) => {
     const uf: string | undefined = body.estado;
     const items: IncomingItem[] = Array.isArray(body.items) ? body.items : [];
     const subtotalCliente = body.subtotal == null ? 0 : requireAmount(body.subtotal);
+    const cupomCodigo: string = typeof body.cupom_codigo === "string" ? body.cupom_codigo.trim() : "";
+    const isPix = body.metodo_pagamento === "pix";
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -205,7 +201,15 @@ serve(async (req) => {
     const services = (Array.isArray(raw) ? raw as MEService[] : []).filter((s) => !s.error && s.price);
 
     // Free shipping rules (dinâmicas via tabela regras_frete_gratis)
-    const { free: isFreeShipping, regra: regraFrete } = await evaluateFreeShipping(supabaseAdmin, subtotalEfetivo, uf);
+    // Same policy as create-checkout-payment: base = merchandise after coupon and Pix.
+    let cupomInfo: Awaited<ReturnType<typeof previewCoupon>> | null = null;
+    if (cupomCodigo) cupomInfo = await previewCoupon(supabaseAdmin, cupomCodigo, subtotalEfetivo);
+    const descontoCupom = cupomInfo?.valid ? cupomInfo.desconto : 0;
+    const baseFreteGratis = freeShippingBase(subtotalEfetivo, descontoCupom, isPix);
+    const regraResult = await evaluateFreeShipping(supabaseAdmin, baseFreteGratis, uf);
+    const cupomZeraFrete = cupomInfo?.valid === true && cupomInfo.tipo === "frete_gratis";
+    const isFreeShipping = regraResult.free || cupomZeraFrete;
+    const regraFrete = regraResult.regra;
 
     const options = services.map((s) => {
       const originalPrice = requireAmount(s.price);
@@ -231,8 +235,11 @@ serve(async (req) => {
         cep_destino: cepDestino,
         subtotal: subtotalEfetivo,
         free_shipping: isFreeShipping,
-        free_shipping_reason: regraFrete?.nome || null,
+        free_shipping_reason: cupomZeraFrete ? `Cupom ${cupomCodigo}` : regraFrete?.nome || null,
         free_shipping_rule: regraFrete,
+        free_shipping_base: baseFreteGratis,
+        coupon: cupomInfo ? { valid: cupomInfo.valid, motivo: cupomInfo.motivo, tipo: cupomInfo.tipo, desconto: descontoCupom } : null,
+        payment_method: isPix ? "pix" : "card",
         options,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
