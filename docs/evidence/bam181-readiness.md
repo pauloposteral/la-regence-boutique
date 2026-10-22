@@ -296,3 +296,13 @@ Total do repositório: 304 erros/20 avisos → **263 erros/20 avisos em 69 arqui
 - `tailwindcss-animate` usado só em `tailwind.config.ts` (build) → movido para devDependencies; locks sincronizados (bun migrado do npm), `npm ci` exit 0.
 - `npm audit` full: 8 high (braces/tailwind, visível); `--omit=dev`: **0** (antes 6 — eram trazidos pelo animate em dependencies, alcance real só build).
 - Vitest: **221 testes** passando; `tsc` exit 0; lint dos arquivos tocados sem problemas novos (legado inalterado: CollectionsSection 5, ProdutoPage 10+3).
+
+## Alinhamento frete grátis cotação ↔ checkout — 2026-10-22
+
+- Política única `pickFreeShippingRule` + `freeShippingBase` em `_shared/checkoutAmounts.ts` (mesmos limiares/regras/fallback 150; nenhum dado comercial alterado). Base = mercadoria após cupom e Pix nas duas funções.
+- `calcular-frete` recebe `cupom_codigo` e `metodo_pagamento`; valida cupom no servidor só com `preview_coupon` (STABLE, somente leitura) — nunca `redeem_coupon` ao cotar.
+- `create-checkout-payment`: cupom pré-visualizado (leitura) → frete → total → se `expectedTotal` do cliente divergir, **409 `total_drift` antes de consumir cupom, criar pedido ou sessão Stripe** (o valor do cliente nunca determina cobrança) → só então `redeem_coupon` atômico, exigindo o mesmo desconto.
+- Checkout: cotação depende de CEP/UF/itens/cupom/método; troca de qualquer um recota; serviço escolhido permanece com o preço novo (ou o mais barato se não oferecido); avançar/pagar bloqueado com cotação velha ou em andamento; 409 volta ao passo de frete.
+- Testes (simulados, sem rede/pedido/cupom real): 159,60 cartão grátis / Pix 143,64 cobrado; cupom cruzando limiar; regra UF e fallback; Pix recota e mantém serviço com preço novo (`expectedTotal` 81,41); 409 sem redirecionamento; troca de CEP mantém/troca serviço.
+- Vitest **227 passando**; `tsc` exit 0; eslint dos arquivos tocados limpo; `deno check` exit 0.
+- Implantadas: `calcular-frete` `fc4c1109…cd45c`, `create-checkout-payment` `69c51b4c…10775`. Smoke: POSTs inválidos → 400 (`Valor monetário inválido`, `Carrinho vazio`). Frontend não publicado.
