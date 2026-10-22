@@ -73,4 +73,34 @@ describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
     await waitFor(() => expect(mocks.error).toHaveBeenCalledWith(expect.stringContaining("80,41")));
     expect(window.location.hash).toBe("");
   });
+
+  it("simulated: changing CEP re-quotes; chosen service survives with new price, or falls back to cheapest when no longer offered", async () => {
+    const quotes: Record<string, Array<{ id: string; price: number }>> = {
+      "01001000": [{ id: "a", price: 10 }, { id: "b", price: 20 }],
+      "20040002": [{ id: "b", price: 25 }, { id: "c", price: 5 }],
+      "30140071": [{ id: "c", price: 7 }],
+    };
+    mocks.invoke.mockImplementation(async (_n: string, opts: { body: { cep_destino: string } }) => ({
+      data: { options: (quotes[opts.body.cep_destino] || []).map((o) => ({ ...o, company: "Mock", name: o.id.toUpperCase(), free: false })) }, error: null }));
+    render(<MemoryRouter><CheckoutPage /></MemoryRouter>);
+    const fill = (id: string, value: string) => fireEvent.change(document.getElementById(id) as HTMLInputElement, { target: { value } });
+    const next = () => fireEvent.click(screen.getByRole("button", { name: /^Continuar$/i }));
+    fill("checkout-nome", "Simulated Customer"); fill("checkout-email", "mock@example.invalid"); next();
+    await waitFor(() => expect(document.getElementById("checkout-cep")).toBeTruthy());
+    for (const [id, value] of Object.entries({ cep: "01001000", logradouro: "Mock", numero: "1", bairro: "Mock", cidade: "Mock", estado: "SP" })) fill(`checkout-${id}`, value);
+    next();
+    fireEvent.click(await screen.findByRole("radio", { name: "Mock · B" }));
+    const back = async (cep: string) => {
+      fireEvent.click(screen.getByRole("button", { name: /Voltar/i }));
+      await waitFor(() => expect(document.getElementById("checkout-cep")).toBeTruthy());
+      fill("checkout-cep", cep); next();
+      await screen.findByRole("radio", { name: `Mock · ${quotes[cep][0].id.toUpperCase()}` });
+      await act(async () => { await Promise.resolve(); });
+    };
+    await back("20040002");
+    expect(screen.getByRole("radio", { name: "Mock · B" })).toBeChecked();
+    expect(screen.getAllByText(/25,00/).length).toBeGreaterThan(0);
+    await back("30140071");
+    expect(screen.getByRole("radio", { name: "Mock · C" })).toBeChecked();
+  });
 });
