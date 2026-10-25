@@ -1,5 +1,5 @@
 # La Régence — corrections, 2026-10-21
-- [ ] Refresh coupon from the read-only shipping quote after cart changes; reproduce and verify mocked checkout, no publication or transactions.
+- [x] Refresh coupon from the read-only shipping quote after cart changes; failing-first mocked checkout verified (100→200 and 100→50), 229 tests and incognito boot passed; no publication or transactions.
 - [x] Centralize BRL display; preserve existing database reais and Stripe cents boundary; expose invalid money.
 - [x] Correct promotional/Pix display, selected variant price and shipping presentation.
 - [x] Harden existing Google initiation, callback, loading/session and checkout return.
