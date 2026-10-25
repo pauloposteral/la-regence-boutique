@@ -33,7 +33,7 @@ const TRUST_BADGES = [
 ];
 
 const CheckoutPage = () => {
-  const { items, subtotal, desconto, cupom, cupomTipo, clearCart, validatePricesNow } = useCart();
+  const { items, subtotal, desconto, cupom, cupomTipo, setDesconto, setCupom, setCupomTipo, clearCart, validatePricesNow } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -56,7 +56,7 @@ const CheckoutPage = () => {
   const [freteGratisFlag, setFreteGratisFlag] = useState(false);
   // Inputs that the shipping quote depends on; a quote is valid only for the exact key it was computed with.
   const freteQuoteKey = JSON.stringify([
-    form.cep.replace(/\D/g, ""), form.estado, cupom || "", form.metodoPagamento,
+    form.cep.replace(/\D/g, ""), form.estado, cupom || "", form.metodoPagamento, subtotal,
     items.map((i) => [i.produtoId, i.varianteId || null, i.quantidade]),
   ]);
   const [freteQuotedKey, setFreteQuotedKey] = useState<string | null>(null);
@@ -157,6 +157,27 @@ const CheckoutPage = () => {
           if (price < 0 || (opt.free && price !== 0)) throw new Error("Frete inválido");
           return { ...opt, price };
         });
+        // The quote already previews the coupon against SERVER prices without consuming it.
+        // Refresh the shared cart discount before marking this quote ready for payment.
+        if (cupom) {
+          const coupon = data?.coupon;
+          if (!coupon || typeof coupon.valid !== "boolean") throw new Error("Cupom não validado na cotação");
+          if (coupon.valid) {
+            const discount = moneyValue(coupon.desconto);
+            if (discount < 0 || discount > subtotal || !["desconto", "frete_gratis"].includes(coupon.tipo)) {
+              throw new Error("Desconto inválido na cotação");
+            }
+            setDesconto(coupon.tipo === "frete_gratis" ? 0 : discount);
+            setCupomTipo(coupon.tipo);
+          } else {
+            setCupom(null);
+            setDesconto(0);
+            setCupomTipo(null);
+            toast.error("O cupom não é mais válido para este carrinho e foi removido.");
+            // Removing the code triggers a new quote with the current inputs.
+            return;
+          }
+        }
         setFreteOpts(opts);
         setFreteGratisFlag(!!data?.free_shipping);
         // Keep the chosen service if it is still offered (with its NEW price); otherwise pick the cheapest.
