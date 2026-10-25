@@ -50,16 +50,16 @@ describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
     mocks.validate.mockResolvedValue(false);
   });
   afterEach(() => { cleanup(); vi.restoreAllMocks(); });
-  it("simulated: coupon applied at 100 refreshes to 20 after cart grows to 200, then pays 180 without repeated drift", async () => {
+  it.each([[200, 20, 180], [50, 5, 45]])("simulated: coupon applied at 100 refreshes on cart change to %s without repeated drift", async (subtotal, discount, total) => {
     mocks.cart = { subtotal: 100, quantidade: 1, desconto: 10, cupom: "PRIMEIRACOMPRA10" };
     mocks.invoke.mockImplementation(async (name: string, opts: { body: { subtotal?: number; expectedTotal?: number } }) => {
       if (name === "calcular-frete") return { data: {
         coupon: { valid: true, motivo: "ok", tipo: "desconto", desconto: (opts.body.subtotal ?? 0) / 10 },
         options: [{ id: "mock", company: "Mock", name: "Shipping", price: 0, free: true }],
       }, error: null };
-      return opts.body.expectedTotal === 180
-        ? { data: { url: "#simulated-gateway", validated: { total: 180 } }, error: null }
-        : { data: null, error: { context: { status: 409, json: async () => ({ code: "total_drift", validated: { total: 180 } }) } } };
+      return opts.body.expectedTotal === total
+        ? { data: { url: "#simulated-gateway", validated: { total } }, error: null }
+        : { data: null, error: { context: { status: 409, json: async () => ({ code: "total_drift", validated: { total } }) } } };
     });
     const view = render(<MemoryRouter><CheckoutPage /></MemoryRouter>);
     const fill = (id: string, value: string) => fireEvent.change(document.getElementById(id) as HTMLInputElement, { target: { value } });
@@ -70,16 +70,17 @@ describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
     next();
     await screen.findByRole("radio", { name: "Mock · Shipping" });
     await act(async () => { await Promise.resolve(); });
-    mocks.cart.subtotal = 200; mocks.cart.quantidade = 2;
+    mocks.cart.subtotal = subtotal; mocks.cart.quantidade = 2;
     view.rerender(<MemoryRouter><CheckoutPage /></MemoryRouter>);
-    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("calcular-frete", expect.objectContaining({ body: expect.objectContaining({ subtotal: 200 }) })));
+    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("calcular-frete", expect.objectContaining({ body: expect.objectContaining({ subtotal }) })));
     await act(async () => { await Promise.resolve(); });
+    expect(screen.getAllByText(new RegExp(`${discount},00`)).length).toBeGreaterThan(0);
     next();
     await screen.findByRole("radio", { name: /Cartão/i });
     await act(async () => { await Promise.resolve(); });
     next();
     fireEvent.click(await screen.findByRole("button", { name: /Confirmar e Pagar/i }));
-    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("create-checkout-payment", expect.objectContaining({ body: expect.objectContaining({ expectedTotal: 180 }) })));
+    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("create-checkout-payment", expect.objectContaining({ body: expect.objectContaining({ expectedTotal: total }) })));
     await waitFor(() => expect(window.location.hash).toBe("#simulated-gateway"));
   });
   it.each([[62.91, true], [62.92, false]])("accepts exact cents only: gateway total %s", async (total, accepted) => {
