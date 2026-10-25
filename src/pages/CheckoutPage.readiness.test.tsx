@@ -74,7 +74,10 @@ describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
     view.rerender(<MemoryRouter><CheckoutPage /></MemoryRouter>);
     await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("calcular-frete", expect.objectContaining({ body: expect.objectContaining({ subtotal: 200 }) })));
     await act(async () => { await Promise.resolve(); });
-    next(); next();
+    next();
+    await screen.findByRole("radio", { name: /Cartão/i });
+    await act(async () => { await Promise.resolve(); });
+    next();
     fireEvent.click(await screen.findByRole("button", { name: /Confirmar e Pagar/i }));
     await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("create-checkout-payment", expect.objectContaining({ body: expect.objectContaining({ expectedTotal: 180 }) })));
     await waitFor(() => expect(window.location.hash).toBe("#simulated-gateway"));
