@@ -306,3 +306,12 @@ Total do repositório: 304 erros/20 avisos → **263 erros/20 avisos em 69 arqui
 - Testes (simulados, sem rede/pedido/cupom real): 159,60 cartão grátis / Pix 143,64 cobrado; cupom cruzando limiar; regra UF e fallback; Pix recota e mantém serviço com preço novo (`expectedTotal` 81,41); 409 sem redirecionamento; troca de CEP mantém/troca serviço.
 - Vitest **227 passando**; `tsc` exit 0; eslint dos arquivos tocados limpo; `deno check` exit 0.
 - Implantadas: `calcular-frete` `fc4c1109…cd45c`, `create-checkout-payment` `69c51b4c…10775`. Smoke: POSTs inválidos → 400 (`Valor monetário inválido`, `Carrinho vazio`). Frontend não publicado.
+
+## QA: cupom desatualizado após mudança do carrinho — 2026-10-25
+
+- Base verificada: `997bfdcb5716d00b925de57b154f393add1299fa`. Achado `28be9baf-c968-5986-bf9d-f9a8edd13377` confirmado: checkout ignorava `coupon` da cotação e mantinha o desconto antigo.
+- Correção mínima em `CheckoutPage.tsx`: aplicar desconto/tipo retornados pela cotação somente após validar resposta e antes de marcar frete atualizado; atualizar estado compartilhado do carrinho. Cupom inválido é removido com aviso e nova cotação; resposta ausente/malformada bloqueia pagamento. Subtotal incluído na chave de validade da cotação. Nenhuma alteração de servidor, dados, regras comerciais ou remoção da proteção `total_drift`.
+- Teste integrado de regressão executado antes da correção: `bunx vitest run src/pages/CheckoutPage.readiness.test.tsx` exit **1**, esperava 180 mas checkout enviava 190. Após correção: exit **0**. Casos simulados: cupom 10% em 100 → carrinho 200, desconto 20, total 180; carrinho 50, desconto 5, total 45. Ambos seguem para gateway fictício sem 409 repetido.
+- `bunx vitest run`: exit **0**, **229 testes / 24 arquivos**. `bunx eslint src/pages/CheckoutPage.tsx src/pages/CheckoutPage.readiness.test.tsx`: exit **0**. Build automático: `build OK` em 09:56:17 UTC.
+- Playwright Chromium em contexto anônimo: home carregada, 0 erros de página; captura `/tmp/browser/coupon/boot.png` inspecionada. Fluxo comercial validado por render integrado com serviços simulados, não por compra real nem sessão Google real.
+- Sem publicação frontend, implantação de funções, consumo de cupom ou transação real. REA orientou evidência mínima; nenhuma CLI REA foi instalada/executada. Sem mudanças de marca. Ferramentas externas Codex/Remote Desktop/Superpowers não estavam disponíveis neste ambiente.

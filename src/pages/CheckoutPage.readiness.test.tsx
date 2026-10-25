@@ -3,13 +3,23 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CheckoutPage from "./CheckoutPage";
 
-const mocks = vi.hoisted(() => ({ invoke: vi.fn(), validate: vi.fn(), error: vi.fn() }));
+const mocks = vi.hoisted(() => ({ invoke: vi.fn(), validate: vi.fn(), error: vi.fn(),
+  cart: { subtotal: 69.9, quantidade: 1, desconto: 0, cupom: null as string | null } }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { functions: { invoke: mocks.invoke } } }));
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: null }) }));
-vi.mock("@/contexts/CartContext", () => ({ useCart: () => ({
-  items: [{ produtoId: "mock-product", nome: "Mock coffee", preco: 79.9, precoPromocional: 69.9, quantidade: 1 }],
-  subtotal: 69.9, desconto: 0, cupom: null, cupomTipo: null, clearCart: vi.fn(), validatePricesNow: mocks.validate,
-}) }));
+vi.mock("@/contexts/CartContext", async () => {
+  const { useState } = await import("react");
+  return { useCart: () => {
+    const [desconto, setDesconto] = useState(mocks.cart.desconto);
+    const [cupom, setCupom] = useState(mocks.cart.cupom);
+    const [cupomTipo, setCupomTipo] = useState<"desconto" | "frete_gratis" | null>(null);
+    return {
+      items: [{ produtoId: "mock-product", nome: "Mock coffee", preco: 79.9, precoPromocional: 69.9, quantidade: mocks.cart.quantidade }],
+      subtotal: mocks.cart.subtotal, desconto, cupom, cupomTipo, setDesconto, setCupom, setCupomTipo,
+      clearCart: vi.fn(), validatePricesNow: mocks.validate,
+    };
+  } };
+});
 vi.mock("@/components/layout/Layout", () => ({ default: ({ children }: { children: React.ReactNode }) => children }));
 vi.mock("@/lib/analytics", () => ({ trackBeginCheckout: vi.fn() }));
 vi.mock("sonner", () => ({ toast: { error: mocks.error, info: vi.fn() } }));
@@ -35,10 +45,44 @@ async function reviewPix() {
 describe("BAM-181 review → mocked gateway (no order/payment/network)", () => {
   beforeEach(() => {
     vi.clearAllMocks(); window.location.hash = "";
+    mocks.cart = { subtotal: 69.9, quantidade: 1, desconto: 0, cupom: null };
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     mocks.validate.mockResolvedValue(false);
   });
   afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+  it.each([[200, 20, 180], [50, 5, 45]])("simulated: coupon applied at 100 refreshes on cart change to %s without repeated drift", async (subtotal, discount, total) => {
+    mocks.cart = { subtotal: 100, quantidade: 1, desconto: 10, cupom: "PRIMEIRACOMPRA10" };
+    mocks.invoke.mockImplementation(async (name: string, opts: { body: { subtotal?: number; expectedTotal?: number } }) => {
+      if (name === "calcular-frete") return { data: {
+        coupon: { valid: true, motivo: "ok", tipo: "desconto", desconto: (opts.body.subtotal ?? 0) / 10 },
+        options: [{ id: "mock", company: "Mock", name: "Shipping", price: 0, free: true }],
+      }, error: null };
+      return opts.body.expectedTotal === total
+        ? { data: { url: "#simulated-gateway", validated: { total } }, error: null }
+        : { data: null, error: { context: { status: 409, json: async () => ({ code: "total_drift", validated: { total } }) } } };
+    });
+    const view = render(<MemoryRouter><CheckoutPage /></MemoryRouter>);
+    const fill = (id: string, value: string) => fireEvent.change(document.getElementById(id) as HTMLInputElement, { target: { value } });
+    const next = () => fireEvent.click(screen.getByRole("button", { name: /^Continuar$/i }));
+    fill("checkout-nome", "Simulated Customer"); fill("checkout-email", "mock@example.invalid"); next();
+    await waitFor(() => expect(document.getElementById("checkout-cep")).toBeTruthy());
+    for (const [id, value] of Object.entries({ cep: "01001000", logradouro: "Mock", numero: "1", bairro: "Mock", cidade: "Mock", estado: "SP" })) fill(`checkout-${id}`, value);
+    next();
+    await screen.findByRole("radio", { name: "Mock · Shipping" });
+    await act(async () => { await Promise.resolve(); });
+    mocks.cart.subtotal = subtotal; mocks.cart.quantidade = 2;
+    view.rerender(<MemoryRouter><CheckoutPage /></MemoryRouter>);
+    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("calcular-frete", expect.objectContaining({ body: expect.objectContaining({ subtotal }) })));
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getAllByText(new RegExp(`${discount},00`)).length).toBeGreaterThan(0);
+    next();
+    await screen.findByRole("radio", { name: /Cartão/i });
+    await act(async () => { await Promise.resolve(); });
+    next();
+    fireEvent.click(await screen.findByRole("button", { name: /Confirmar e Pagar/i }));
+    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("create-checkout-payment", expect.objectContaining({ body: expect.objectContaining({ expectedTotal: total }) })));
+    await waitFor(() => expect(window.location.hash).toBe("#simulated-gateway"));
+  });
   it.each([[62.91, true], [62.92, false]])("accepts exact cents only: gateway total %s", async (total, accepted) => {
     mocks.invoke.mockImplementation(async (name: string) => name === "calcular-frete"
       ? { data: { options: [{ id: "mock", company: "Mock", name: "Shipping", price: 0, free: true }] }, error: null }
