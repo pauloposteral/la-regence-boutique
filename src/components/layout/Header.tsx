@@ -1,4 +1,5 @@
 import { formatBRL } from "@/lib/money";
+import { CAFETERIA_ORDER_URL } from "@/lib/cafeteria";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X, Heart } from "lucide-react";
@@ -128,6 +129,12 @@ const Header = () => {
 
             {/* RIGHT — Icons */}
             <div className="flex items-center justify-end gap-0.5 lg:gap-1">
+              <a
+                href={CAFETERIA_ORDER_URL}
+                className="hidden lg:inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-gold/40 px-3 text-xs font-body font-medium text-gold-ink hover:bg-gold/10 transition-colors duration-300"
+              >
+                Pedir na cafeteria
+              </a>
               <Button
                 variant="ghost"
                 size="icon"
@@ -261,6 +268,12 @@ const Header = () => {
                     {link.label}
                   </Link>
                 ))}
+                <a
+                  href={CAFETERIA_ORDER_URL}
+                  className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-gold px-6 py-3 font-body text-sm font-medium text-gold-ink hover:bg-gold/10 transition-colors duration-300"
+                >
+                  Pedir na cafeteria
+                </a>
                 <Link
                   to="/assinatura"
                   className="mt-4 inline-flex items-center justify-center bg-gold text-foreground rounded-full px-6 py-3 font-body text-sm font-medium tracking-wider uppercase border-2 border-gold hover:bg-gold-dark transition-all duration-300"

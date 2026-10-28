@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { CAFETERIA_ORDER_URL } from "@/lib/cafeteria";
 import { Instagram, Facebook, MapPin, Phone, Mail, CreditCard, Smartphone } from "lucide-react";
 import NewsletterFooter from "./NewsletterFooter";
 
@@ -21,6 +22,7 @@ const Footer = () => {
           <div>
             <h4 className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-foreground mb-5">Atendimento</h4>
             <ul className="space-y-3 text-sm font-body text-foreground/70">
+              <li><a href={CAFETERIA_ORDER_URL} className="inline-flex min-h-11 items-center link-underline-hover hover:text-gold-ink transition-colors duration-300">Pedir na cafeteria</a></li>
               <li><Link to="/assinatura" className="link-underline-hover hover:text-gold transition-colors duration-300">Assinatura e kits</Link></li>
               <li><Link to="/rastreamento" className="link-underline-hover hover:text-gold transition-colors duration-300">Rastrear pedido</Link></li>
               <li><Link to="/faq" className="link-underline-hover hover:text-gold transition-colors duration-300">Perguntas frequentes</Link></li>
