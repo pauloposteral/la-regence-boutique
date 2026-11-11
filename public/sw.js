@@ -4,7 +4,7 @@
 // - HTML navigation: network-first with cache fallback
 // - Supabase API: network-only (always fresh)
 
-const VERSION = "v1";
+const VERSION = "v2-tv-player-20261111";
 const STATIC_CACHE = `lr-static-${VERSION}`;
 const RUNTIME_CACHE = `lr-runtime-${VERSION}`;
 
@@ -31,6 +31,16 @@ self.addEventListener("activate", (event) => {
         )
       )
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then((clients) => clients.forEach((client) => {
+        const url = new URL(client.url);
+        // A newly activated worker refreshes only the TV screen, once. Preserve
+        // its selected video/query; never interrupt uploads, checkout or login.
+        if (url.origin !== self.location.origin || url.pathname !== "/video") return;
+        // Navigation can wait for activation. Do not keep activate.waitUntil
+        // pending on its completion or the new worker can deadlock itself.
+        void client.navigate(client.url).catch(() => undefined);
+      }))
   );
 });
 
