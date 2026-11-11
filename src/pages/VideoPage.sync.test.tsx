@@ -110,6 +110,7 @@ it("updates through Realtime while preserving the native element, pause, positio
   const playing = currentMedia();
   expect(playing.src).toBe(original[1].url);
   fireEvent.playing(playing);
+  await advance(1300); // Let the real handoff complete before the later 12-second pause.
   reportTime(playing, 12);
   fireEvent.click(screen.getByRole("button", { name: "Pausar" }));
   const loadCount = vi.mocked(HTMLMediaElement.prototype.load).mock.calls.length;

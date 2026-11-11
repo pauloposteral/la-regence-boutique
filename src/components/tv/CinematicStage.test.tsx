@@ -23,6 +23,88 @@ it('holds the outgoing frame until incoming playback and ignores outgoing events
  const incoming=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(incoming);
  expect(incoming.parentElement).toHaveAttribute('data-visible','true'); expect(old.parentElement).toHaveAttribute('data-visible','false');
 });
+
+it('retains the outgoing frame across a metadata refresh until the dissolve completes', () => {
+ vi.useFakeTimers();
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(outgoing);
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ act(()=>vi.advanceTimersByTime(400));
+ view.rerender(<CinematicStage video={{...second,title:'Metadados atualizados'}} paused={false} muted {...events} />);
+ expect(outgoing).toBeInTheDocument();
+ act(()=>vi.advanceTimersByTime(900));
+ expect(outgoing).not.toBeInTheDocument();
+ expect(screen.getByLabelText('Vídeo em exibição')).toHaveAttribute('src',second.url);
+});
+
+it('releases the outgoing decoder after a completed dissolve', () => {
+ vi.useFakeTimers();
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(outgoing);
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ expect(view.container.querySelectorAll('[data-tv-deck]')).toHaveLength(2);
+ act(()=>vi.advanceTimersByTime(1300));
+ expect(outgoing).not.toBeInTheDocument();
+ expect(view.container.querySelectorAll('[data-tv-deck]')).toHaveLength(1);
+});
+
+it('queues rapid skips until the current dissolve completes without mounting a third decoder', () => {
+ vi.useFakeTimers();
+ const events=callbacks();
+ const third={...first,id:'three',url:'https://example.com/3.mp4'};
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ view.rerender(<CinematicStage video={third} paused={false} muted {...events} />);
+ expect(view.container.querySelector('[data-tv-deck="one"]')).toBeInTheDocument();
+ expect(view.container.querySelector('[data-tv-deck="three"]')).not.toBeInTheDocument();
+ expect(view.container.querySelectorAll('[data-tv-deck]')).toHaveLength(2);
+ act(()=>vi.advanceTimersByTime(1300));
+ expect(view.container.querySelector('[data-tv-deck="one"]')).not.toBeInTheDocument();
+ expect(screen.getByLabelText('Vídeo em exibição')).toHaveAttribute('src',third.url);
+});
+
+it('freezes an in-flight dissolve while the operator pauses and resumes its remaining time', () => {
+ vi.useFakeTimers();
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(outgoing);
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ act(()=>vi.advanceTimersByTime(400));
+ view.rerender(<CinematicStage video={second} paused muted {...events} />);
+ act(()=>vi.advanceTimersByTime(5000));
+ expect(outgoing).toBeInTheDocument();
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ act(()=>vi.advanceTimersByTime(900));
+ expect(outgoing).not.toBeInTheDocument();
+});
+
+it('ignores late playing events while paused and holds the last good frame through an incoming error', () => {
+ const events=callbacks();
+ const third={...first,id:'three',url:'https://example.com/3.mp4'};
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(outgoing);
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ const incoming=screen.getByLabelText('Vídeo em exibição');
+ view.rerender(<CinematicStage video={second} paused muted {...events} />);
+ fireEvent.playing(incoming);
+ expect(events.onReady).toHaveBeenCalledTimes(1);
+ expect(outgoing.parentElement).toHaveAttribute('data-tv-phase','front');
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.error(incoming);
+ expect(events.onError).toHaveBeenCalledTimes(1);
+ view.rerender(<CinematicStage video={third} paused={false} muted {...events} />);
+ expect(outgoing.parentElement).toHaveAttribute('data-tv-phase','front');
+ expect(incoming).not.toBeInTheDocument();
+ fireEvent.playing(incoming); // An event queued by the discarded element cannot promote it.
+ expect(events.onReady).toHaveBeenCalledTimes(1);
+});
 it('uses the official YouTube API, mutes before playing, advances on ended and destroys the player', async () => {
  let options: ConstructorParameters<YouTubeAPI['Player']>[1];
  const player = {playVideo:vi.fn(),pauseVideo:vi.fn(),mute:vi.fn(),unMute:vi.fn(),destroy:vi.fn(),seekTo:vi.fn(),getCurrentTime:vi.fn(() => 2)};
@@ -85,18 +167,20 @@ it('recovers unsolicited YouTube pause without overriding an operator pause', as
 });
 
 it('restarts a retained file when cycling back after skipping, and updates its fit', () => {
+ vi.useFakeTimers();
  const events=callbacks();
  const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
  const a=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement; fireEvent.playing(a); a.currentTime=4;
  view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
  view.rerender(<CinematicStage video={first} paused={false} muted {...events} />);
+ act(()=>vi.advanceTimersByTime(1300));
  expect(screen.getByLabelText('Vídeo em exibição')).toBe(a); expect(a.currentTime).toBe(0);
  view.rerender(<CinematicStage video={{...first, fit:'cover'}} paused={false} muted {...events} />);
  expect(a.style.objectFit).toBe('cover');
 });
 
-it('seeks a retained YouTube source to zero without playing while paused', async () => {
+it('seeks a retained YouTube source while the next file is still loading without playing while paused', async () => {
  const players: Array<{seekTo: ReturnType<typeof vi.fn>;playVideo:ReturnType<typeof vi.fn>;pauseVideo:ReturnType<typeof vi.fn>}> = [];
  const options: Array<ConstructorParameters<YouTubeAPI['Player']>[1]> = [];
  window.YT={Player:vi.fn(function(_el, opts) {
@@ -107,12 +191,49 @@ it('seeks a retained YouTube source to zero without playing while paused', async
  await act(async () => {view=render(<CinematicStage video={a} muted paused={false} {...events} />);});
  act(() => {options[0].events.onReady(); options[0].events.onStateChange({data:1});});
  await act(async () => {view!.rerender(<CinematicStage video={second} muted paused={false} {...events} />);});
- fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
  const count=players[0].playVideo.mock.calls.length;
  view!.rerender(<CinematicStage video={a} muted paused {...events} />);
  expect(players[0].seekTo).toHaveBeenCalledWith(0,true);
  expect(players[0].playVideo).toHaveBeenCalledTimes(count);
  expect(players[0].pauseVideo).toHaveBeenCalled();
+});
+
+it('bypasses animated handoffs and decorative light when reduced motion is requested', () => {
+ const preference=window.matchMedia('(prefers-reduced-motion: reduce)');
+ vi.spyOn(window,'matchMedia').mockReturnValue({...preference,matches:true});
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição'); fireEvent.playing(outgoing);
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ expect(outgoing).not.toBeInTheDocument();
+ expect(view.container.querySelector('.tv-cinema-light')).not.toBeInTheDocument();
+ expect(view.container.querySelector('[data-tv-transition]')).toHaveAttribute('data-tv-transition','steady');
+});
+
+it('waits for actual YouTube playback before dissolving and releases its iframe after the following handoff', async () => {
+ vi.useFakeTimers();
+ let options!: ConstructorParameters<YouTubeAPI['Player']>[1];
+ const player={playVideo:vi.fn(),pauseVideo:vi.fn(),mute:vi.fn(),unMute:vi.fn(),destroy:vi.fn(),seekTo:vi.fn(),getCurrentTime:vi.fn(()=>0)};
+ window.YT={Player:vi.fn(function(_element,opts){options=opts;return player;}) as unknown as YouTubeAPI['Player']};
+ const events=callbacks();
+ const yt={...first,id:'youtube',source_type:'youtube' as const,youtube_id:'M7lc1UVf-VE'};
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ const outgoing=screen.getByLabelText('Vídeo em exibição');fireEvent.playing(outgoing);
+ await act(async()=>view.rerender(<CinematicStage video={yt} paused={false} muted {...events} />));
+ act(()=>options.events.onReady());
+ expect(outgoing.parentElement).toHaveAttribute('data-tv-phase','front');
+ act(()=>options.events.onStateChange({data:1}));
+ expect(outgoing.parentElement).toHaveAttribute('data-tv-phase','outgoing');
+ act(()=>vi.advanceTimersByTime(1300));
+ expect(outgoing).not.toBeInTheDocument();
+ expect(player.destroy).not.toHaveBeenCalled();
+ view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+ expect(view.container.querySelector('[data-tv-deck="youtube"]')).toHaveAttribute('data-tv-phase','front');
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ act(()=>vi.advanceTimersByTime(1300));
+ expect(player.destroy).toHaveBeenCalledOnce();
+ expect(view.container.querySelectorAll('[data-tv-deck]')).toHaveLength(1);
 });
 
 it('advances when the browser reaches the end without emitting ended', () => {

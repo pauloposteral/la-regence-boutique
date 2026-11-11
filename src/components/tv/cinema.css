@@ -1,5 +1,26 @@
-.tv-cinema-deck { position:absolute; inset:0; opacity:0; transform:scale(1.018); transition:opacity 900ms cubic-bezier(.2,.65,.25,1),transform 1800ms cubic-bezier(.2,.65,.25,1); pointer-events:none; }
-.tv-cinema-visible { opacity:1; transform:scale(1); pointer-events:auto; }
-@media(prefers-reduced-motion:reduce) { .tv-cinema-deck { transition:none; transform:none; } }
-
-.tv-cinema-youtube { transform:none; }
+.tv-cinema-stage { isolation: isolate; }
+.tv-cinema-deck { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.tv-cinema-visible { z-index: 2; opacity: 1; pointer-events: auto; }
+/* Keep a fully opaque backing frame: fading both layers exposes the dark stage. */
+.tv-cinema-outgoing { z-index: 1; opacity: 1; pointer-events: none; }
+.tv-cinema-entering {
+  animation: tv-cinema-reveal var(--tv-dissolve-duration) cubic-bezier(.22,.61,.36,1) both;
+  will-change: opacity, transform;
+}
+.tv-cinema-youtube.tv-cinema-entering { animation-name: tv-cinema-dissolve; will-change: opacity; }
+.tv-cinema-light {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 68% 38%, rgba(255,210,145,.075), transparent 68%);
+  animation: tv-cinema-warm-light var(--tv-dissolve-duration) ease-in-out both;
+}
+.tv-cinema-paused .tv-cinema-entering, .tv-cinema-paused .tv-cinema-light { animation-play-state: paused; }
+@keyframes tv-cinema-reveal {
+  from { opacity: 0; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes tv-cinema-dissolve { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tv-cinema-warm-light { 0%, 100% { opacity: 0; } 45% { opacity: .7; } }
+@media (prefers-reduced-motion: reduce) {
+  .tv-cinema-entering { animation: none; transform: none; will-change: auto; }
+  .tv-cinema-light { display: none; animation: none; }
+}

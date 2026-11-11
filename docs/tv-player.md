@@ -1,5 +1,32 @@
 # TV La Régence
 
+## Transições cinematográficas — 11/11/2026
+
+A troca agora usa um handoff explícito de 1,2 segundo. O último quadro permanece
+totalmente opaco abaixo da mídia que está entrando; apenas a entrada dissolve.
+Antes, as duas camadas perdiam opacidade simultaneamente e deixavam o fundo escuro
+participar da mistura. Uma atualização de metadados também podia retirar o quadro
+anterior antes de terminar a transição.
+
+A entrada só começa no evento real `playing` do arquivo ou no estado `PLAYING` da
+API do YouTube. Keyframes garantem o início em opacidade zero mesmo quando a mídia
+vem do cache. Arquivos recebem uma aproximação discreta de 1,2%; YouTube conserva
+o enquadramento. Um véu dourado muito suave aparece somente durante a fusão, sem
+interceptar controles e sem desfoque, vinheta permanente ou barras decorativas.
+Cada deck usa o mesmo fundo opaco da TV para que margens existentes em `contain`
+não revelem o conteúdo anterior durante a troca.
+
+O deck antigo é liberado ao terminar a animação, com um prazo de recuperação de
+1,3 segundo. Pausa do operador congela tanto a animação quanto esse prazo. A opção
+de movimento reduzido remove a fusão e o véu. Avanços rápidos aguardam a troca em
+curso e montam apenas a última seleção solicitada: nunca mais de dois decks.
+Atualizações da programação preservam mídia, posição e a transição em andamento.
+
+Não foram alterados arquivos, durações, ordem ou cadastros da programação. YouTube
+mantém a duração natural completa; suas próprias sobreposições ao pausar/terminar
+continuam sujeitas ao provedor. A versão do worker `v3-tv-cinema-20261111` leva o
+novo código às telas `/video` pelo mecanismo de atualização já implantado.
+
 ## Tela limpa e início automático — 11/11/2026
 
 O player abre com os controles da TV e a barra de progresso ocultos. Mouse, toque
