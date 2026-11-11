@@ -4,7 +4,7 @@
 // - HTML navigation: network-first with cache fallback
 // - Supabase API: network-only (always fresh)
 
-const VERSION = "v2-tv-player-20261111";
+const VERSION = "v3-tv-cinema-20261111";
 const STATIC_CACHE = `lr-static-${VERSION}`;
 const RUNTIME_CACHE = `lr-runtime-${VERSION}`;
 
