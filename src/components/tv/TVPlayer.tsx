@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw } from "lucide-react";
+import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw, Settings2 } from "lucide-react";
 import { nextVideoId, playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
+import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
 
 import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
@@ -18,7 +19,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
   const [blocked, setBlocked] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(true);
+  const [controlsVisible, setControlsVisible] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [fullscreenHint, setFullscreenHint] = useState("");
   const [playback, setPlayback] = useState({seconds:0, duration:0});
@@ -109,7 +110,6 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     stage.current?.focus();
-    showControls();
     const update = () => setFullscreen(Boolean(document.fullscreenElement ||
       (document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement));
     document.addEventListener("fullscreenchange", update);
@@ -121,6 +121,8 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       document.removeEventListener("webkitfullscreenchange", update);
     };
   }, [showControls]);
+
+  useEffect(() => watchTVWorkerUpdates(), []);
 
   // Best-effort screen wake lock, reacquired after switching back to the TV tab.
   useEffect(() => {
@@ -149,7 +151,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: string) => Promise<void> };
       void orientation?.lock?.("landscape").catch(() => {});
     } catch { setFullscreenHint("Use o botão de tela cheia do navegador da TV."); }
-    play();
+    if (!paused) play();
   };
 
   const togglePause = () => {
@@ -161,7 +163,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
 
   return (
     <div ref={stage} tabIndex={0} aria-label="TV La Régence" className={`fixed inset-0 z-[150] h-[100dvh] w-screen overflow-hidden bg-brown-deep text-white outline-none ${controlsVisible || blocked ? "" : "cursor-none"}`}
-      onMouseMove={showControls} onPointerDown={showControls} onFocus={showControls}
+      onMouseMove={showControls} onPointerDown={showControls} onFocus={event => { if (event.target !== stage.current) showControls(); }}
       onKeyDown={event => {
         showControls();
         if (event.target !== stage.current) return;
@@ -183,11 +185,18 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
           <p className="text-white/60">{playlist.length ? "A reprodução será retomada automaticamente." : "Adicione vídeos em cafelaregence.com.br/video/enviar"}</p>
         </div>
       )}
+      {/* An iframe does not bubble pointer events to this stage. Keep a touch and
+          keyboard target in our own document without a persistent TV overlay. */}
+      <button type="button" aria-label="Mostrar controles da TV" title="Controles da TV"
+        onClick={showControls}
+        className={`absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-brown-deep/85 text-white transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-gold ${controlsVisible || paused || blocked ? "opacity-100" : "opacity-0"}`}>
+        <Settings2 aria-hidden="true" className="h-5 w-5" />
+      </button>
       {blocked && <div className="absolute inset-0 flex items-center justify-center bg-brown-deep/60">
         <button className="rounded-full bg-gold px-8 py-5 text-lg text-white" onClick={() => { play(); setPaused(false); }} aria-label="Iniciar reprodução"><Play className="mr-3 inline h-6 w-6" />Iniciar reprodução</button>
       </div>}
-      {playback.duration > 0 && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" aria-hidden="true"><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
-      <div className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+      {playback.duration > 0 && (controlsVisible || paused || blocked) && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin={0} aria-valuemax={playback.duration} aria-valuenow={Math.min(playback.seconds, playback.duration)}><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
+      <div role="group" aria-label="Controles da TV" className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
         <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.findIndex(v => v.id === current.id) + 1} de ${playlist.length} · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Sequência automática"}` : ""}{playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p></div>
         {current && <>
           <button className={buttonClass} onClick={togglePause} aria-label={paused ? "Reproduzir" : "Pausar"}>{paused ? <Play /> : <Pause />}</button>

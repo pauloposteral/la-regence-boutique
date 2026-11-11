@@ -16,6 +16,33 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("TV playback", () => {
+  it('does not resume an operator-paused video when entering fullscreen', async () => {
+    render(<TVPlayer videos={videos} />);
+    const stage=screen.getByLabelText('TV La Régence');
+    stage.requestFullscreen=vi.fn().mockResolvedValue(undefined);
+    fireEvent.click(screen.getByRole('button',{name:'Pausar'}));
+    const calls=vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+    await act(async () => { fireEvent.click(screen.getByRole('button',{name:'Tela cheia'})); });
+    expect(stage.requestFullscreen).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(calls);
+    expect(screen.getByRole('button',{name:'Reproduzir'})).toBeInTheDocument();
+  });
+  it('starts with a clean screen and reveals progress only for operator interaction', () => {
+    vi.useFakeTimers();
+    render(<TVPlayer videos={videos} />);
+    const video=screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+    Object.defineProperty(video,'duration',{configurable:true,value:20});
+    video.currentTime=5;
+    fireEvent.playing(video);
+    fireEvent.timeUpdate(video);
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('group',{name:'Controles da TV'})).toHaveClass('opacity-0');
+    fireEvent.click(screen.getByRole('button',{name:'Mostrar controles da TV'}));
+    expect(screen.getByRole('progressbar',{name:'Progresso do vídeo'})).toHaveAttribute('aria-valuenow','5');
+    expect(screen.getByRole('group',{name:'Controles da TV'})).toHaveClass('opacity-100');
+    act(() => vi.advanceTimersByTime(4500));
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
   it('shows all fourteen sources once before restarting the cycle', () => {
     const list=Array.from({length:14},(_,i)=>({...videos[0],id:`clip-${i}`,url:`https://example.com/clip-${i}.mp4`,sort_order:i}));
     render(<TVPlayer videos={list} />);

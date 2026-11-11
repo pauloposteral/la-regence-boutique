@@ -33,15 +33,55 @@ it('uses the official YouTube API, mutes before playing, advances on ended and d
  await act(async () => { view=render(<CinematicStage video={yt} paused={false} muted {...events} />); });
  act(() => options.events.onReady());
  expect(options.playerVars.origin).toBe(window.location.origin);
- expect(options.playerVars.controls).toBe(1);
+ expect(options.playerVars.controls).toBe(0);
+ expect(options.playerVars.disablekb).toBe(1);
  expect(player.mute.mock.invocationCallOrder[0]).toBeLessThan(player.playVideo.mock.invocationCallOrder[0]);
  act(() => options.events.onStateChange({data:1})); expect(events.onReady).toHaveBeenCalled();
- act(() => options.events.onStateChange({data:2})); expect(events.onPaused).toHaveBeenCalled();
+ act(() => options.events.onStateChange({data:2})); expect(events.onPaused).not.toHaveBeenCalled();
  act(() => options.events.onStateChange({data:0})); expect(events.onEnded).toHaveBeenCalled();
  act(() => options.events.onError()); expect(events.onError).toHaveBeenCalled();
- act(() => options.events.onAutoplayBlocked()); expect(events.onBlocked).toHaveBeenCalled();
  view!.rerender(<CinematicStage video={yt} paused muted {...events} />); expect(player.pauseVideo).toHaveBeenCalled();
  view!.unmount(); expect(player.destroy).toHaveBeenCalledTimes(1);
+});
+
+it('retries blocked muted YouTube autoplay once before requesting a user gesture', async () => {
+ vi.useFakeTimers();
+ let options!: ConstructorParameters<YouTubeAPI['Player']>[1];
+ const player={playVideo:vi.fn(),pauseVideo:vi.fn(),mute:vi.fn(),unMute:vi.fn(),destroy:vi.fn(),seekTo:vi.fn(),getCurrentTime:vi.fn(() => 0)};
+ window.YT={Player:vi.fn(function(_element, opts) { options=opts; return player; }) as unknown as YouTubeAPI['Player']};
+ const events=callbacks();
+ await act(async () => { render(<CinematicStage video={{...first,source_type:'youtube',youtube_id:'M7lc1UVf-VE'}} paused={false} muted {...events} />); });
+ act(() => options.events.onReady());
+ const before=player.playVideo.mock.calls.length;
+ act(() => options.events.onAutoplayBlocked());
+ expect(events.onBlocked).not.toHaveBeenCalled();
+ act(() => vi.advanceTimersByTime(500));
+ expect(player.playVideo).toHaveBeenCalledTimes(before+1);
+ const muteOrder=player.mute.mock.invocationCallOrder;
+ const playOrder=player.playVideo.mock.invocationCallOrder;
+ expect(muteOrder[muteOrder.length-1]).toBeLessThan(playOrder[playOrder.length-1]);
+ act(() => options.events.onAutoplayBlocked());
+ expect(events.onBlocked).toHaveBeenCalledTimes(1);
+});
+
+it('recovers unsolicited YouTube pause without overriding an operator pause', async () => {
+ vi.useFakeTimers();
+ let options!: ConstructorParameters<YouTubeAPI['Player']>[1];
+ const player={playVideo:vi.fn(),pauseVideo:vi.fn(),mute:vi.fn(),unMute:vi.fn(),destroy:vi.fn(),seekTo:vi.fn(),getCurrentTime:vi.fn(() => 0)};
+ window.YT={Player:vi.fn(function(_element, opts) { options=opts; return player; }) as unknown as YouTubeAPI['Player']};
+ const events=callbacks();
+ const video={...first,source_type:'youtube' as const,youtube_id:'M7lc1UVf-VE'};
+ let view!: ReturnType<typeof render>;
+ await act(async () => { view=render(<CinematicStage video={video} paused={false} muted {...events} />); });
+ act(() => { options.events.onReady(); options.events.onStateChange({data:1}); });
+ const before=player.playVideo.mock.calls.length;
+ act(() => { options.events.onStateChange({data:2}); vi.advanceTimersByTime(500); });
+ expect(player.playVideo).toHaveBeenCalledTimes(before+1);
+ expect(events.onPaused).not.toHaveBeenCalled();
+ act(() => options.events.onStateChange({data:2}));
+ view.rerender(<CinematicStage video={video} paused muted {...events} />);
+ act(() => vi.advanceTimersByTime(500));
+ expect(player.playVideo).toHaveBeenCalledTimes(before+1);
 });
 
 it('restarts a retained file when cycling back after skipping, and updates its fit', () => {

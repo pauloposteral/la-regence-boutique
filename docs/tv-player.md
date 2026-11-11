@@ -1,5 +1,40 @@
 # TV La Régence
 
+## Tela limpa e início automático — 11/11/2026
+
+O player abre com os controles da TV e a barra de progresso ocultos. Mouse, toque
+ou teclado revelam as ferramentas do operador; elas desaparecem novamente após
+4,5 segundos. Para uma tela sensível ao toque sobre um vídeo do YouTube, toque no
+canto superior direito; esse alvo também recebe foco por Tab e revela os controles,
+pois eventos dentro do iframe não chegam à página da TV. Pausa intencional e bloqueio real do navegador mantêm as ferramentas
+acessíveis. O foco inicial não aciona o painel automaticamente.
+
+YouTube usa os parâmetros oficiais `controls=0`, `disablekb=1` e `fs=0`. O início
+continua pela IFrame API: primeiro silenciar, depois reproduzir, para evitar a
+tentativa inicial com áudio que alguns navegadores recusam. O quadro anterior fica
+visível até a nova mídia iniciar. Um bloqueio de autoplay recebe uma nova tentativa
+silenciada; se o navegador continuar exigindo gesto, o botão de início permanece
+disponível. Pausas inesperadas do provedor recebem até duas tentativas de retomada
+e não desligam mais o watchdog de 30 segundos. A pausa feita pelo operador é
+preservada, inclusive quando a rede volta ou a aba recupera a visibilidade.
+
+Esses parâmetros escondem os controles suportados pelo YouTube. Não garantem
+remoção de avisos, anúncios, erros ou todas as sobreposições próprias do provedor;
+nenhum vídeo externo é baixado ou recortado para ocultá-las. Os arquivos MP4
+publicitários enviados ao painel continuam a alternativa sem interface de terceiros.
+
+A nova versão do service worker recarrega uma vez somente janelas cuja rota seja
+exatamente `/video`, preservando query e fragmento. Uploads, login e checkout não são
+recarregados. Depois desta versão, a tela da TV confere o worker a cada 60 segundos
+enquanto visível e ao recuperar rede/visibilidade. Novas versões do player devem
+atualizar `VERSION` em `public/sw.js`. Uma TV ainda executando o código antigo precisa
+descobrir o novo worker pelo navegador ou receber uma recarga inicial; não há garantia
+de atualização imediata em um aparelho físico sem acesso a ele.
+
+Referências oficiais conferidas via Firecrawl:
+[parâmetros do player](https://developers.google.com/youtube/player_parameters)
+e [IFrame API](https://developers.google.com/youtube/iframe_api_reference).
+
 User request, 15 October 2026: continuous horizontal product videos on the store's TV,
 with server uploads controlled from a phone or computer.
 

@@ -81,11 +81,20 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
     let cancelled = false;
     let instance: YouTubePlayer | undefined;
     let previousTime = -1;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let autoplayRetryUsed = false;
+    let pauseRetries = 0;
     const apply = () => {
       if (!instance || !ready.current) return;
       if (callbacks.current.muted) instance.mute(); else instance.unMute();
       if (callbacks.current.paused) instance.pauseVideo(); else instance.playVideo();
     };
+    const canResume = () => !cancelled && ready.current && callbacks.current.selected && !callbacks.current.paused && !finished.current;
+    const retryPlayback = () => {
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(() => { if (canResume()) apply(); }, 500);
+    };
+    const resumeWhenVisible = () => { if (document.visibilityState === 'visible' && canResume()) apply(); };
     ready.current = false; finished.current = false;
     const finish = () => {
       if (finished.current || callbacks.current.paused || !callbacks.current.selected) return;
@@ -96,11 +105,27 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
       const target = document.createElement('div'); host.current.appendChild(target);
       instance = new api.Player(target, {
         videoId: callbacks.current.video.youtube_id!, width: '100%', height: '100%',
-        playerVars: { autoplay: 0, playsinline: 1, origin: window.location.origin, controls: 1, rel: 0 },
+        // Start via onReady so mute is applied before the first playback request.
+        playerVars: { autoplay: 0, playsinline: 1, origin: window.location.origin, controls: 0, disablekb: 1, fs: 0, rel: 0 },
         events: {
-          onReady: () => { ready.current = true; apply(); },
-          onStateChange: ({ data }) => { if (data === 1) callbacks.current.onReady(); if (data === 2 && !callbacks.current.paused) callbacks.current.onPaused?.(); if (data === 0) finish(); },
-          onError: () => callbacks.current.onError(), onAutoplayBlocked: () => callbacks.current.onBlocked(),
+          onReady: () => { if (cancelled) return; ready.current = true; apply(); },
+          onStateChange: ({ data }) => {
+            if (cancelled) return;
+            if (data === 1 && canResume()) {
+              clearTimeout(retryTimer); autoplayRetryUsed = false; pauseRetries = 0;
+              callbacks.current.onReady();
+            }
+            // A provider pause is not an operator pause: recover without disabling
+            // the TV watchdog. Explicit operator pause remains authoritative.
+            if (data === 2 && canResume() && pauseRetries < 2) { pauseRetries++; retryPlayback(); }
+            if (data === 0) finish();
+          },
+          onError: () => { if (!cancelled) callbacks.current.onError(); },
+          onAutoplayBlocked: () => {
+            if (!canResume()) return;
+            if (!callbacks.current.muted || autoplayRetryUsed) { callbacks.current.onBlocked(); return; }
+            autoplayRetryUsed = true; retryPlayback();
+          },
         },
       });
       player.current = instance;
@@ -113,7 +138,14 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
       if (duration > 0 && time >= duration - 0.05) finish();
       previousTime = time;
     }, 1000);
-    return () => { cancelled = true; ready.current = false; clearInterval(timer); instance?.destroy(); player.current = undefined; };
+    document.addEventListener('visibilitychange', resumeWhenVisible);
+    window.addEventListener('online', resumeWhenVisible);
+    return () => {
+      cancelled = true; ready.current = false; clearInterval(timer); clearTimeout(retryTimer);
+      document.removeEventListener('visibilitychange', resumeWhenVisible);
+      window.removeEventListener('online', resumeWhenVisible);
+      instance?.destroy(); player.current = undefined;
+    };
   }, [props.video.youtube_id]);
   useEffect(() => {
     if (!ready.current || !player.current) return;
