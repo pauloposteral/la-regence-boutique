@@ -69,3 +69,19 @@ it('refreshes only exact TV routes on worker activation and preserves their full
   expect(clients[1].navigate).toHaveBeenCalledExactlyOnceWith(urls[1]);
   for(const client of clients.slice(2)) expect(client.navigate).not.toHaveBeenCalled();
 });
+
+it('finishes worker activation without waiting for a pending TV navigation', async () => {
+  const navigate=vi.fn(()=>new Promise(()=>{}));
+  const listeners=new Map<string,(event:{waitUntil(promise:Promise<unknown>):void})=>void>();
+  runInNewContext(readFileSync(resolve(process.cwd(),'public/sw.js'),'utf8'),{
+    self:{location:{origin:'https://cafelaregence.com.br'},addEventListener:(name:string,listener:(event:{waitUntil(promise:Promise<unknown>):void})=>void)=>listeners.set(name,listener),clients:{claim:vi.fn().mockResolvedValue(undefined),matchAll:vi.fn().mockResolvedValue([{url:'https://cafelaregence.com.br/video',navigate}])}},
+    caches:{keys:vi.fn().mockResolvedValue([]),delete:vi.fn().mockResolvedValue(true)},URL,Promise,
+  });
+  let activation!:Promise<unknown>;
+  listeners.get('activate')!({waitUntil:promise=>{activation=promise;}});
+  let activated=false;
+  void activation.then(()=>{activated=true;});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  expect(navigate).toHaveBeenCalledOnce();
+  expect(activated).toBe(true);
+});

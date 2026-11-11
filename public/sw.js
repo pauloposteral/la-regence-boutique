@@ -32,13 +32,15 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll({ type: "window" }))
-      .then((clients) => Promise.all(clients.map((client) => {
+      .then((clients) => clients.forEach((client) => {
         const url = new URL(client.url);
         // A newly activated worker refreshes only the TV screen, once. Preserve
         // its selected video/query; never interrupt uploads, checkout or login.
         if (url.origin !== self.location.origin || url.pathname !== "/video") return;
-        return client.navigate(client.url).catch(() => undefined);
-      })))
+        // Navigation can wait for activation. Do not keep activate.waitUntil
+        // pending on its completion or the new worker can deadlock itself.
+        void client.navigate(client.url).catch(() => undefined);
+      }))
   );
 });
 
