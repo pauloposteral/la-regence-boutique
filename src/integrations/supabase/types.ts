@@ -1218,6 +1218,69 @@ export type Database = {
         }
         Relationships: []
       }
+      tv_screens: {
+        Row: {
+          cached_bytes: number | null
+          cached_count: number | null
+          created_at: string
+          current_item: string | null
+          device_id: string
+          eligible_count: number | null
+          height: number | null
+          label: string
+          last_completed_item: string | null
+          last_progress_at: string | null
+          last_seen_at: string | null
+          playback_state: string | null
+          playlist_revision: string | null
+          position_seconds: number | null
+          quality_mode: string | null
+          revoked_at: string | null
+          snapshot_age_seconds: number | null
+          width: number | null
+        }
+        Insert: {
+          cached_bytes?: number | null
+          cached_count?: number | null
+          created_at?: string
+          current_item?: string | null
+          device_id: string
+          eligible_count?: number | null
+          height?: number | null
+          label: string
+          last_completed_item?: string | null
+          last_progress_at?: string | null
+          last_seen_at?: string | null
+          playback_state?: string | null
+          playlist_revision?: string | null
+          position_seconds?: number | null
+          quality_mode?: string | null
+          revoked_at?: string | null
+          snapshot_age_seconds?: number | null
+          width?: number | null
+        }
+        Update: {
+          cached_bytes?: number | null
+          cached_count?: number | null
+          created_at?: string
+          current_item?: string | null
+          device_id?: string
+          eligible_count?: number | null
+          height?: number | null
+          label?: string
+          last_completed_item?: string | null
+          last_progress_at?: string | null
+          last_seen_at?: string | null
+          playback_state?: string | null
+          playlist_revision?: string | null
+          position_seconds?: number | null
+          quality_mode?: string | null
+          revoked_at?: string | null
+          snapshot_age_seconds?: number | null
+          width?: number | null
+        }
+        Relationships: []
+      }
       tv_videos: {
         Row: {
           active: boolean
@@ -1409,6 +1472,41 @@ export type Database = {
       reorder_tv_videos: {
         Args: { p_expected_ids: string[]; p_ordered_ids: string[] }
         Returns: undefined
+      }
+      tv_pair_screen: {
+        Args: { p_label: string }
+        Returns: {
+          device_id: string
+          token: string
+        }[]
+      }
+      tv_report_screen: {
+        Args: {
+          p_cached_bytes: number
+          p_cached_count: number
+          p_current_item: string
+          p_device_id: string
+          p_eligible_count: number
+          p_height: number
+          p_last_completed_item: string
+          p_playlist_revision: string
+          p_position_seconds: number
+          p_quality_mode: string
+          p_snapshot_age_seconds: number
+          p_state: string
+          p_token: string
+          p_width: number
+        }
+        Returns: boolean
+      }
+      tv_require_admin: { Args: never; Returns: undefined }
+      tv_revoke_screen: { Args: { p_device_id: string }; Returns: boolean }
+      tv_rotate_screen: {
+        Args: { p_device_id: string }
+        Returns: {
+          device_id: string
+          token: string
+        }[]
       }
     }
     Enums: {
