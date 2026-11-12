@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import type { TVVideo } from '@/lib/tvPlaylist';
 import { fileSourceUrl, playbackDuration, videoSourceKey } from '@/lib/tvPlaylist';
 import { loadYouTubeAPI, type YouTubePlayer } from '@/lib/youtubePlayer';
-import { createPressureTracker, PALETTES, resolvePresentation, type ResolvedPresentation } from '@/lib/tvPlaybackPolicy';
+import { createPressureTracker, PALETTES, resolveFit, resolvePairPresentation, type ResolvedPresentation } from '@/lib/tvPlaybackPolicy';
 import './cinema.css';
 
 export interface PlaybackHandle { play(): void; restart(): void; recover?(): boolean }
@@ -21,27 +21,40 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
   const usedFallback = useRef(false);
   const callbacks = useRef(props); callbacks.current = props;
   const wasSelected = useRef(props.selected);
+  // A prepared deck that has never been selected keeps its initial position
+  // (e.g. a #t= fragment) on first promotion; later reselection restarts at 0.
+  const everSelected = useRef(props.selected);
   const finished = useRef(false);
   const previousTime = useRef(-1);
   // Invalidates pending first-frame callbacks from a previous source/selection.
   const readyToken = useRef(0);
   const [prepared, setPrepared] = useState(false);
-  const reset = () => { finished.current = false; previousTime.current = -1; readyToken.current++; };
+  const readyFrame = useRef<{ video: HTMLVideoElement; handle: number } | null>(null);
+  const readyTimer = useRef<ReturnType<typeof setTimeout>>();
+  // Ref-only helpers: stable identities, safe as effect dependencies.
+  const cancelReady = useCallback(() => {
+    readyToken.current++;
+    clearTimeout(readyTimer.current); readyTimer.current = undefined;
+    const frame = readyFrame.current; readyFrame.current = null;
+    if (frame && typeof frame.video.cancelVideoFrameCallback === 'function') frame.video.cancelVideoFrameCallback(frame.handle);
+  }, []);
+  const reset = useCallback(() => { finished.current = false; previousTime.current = -1; cancelReady(); }, [cancelReady]);
   const announceReady = () => {
     const video = media.current;
     const state = callbacks.current;
     if (!video || !state.selected || state.paused) return;
-    const token = ++readyToken.current;
+    cancelReady();
+    const token = readyToken.current;
     const fire = () => {
       if (readyToken.current !== token) return;
-      readyToken.current++;
+      cancelReady();
       if (callbacks.current.selected && !callbacks.current.paused) callbacks.current.onReady();
     };
     // Reveal on an actually presented frame where supported; `playing` is the
     // compatible fallback (and a short guard covers throttled hidden tabs).
     if (typeof video.requestVideoFrameCallback === 'function') {
-      video.requestVideoFrameCallback(fire);
-      setTimeout(fire, 250);
+      readyFrame.current = { video, handle: video.requestVideoFrameCallback(fire) };
+      readyTimer.current = setTimeout(fire, 250);
     } else fire();
   };
   const finish = () => {
@@ -72,13 +85,19 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
     });
   };
   useEffect(() => {
-    if (props.selected && !wasSelected.current && media.current) { reset(); media.current.currentTime = 0; }
-    if (!props.selected) readyToken.current++;
+    if (props.selected && !wasSelected.current && media.current) {
+      reset();
+      if (everSelected.current) media.current.currentTime = 0;
+    }
+    if (props.selected) everSelected.current = true;
+    if (!props.selected) cancelReady();
     wasSelected.current = props.selected;
-  }, [props.selected]);
+  }, [props.selected, reset, cancelReady]);
+  // Whole-stage unmount must not announce readiness for a stale source.
+  useEffect(() => () => cancelReady(), [cancelReady]);
   useImperativeHandle(ref, () => ({ play, recover, restart: () => { reset(); if (media.current) media.current.currentTime = 0; play(); } }));
-  useEffect(() => { reset(); setPrepared(false); media.current?.load(); }, [source]);
-  useEffect(() => { if (props.paused) media.current?.pause(); else play(); }, [props.paused, source]);
+  useEffect(() => { reset(); setPrepared(false); media.current?.load(); }, [source, reset]);
+  useEffect(() => { if (props.paused) { cancelReady(); media.current?.pause(); } else play(); }, [props.paused, source, cancelReady]);
   const reportRef = useRef(report); reportRef.current = report;
   useEffect(() => {
     const timer = setInterval(() => reportRef.current(), 500);
@@ -86,7 +105,7 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
   }, []);
   return <video ref={media} src={source} aria-label={props.selected ? 'Vídeo em exibição' : undefined}
     aria-hidden={!props.selected} data-tv-prepared={prepared} autoPlay={props.selected && !props.paused} muted={props.muted} playsInline preload="auto" controls={false} disablePictureInPicture
-    className="h-full w-full" style={{ objectFit: props.video.fit }}
+    className="h-full w-full" style={{ objectFit: resolveFit(props.video) }}
     onLoadedData={() => setPrepared(true)}
     onWaiting={() => { if (callbacks.current.selected && !callbacks.current.paused) callbacks.current.onStall?.(); }}
     onPlaying={announceReady}
@@ -291,7 +310,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
               visibleKey.current = id;
               setFront(id);
               if (previous && !reducedMotion) {
-                const next = { from: previous, to: id, serial: ++serial.current, presentation: resolvePresentation(video, { reducedMotion, pressure: reducedEffects }) };
+                const next = { from: previous, to: id, serial: ++serial.current, presentation: resolvePairPresentation(video, decks.find(deck => videoSourceKey(deck) === previous), { reducedMotion, pressure: reducedEffects }) };
                 activeHandoff.current = next;
                 setHandoff(next);
               }

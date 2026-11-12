@@ -359,3 +359,74 @@ it.each([
  expect(!!view.container.querySelector('.tv-cinema-light')).toBe(light);
  expect(!!view.container.querySelector('.tv-cinema-scale')).toBe(scale);
 });
+
+// ---- Review fix round 1 ----
+const frameApi = () => { const frames: Array<() => void> = []; const cancel = vi.fn();
+ Object.defineProperty(HTMLVideoElement.prototype,'requestVideoFrameCallback',{configurable:true,value:(fn:()=>void)=>{frames.push(fn);return frames.length;}});
+ Object.defineProperty(HTMLVideoElement.prototype,'cancelVideoFrameCallback',{configurable:true,value:cancel});
+ return { frames, cancel }; };
+const dropFrameApi = () => { delete (HTMLVideoElement.prototype as Partial<HTMLVideoElement>).requestVideoFrameCallback; delete (HTMLVideoElement.prototype as Partial<HTMLVideoElement>).cancelVideoFrameCallback; };
+const later = { ...first, id:'later', url:'https://example.com/later.mp4' };
+it('keeps a prepared #t=10 position on first promotion and restarts only on later reselection', () => {
+ const events=callbacks(); const fragment={...second,url:'https://example.com/2.mp4#t=10'};
+ const view=render(<CinematicStage video={first} upcoming={fragment} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ const prepared=view.container.querySelector('[data-tv-deck="two"] video') as HTMLVideoElement;
+ expect(prepared.src).toContain('#t=10');
+ prepared.currentTime=10; fireEvent.loadedData(prepared);
+ view.rerender(<CinematicStage video={fragment} upcoming={later} paused={false} muted {...events} />);
+ expect(screen.getByLabelText('Vídeo em exibição')).toBe(prepared);
+ expect(prepared.currentTime).toBe(10);
+});
+it('contains protected QR and text on the actual native deck even when the stored fit is cover', () => {
+ for (const flag of ['protect_qr','protect_text'] as const) {
+  const view=render(<CinematicStage video={{...first,fit:'cover',[flag]:true}} paused={false} muted {...callbacks()} />);
+  expect((screen.getByLabelText('Vídeo em exibição') as HTMLElement).style.objectFit).toBe('contain');
+  view.unmount();
+ }
+ render(<CinematicStage video={{...first,fit:'cover'}} paused={false} muted {...callbacks()} />);
+ expect((screen.getByLabelText('Vídeo em exibição') as HTMLElement).style.objectFit).toBe('cover');
+});
+it('suppresses the full-stage light over protected outgoing content but keeps it otherwise', () => {
+ for (const [outgoing, expected] of [[{...first,protect_text:true},false],[{...first,protect_qr:true},false],[first,true]] as const) {
+  const events=callbacks(); const view=render(<CinematicStage video={outgoing} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+  view.rerender(<CinematicStage video={{...second,transition_profile:'light'}} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+  expect(!!view.container.querySelector('.tv-cinema-light')).toBe(expected);
+  view.unmount();
+ }
+});
+it('does not announce ready after the whole stage unmounts and cancels the frame callback', () => {
+ vi.useFakeTimers(); const { frames, cancel } = frameApi();
+ try {
+  const events=callbacks(); const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição')); view.unmount();
+  expect(cancel).toHaveBeenCalled();
+  act(() => { frames.shift()!(); vi.advanceTimersByTime(500); });
+  expect(events.onReady).not.toHaveBeenCalled();
+ } finally { dropFrameApi(); }
+});
+it('invalidates a pending readiness callback when paused', () => {
+ vi.useFakeTimers(); const { frames } = frameApi();
+ try {
+  const events=callbacks(); const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+  view.rerender(<CinematicStage video={first} paused muted {...events} />);
+  act(() => { frames.shift()!(); vi.advanceTimersByTime(500); });
+  expect(events.onReady).not.toHaveBeenCalled();
+ } finally { dropFrameApi(); }
+});
+it('ignores a stale callback from a discarded source that is selected again (ordinary replacement)', () => {
+ vi.useFakeTimers(); const { frames } = frameApi();
+ try {
+  const events=callbacks(); const fragment={...second,url:'https://example.com/2.mp4#t=10'};
+  const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição')); act(() => frames.shift()!());
+  view.rerender(<CinematicStage video={fragment} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição')); const stale=frames.shift()!;
+  view.rerender(<CinematicStage video={later} paused={false} muted {...events} />);
+  view.rerender(<CinematicStage video={fragment} paused={false} muted {...events} />);
+  act(() => stale()); expect(events.onReady).toHaveBeenCalledTimes(1);
+ } finally { dropFrameApi(); }
+});

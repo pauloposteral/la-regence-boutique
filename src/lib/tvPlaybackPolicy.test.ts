@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampTransitionMs, COOLDOWN_BASE_MS, createPressureTracker, createSourceCooldown, resolvePresentation } from "./tvPlaybackPolicy";
+import { clampTransitionMs, COOLDOWN_BASE_MS, createPressureTracker, createSourceCooldown, isPalette, isProfile, resolveFit, resolvePairPresentation, resolvePresentation } from "./tvPlaybackPolicy";
 import { fileSourceUrl, videoSourceKey, type TVVideo } from "./tvPlaylist";
 
 const file = { source_type: "file" as const };
@@ -75,5 +75,33 @@ describe("canonical source identity", () => {
     expect(videoSourceKey(v("https://example.com/a.mp4?v=2"))).not.toBe(videoSourceKey(v("https://example.com/a.mp4")));
     expect(fileSourceUrl("https://example.com/a.mp4#t=5")).toBe("https://example.com/a.mp4#t=5");
     expect(videoSourceKey(v("https://youtu.be/x", { source_type: "youtube", youtube_id: "M7lc1UVf-VE" }))).toBe("youtube:M7lc1UVf-VE");
+  });
+});
+
+describe("review fix round 1", () => {
+  it("rejects inherited enum names and falls back to safe defaults", () => {
+    for (const name of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(isProfile(name)).toBe(false);
+      expect(isPalette(name)).toBe(false);
+      const p = resolvePresentation({ source_type: "file", transition_profile: name, palette: name, transition_ms: 900 });
+      expect(p.profile).toBe("clean"); expect(p.palette).toBe("neutral"); expect(p.durationMs).toBe(700);
+    }
+    expect(isProfile("light")).toBe(true); expect(isPalette("amber")).toBe(true);
+  });
+  it("contains protected QR and text without changing the stored fit", () => {
+    const stored = { fit: "cover" as const };
+    expect(resolveFit({ ...stored, protect_qr: true })).toBe("contain");
+    expect(resolveFit({ ...stored, protect_text: true })).toBe("contain");
+    expect(resolveFit(stored)).toBe("cover");
+    expect(stored.fit).toBe("cover");
+  });
+  it("suppresses stage light when the outgoing participant is protected or YouTube, keeping the profile", () => {
+    const incoming = { source_type: "file" as const, transition_profile: "light", palette: "amber" };
+    expect(resolvePairPresentation(incoming, { source_type: "file" }).light).toBe(true);
+    for (const outgoing of [{ source_type: "file" as const, protect_qr: true }, { source_type: "file" as const, protect_text: true }, { source_type: "youtube" as const }]) {
+      const p = resolvePairPresentation(incoming, outgoing);
+      expect(p.light).toBe(false); expect(p.profile).toBe("light"); expect(p.durationMs).toBe(950);
+    }
+    expect(incoming.transition_profile).toBe("light");
   });
 });

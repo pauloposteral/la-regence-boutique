@@ -243,3 +243,53 @@ describe("TV playback", () => {
     fireEvent.ended(healthy);
     expect(current().src).toContain('a.mp4'); // retried independently
   });
+
+describe("per-source cooldown (review fix round 1)", () => {
+  const three: TVVideo[] = ["a", "b", "c"].map((id, i) => ({ ...videos[0], id, title: id, url: `https://example.com/${id}.mp4`, sort_order: i }));
+  const shown = () => (screen.queryByLabelText("Vídeo em exibição") as HTMLVideoElement | null)?.src ?? null;
+  it("keeps the 60s floor for every source when all sources failed", () => {
+    vi.useFakeTimers();
+    render(<TVPlayer videos={videos} />);
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição"));
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição"));
+    expect(shown()).toBeNull();
+    act(() => { vi.advanceTimersByTime(30_010); });
+    expect(shown()).toBeNull();
+    act(() => { vi.advanceTimersByTime(30_100); });
+    expect(shown()).toContain("cafe.mp4");
+  });
+  it("re-enables staggered failures at their own expiry and escalates repeat failures", () => {
+    vi.useFakeTimers();
+    render(<TVPlayer videos={videos} />);
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição")); // cafe until 60s
+    act(() => { vi.advanceTimersByTime(20_000); });
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição")); // produto until 80s
+    act(() => { vi.advanceTimersByTime(40_100); });
+    expect(shown()).toContain("cafe.mp4");
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição")); // cafe 2nd failure: 120s
+    expect(shown()).toBeNull();
+    act(() => { vi.advanceTimersByTime(20_000); });
+    expect(shown()).toContain("produto.mp4");
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição")); // produto 2nd: 120s
+    act(() => { vi.advanceTimersByTime(61_000); });
+    expect(shown()).toBeNull();
+    act(() => { vi.advanceTimersByTime(60_000); });
+    expect(shown()).not.toBeNull();
+  });
+  it("retains the healthy current source through unrelated updates while another source cools", () => {
+    vi.useFakeTimers();
+    const view = render(<TVPlayer videos={three} />);
+    fireEvent.error(screen.getByLabelText("Vídeo em exibição")); // a cools
+    const healthy = screen.getByLabelText("Vídeo em exibição") as HTMLVideoElement;
+    expect(healthy.src).toContain("b.mp4");
+    fireEvent.playing(healthy); act(() => { vi.advanceTimersByTime(1_300); });
+    // Healthy playback keeps progressing so only the cooldown, not the watchdog, matters.
+    const playFor = (ms: number) => { for (let t = 0; t < ms; t += 5_000) { healthy.currentTime += 5; fireEvent.timeUpdate(healthy); act(() => { vi.advanceTimersByTime(5_000); }); } };
+    view.rerender(<TVPlayer videos={[...three].reverse().map((v, i) => ({ ...v, sort_order: i, title: `${v.title}!` }))} />);
+    playFor(30_000);
+    view.rerender(<TVPlayer videos={three.map(v => ({ ...v }))} />);
+    playFor(35_000); // a's own 60s cooldown expires meanwhile
+    expect(screen.getByLabelText("Vídeo em exibição")).toBe(healthy);
+  });
+});
+

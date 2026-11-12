@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Film } from 'lucide-react';
 import type { TVVideo } from '@/lib/tvPlaylist';
+import { isProtectedContent } from '@/lib/tvPlaybackPolicy';
 
 function posterSource(video: TVVideo): string | null {
   if (video.source_type === 'youtube' && /^[\w-]{11}$/.test(video.youtube_id ?? '')) {
@@ -20,6 +21,6 @@ export default function VideoThumbnail({ video }: { video: TVVideo }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [source]);
   return source && !failed
-    ? <img src={source} alt={`Capa: ${video.title}`} loading="lazy" decoding="async" width={160} height={90} className="h-full w-full object-cover" onError={() => setFailed(true)} />
+    ? <img src={source} alt={`Capa: ${video.title}`} loading="lazy" decoding="async" width={160} height={90} data-fit={isProtectedContent(video) ? 'contain' : 'cover'} className={`h-full w-full ${isProtectedContent(video) ? 'object-contain' : 'object-cover'}`} onError={() => setFailed(true)} />
     : <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-brown-deep text-white/70"><Film size={20} aria-hidden="true" /><span className="text-[10px]">Sem capa</span></span>;
 }

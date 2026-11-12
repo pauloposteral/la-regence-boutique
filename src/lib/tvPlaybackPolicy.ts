@@ -42,8 +42,18 @@ export interface ResolvedPresentation {
 
 export interface PresentationContext { reducedMotion?: boolean; pressure?: boolean }
 
-export const isProfile = (value: unknown): value is TransitionProfile => typeof value === "string" && value in TRANSITION_PROFILES;
-export const isPalette = (value: unknown): value is Palette => typeof value === "string" && value in PALETTES;
+// Own keys only: inherited names such as "constructor" or "__proto__" are not valid values.
+const ownKey = (record: object, value: unknown): boolean => typeof value === "string" && Object.prototype.hasOwnProperty.call(record, value);
+export const isProfile = (value: unknown): value is TransitionProfile => ownKey(TRANSITION_PROFILES, value);
+export const isPalette = (value: unknown): value is Palette => ownKey(PALETTES, value);
+
+/** Content whose QR code or text must never be cropped or overlaid. */
+export const isProtectedContent = (video: PresentationSettings): boolean => !!video.protect_qr || !!video.protect_text;
+
+/** Playback geometry: protected QR/text is always contained; the stored fit is left unchanged. */
+export function resolveFit(video: Pick<TVVideo, "fit"> & PresentationSettings): "contain" | "cover" {
+  return isProtectedContent(video) ? "contain" : video.fit === "cover" ? "cover" : "contain";
+}
 
 export function clampTransitionMs(profile: TransitionProfile, ms?: number | null): number {
   const range = TRANSITION_PROFILES[profile];
@@ -56,7 +66,7 @@ export function resolvePresentation(video: Pick<TVVideo, "source_type"> & Presen
   const reasons: string[] = [];
   let profile: TransitionProfile = isProfile(video.transition_profile) ? video.transition_profile : "clean";
   const palette: Palette = isPalette(video.palette) ? video.palette : "neutral";
-  const protectedContent = !!video.protect_qr || !!video.protect_text;
+  const protectedContent = isProtectedContent(video);
   let scale = profile === "depth";
   let light = profile === "light";
   if (video.source_type === "youtube") { scale = false; light = false; reasons.push("YouTube: somente opacidade"); }
@@ -68,6 +78,20 @@ export function resolvePresentation(video: Pick<TVVideo, "source_type"> & Presen
   const durationMs = clampTransitionMs(profile, profile === video.transition_profile ? video.transition_ms : null);
   if (context.reducedMotion) return { profile, durationMs: 0, palette, scale: false, light: false, instant: true, reasons: [...reasons, "Movimento reduzido"] };
   return { profile, durationMs, palette, scale, light, instant: false, reasons };
+}
+
+/** Handoff policy for both visible participants. A full-stage light would cover
+ *  the outgoing frame too, so it is suppressed when the outgoing item protects
+ *  QR/text or is a YouTube frame (opacity-only). Saved profiles are not changed. */
+export function resolvePairPresentation(
+  incoming: Pick<TVVideo, "source_type"> & PresentationSettings,
+  outgoing: (Pick<TVVideo, "source_type"> & PresentationSettings) | null | undefined,
+  context: PresentationContext = {},
+): ResolvedPresentation {
+  const resolved = resolvePresentation(incoming, context);
+  if (!outgoing || !resolved.light) return resolved;
+  const reason = outgoing.source_type === "youtube" ? "Anterior no YouTube: sem luz" : isProtectedContent(outgoing) ? "Anterior protegido: sem luz" : null;
+  return reason ? { ...resolved, light: false, reasons: [...resolved.reasons, reason] } : resolved;
 }
 
 export function describePresentation(p: ResolvedPresentation): string {

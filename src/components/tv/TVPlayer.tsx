@@ -113,12 +113,6 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     return () => clearInterval(timer);
   }, [advance, current, paused, blocked]);
 
-  useEffect(() => {
-    if (current || !playlist.length) return;
-    const timer = setTimeout(() => { cooldown.current.clear(); setCooldownRevision(value => value + 1); setCurrentId(null); }, 30_000);
-    return () => clearTimeout(timer);
-  }, [current, playlist.length]);
-
   // Retry each failed source independently when its own cooldown expires. The
   // healthy current source is retained by identity, so it is never restarted.
   useEffect(() => {

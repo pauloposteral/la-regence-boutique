@@ -475,3 +475,14 @@ it('shows a labelled previous/current/next preview of active items only, without
  expect(panel.getByTestId('preview-next')).toHaveTextContent('Vídeo a');
  expect(document.querySelector('video')).not.toBeInTheDocument();
 });
+it('preview uses the same pair policy as the stage and shows protected posters uncropped', () => {
+ playlist.videos = [video('a',{sort_order:0,protect_qr:true,fit:'cover',poster_url:'https://example.com/a.jpg'}), video('b',{sort_order:1,transition_profile:'light',palette:'amber'})];
+ showManager();
+ fireEvent.click(screen.getByRole('button',{name:/Mostrar prévia da sequência/}));
+ const panel = within(screen.getByRole('region',{name:'Prévia da sequência'}));
+ expect(panel.getByTestId('preview-policy')).toHaveTextContent('Anterior protegido: sem luz');
+ fireEvent.click(panel.getByRole('button',{name:'Testar transição para o próximo'}));
+ expect(panel.getByTestId('preview-next').querySelector('.tv-cinema-light')).toBeNull();
+ const poster = panel.getAllByAltText('Capa: Vídeo a')[0];
+ expect(poster).toHaveClass('object-contain'); expect(poster).not.toHaveClass('object-cover');
+});

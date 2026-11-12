@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { playableVideos, type TVVideo } from "@/lib/tvPlaylist";
-import { describePresentation, PALETTES, resolvePresentation } from "@/lib/tvPlaybackPolicy";
+import { describePresentation, PALETTES, resolvePairPresentation } from "@/lib/tvPlaybackPolicy";
 import VideoThumbnail from "./VideoThumbnail";
 import "./cinema.css";
 
@@ -19,7 +19,7 @@ export default function AdjacentPreview({ videos }: { videos: TVVideo[] }) {
   if (playlist.length === 0) return <section aria-label="Prévia da sequência" className="mb-5 rounded-xl border border-dashed border-gold/30 p-4 text-sm text-muted-foreground">Prévia indisponível: nenhum vídeo ativo na programação.</section>;
   const at = (offset: number) => playlist[(index + offset + playlist.length) % playlist.length];
   const previous = at(-1), current = at(0), next = at(1);
-  const presentation = resolvePresentation(next, { reducedMotion });
+  const presentation = resolvePairPresentation(next, current, { reducedMotion });
   const style = { "--tv-dissolve-duration": `${presentation.durationMs}ms`, "--tv-light-rgb": PALETTES[presentation.palette].rgb } as CSSProperties;
   const card = (video: TVVideo, label: string, extra = "") => <figure className="min-w-0 space-y-1.5">
     <figcaption className="text-[10px] uppercase tracking-[.2em] text-gold">{label}</figcaption>
