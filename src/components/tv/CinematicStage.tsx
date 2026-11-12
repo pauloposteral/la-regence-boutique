@@ -11,6 +11,8 @@ interface DeckProps {
   onReady(): void; onPaused?(): void; onProgress(seconds?: number, duration?: number): void; onEnded(): void; onError(): void; onBlocked(): void;
   /** Measured decoder statistics and stalls of the selected deck (no estimates). */
   onSample?(dropped: number, total: number): void; onStall?(): void;
+  /** Observed intrinsic resolution of the selected media (0 = unknown). */
+  onMediaInfo?(width: number, height: number): void;
 }
 const PALETTE_RGB = Object.fromEntries(Object.entries(PALETTES).map(([name, value]) => [name, value.rgb])) as Record<string, string>;
 const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, ref) {
@@ -72,6 +74,7 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
     }
     const quality = typeof video.getVideoPlaybackQuality === 'function' ? video.getVideoPlaybackQuality() : null;
     if (quality) state.onSample?.(quality.droppedVideoFrames, quality.totalVideoFrames);
+    state.onMediaInfo?.(video.videoWidth || 0, video.videoHeight || 0);
     if (video.ended || duration > 0 && video.currentTime >= duration - 0.05) finish();
   };
   const recover = () => {
@@ -205,6 +208,8 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
 });
 
 type StageProps = Omit<DeckProps, 'selected' | 'onSample' | 'onStall'> & {
+  /** Selected media is waiting for data (observed `waiting`). */
+  onBuffering?(): void;
   /** Next eligible item; native files are prepared (paused, muted, hidden) in advance. */
   upcoming?: TVVideo | null;
   onReducedEffects?(reduced: boolean): void;
@@ -319,7 +324,8 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
           }}
           onPaused={() => { if (selected.current === id) props.onPaused?.(); }}
           onSample={(dropped, total) => { if (selected.current === id) notePressure(pressure.current.sample(dropped, total)); }}
-          onStall={() => { if (selected.current === id) notePressure(pressure.current.stall()); }}
+          onStall={() => { if (selected.current === id) { notePressure(pressure.current.stall()); latest.current.onBuffering?.(); } }}
+          onMediaInfo={(width, height) => { if (selected.current === id) latest.current.onMediaInfo?.(width, height); }}
           onProgress={(time, duration) => { if (selected.current === id) props.onProgress(time, duration); }}
           onEnded={() => { if (selected.current === id) props.onEnded(); }}
           onError={() => { if (selected.current === id) props.onError(); }}

@@ -158,10 +158,20 @@ export function createPressureTracker({ minFrames = 120, dropRatio = 0.1, stallL
   };
 }
 
-/** Task 2 extension point: bounded snapshot of what the player is actually doing. */
+/** Bounded snapshot of what the player is actually doing (Task 2 status source).
+ *  `state` is selection intent (kept for compatibility); `mediaState` comes only
+ *  from the selected deck's observed media events. No URL or secret is exposed. */
 export interface TVPlaybackSnapshot {
   currentId: string | null;
   sourceKey: string | null;
   state: "playing" | "paused" | "blocked" | "idle";
   reducedEffects: boolean;
+  /** "starting" = selected but no presented frame yet; never reported as playing. */
+  mediaState: "idle" | "starting" | "playing" | "paused" | "buffering" | "blocked" | "error";
+  positionSeconds: number;
+  width: number;
+  height: number;
+  /** Set only by a genuine end of the selected media (not skip, prewarm, reorder or preview). */
+  lastCompletedId: string | null;
+  qualityMode: "normal" | "compatible" | "reduced-motion";
 }

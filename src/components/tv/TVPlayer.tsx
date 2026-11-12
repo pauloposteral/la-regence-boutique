@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw, Settings2 } from "lucide-react";
 import { nextVideoId, playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
 import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
@@ -8,7 +8,7 @@ import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
-export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null, onSnapshot }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null; /** Task 2 extension point (status/heartbeat). */ onSnapshot?: (snapshot: TVPlaybackSnapshot) => void }) {
+export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null, onSnapshot, operatorPanel }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null; /** Observed playback status for the paired-screen heartbeat. */ onSnapshot?: (snapshot: TVPlaybackSnapshot) => void; /** Operator-only extras shown inside the hidden control panel (e.g. pairing). */ operatorPanel?: ReactNode }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
   const media = useRef<PlaybackHandle>(null);
@@ -30,6 +30,12 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const [playback, setPlayback] = useState({seconds:0, duration:0});
   const [notice, setNotice] = useState("");
   const [manualRefreshing, setManualRefreshing] = useState(false);
+  // Observed media facts of the selected deck only (never inferred from selection).
+  const [mediaActive, setMediaActive] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const [compatible, setCompatible] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [lastCompletedId, setLastCompletedId] = useState<string | null>(null);
   const refreshProgramming = async () => {
     if (!onRefresh || refreshing || manualRefreshing) return;
     setManualRefreshing(true);
@@ -77,7 +83,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   }, []);
 
   const advance = useCallback((broken = false) => {
-    if (broken && media.current?.recover?.()) { lastProgress.current = Date.now(); setNotice("Usando a versão compatível deste vídeo."); return; }
+    if (broken && media.current?.recover?.()) { lastProgress.current = Date.now(); setCompatible(true); setMediaActive(false); setNotice("Usando a versão compatível deste vídeo."); return; }
     const excluded = new Set(failed);
     if (broken && current) {
       cooldown.current.fail(videoSourceKey(current));
@@ -104,6 +110,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     lastProgress.current = Date.now();
     setBlocked(false);
     setPlayback({seconds:0,duration:0});
+    setMediaActive(false); setBuffering(false); setCompatible(false); setDimensions({ width: 0, height: 0 });
   }, [currentUrl, selectedId]);
 
   useEffect(() => {
@@ -128,9 +135,15 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
 
   const snapshotRef = useRef(onSnapshot); snapshotRef.current = onSnapshot;
   const snapshotState: TVPlaybackSnapshot["state"] = !current ? "idle" : paused ? "paused" : blocked ? "blocked" : "playing";
+  const mediaState: TVPlaybackSnapshot["mediaState"] = !current ? (playlist.length ? "error" : "idle")
+    : blocked ? "blocked" : !mediaActive ? "starting" : paused ? "paused" : buffering ? "buffering" : "playing";
+  const reducedMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const qualityMode: TVPlaybackSnapshot["qualityMode"] = reducedMotion ? "reduced-motion" : compatible || reducedEffects ? "compatible" : "normal";
+  const positionSeconds = mediaActive ? playback.seconds : 0;
   useEffect(() => {
-    snapshotRef.current?.({ currentId: selectedId ?? null, sourceKey: selectedKey ?? null, state: snapshotState, reducedEffects });
-  }, [selectedId, selectedKey, snapshotState, reducedEffects]);
+    snapshotRef.current?.({ currentId: selectedId ?? null, sourceKey: selectedKey ?? null, state: snapshotState, reducedEffects,
+      mediaState, positionSeconds, width: dimensions.width, height: dimensions.height, lastCompletedId, qualityMode });
+  }, [selectedId, selectedKey, snapshotState, reducedEffects, mediaState, positionSeconds, dimensions, lastCompletedId, qualityMode]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -201,9 +214,11 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       {current ? (
         <CinematicStage ref={media} video={current} upcoming={upcoming} paused={paused} muted={muted}
           onReducedEffects={setReducedEffects}
-          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); lastProgress.current = Date.now(); if (selectedKey) cooldown.current.succeed(selectedKey); }}
-          onBlocked={() => setBlocked(true)} onEnded={() => advance()} onError={() => advance(true)}
-          onProgress={(seconds = 0, duration = 0) => { lastProgress.current = Date.now(); setPlayback({seconds,duration}); }} />
+          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); setMediaActive(true); setBuffering(false); lastProgress.current = Date.now(); if (selectedKey) cooldown.current.succeed(selectedKey); }}
+          onBlocked={() => setBlocked(true)} onEnded={() => { if (mediaActive && current) setLastCompletedId(current.id); advance(); }} onError={() => advance(true)}
+          onBuffering={() => setBuffering(true)}
+          onMediaInfo={(width, height) => setDimensions(previous => previous.width === width && previous.height === height ? previous : { width, height })}
+          onProgress={(seconds = 0, duration = 0) => { lastProgress.current = Date.now(); setBuffering(false); setPlayback({seconds,duration}); }} />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-5 p-8 text-center">
           <img src="/favicon.jpeg" alt="" className="h-24 w-24 rounded-full border border-gold/50 object-cover" />
@@ -233,6 +248,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
         {onRefresh && <button className={buttonClass} disabled={refreshing || manualRefreshing} onClick={() => void refreshProgramming()} aria-label="Atualizar programação"><RotateCcw className={refreshing || manualRefreshing ? "animate-spin" : ""} /></button>}
         <button className={buttonClass} onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Sair da tela cheia" : "Tela cheia"}>{fullscreen ? <Minimize /> : <Maximize />}</button>
         {notice && <p className="w-full text-sm text-white/70" role="status">{notice}</p>}
+        {operatorPanel && <div className="w-full">{operatorPanel}</div>}
         {fullscreenHint && <p className="w-full text-right text-sm" role="status">{fullscreenHint}</p>}
       </div>
     </div>

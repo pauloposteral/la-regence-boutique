@@ -151,13 +151,15 @@ export function createOfflineStore(deps: StoreDeps = {}) {
     },
 
     /** Download at most one planned file. Returns what happened for the caller loop. */
-    async warmOnce(): Promise<"downloaded" | "idle" | "failed" | "paused" | "unavailable"> {
+    async warmOnce(deferKeys: readonly string[] = []): Promise<"downloaded" | "idle" | "failed" | "paused" | "unavailable"> {
       let plan: { key: string; generation: number } | null = null;
       try {
         plan = await serialize(async () => {
           const { manifest } = await read();
           if (manifest.quotaPausedUntil > now()) return null;
-          const key = planWarmSet(manifest.eligible, manifest.ready, manifest.failures, now()).fill[0];
+          // Deferring the source on screen avoids switching its byte ranges between
+          // network and cache mid-play; it does not change the planned target set.
+          const key = planWarmSet(manifest.eligible, manifest.ready, manifest.failures, now()).fill.find(candidate => !deferKeys.includes(candidate));
           return key ? { key, generation: manifest.generation } : null;
         });
       } catch { return "unavailable"; }
