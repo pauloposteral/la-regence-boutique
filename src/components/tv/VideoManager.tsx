@@ -14,13 +14,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 const actionClass = "inline-flex items-center justify-center gap-2 rounded-full border border-gold/35 px-5 py-3 text-sm text-brown-dark transition-colors hover:bg-gold/10 disabled:opacity-50";
 import VideoThumbnail from "./VideoThumbnail";
 import PlaylistOrderEditor from "./PlaylistOrderEditor";
+import AdjacentPreview from "./AdjacentPreview";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { clampTransitionMs, describePresentation, isPalette, isProfile, PALETTES, resolvePresentation, TRANSITION_PROFILES, type Palette, type TransitionProfile } from "@/lib/tvPlaybackPolicy";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const rowActionClass = "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full border border-gold/30 px-3 py-2 text-xs text-brown-dark hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-50";
 const PAGE_SIZE = 12;
 const searchableTitle = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 type PlaylistFilter = "all" | "active" | "paused" | "archived";
-type VideoDraft = { title: string; fit: TVVideo["fit"]; duration: string; editing: boolean };
+type VideoDraft = { title: string; fit: TVVideo["fit"]; duration: string; editing: boolean; profile?: TransitionProfile; transitionMs?: string; palette?: Palette; protectQr?: boolean; protectText?: boolean; protectZoom?: boolean };
 
 const inputClass = "w-full rounded-lg border border-input bg-white px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 
@@ -37,7 +40,16 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
   const fit = draft?.fit ?? video.fit;
   const duration = draft?.duration ?? video.max_duration_seconds?.toString() ?? "";
   const editing = draft?.editing ?? false;
-  const changeDraft = (changes: Partial<VideoDraft>) => onDraftChange({ title, fit, duration, editing, ...changes });
+  const profile: TransitionProfile = draft?.profile ?? (isProfile(video.transition_profile) ? video.transition_profile : "clean");
+  const transitionMs = draft?.transitionMs ?? String(clampTransitionMs(profile, video.transition_profile === profile ? video.transition_ms : null));
+  const palette: Palette = draft?.palette ?? (isPalette(video.palette) ? video.palette : "neutral");
+  const protectQr = draft?.protectQr ?? !!video.protect_qr;
+  const protectText = draft?.protectText ?? !!video.protect_text;
+  const protectZoom = draft?.protectZoom ?? !!video.protect_zoom;
+  const reducedMotion = usePrefersReducedMotion();
+  const changeDraft = (changes: Partial<VideoDraft>) => onDraftChange({ title, fit, duration, editing, profile, transitionMs, palette, protectQr, protectText, protectZoom, ...changes });
+  const range = TRANSITION_PROFILES[profile];
+  const draftPresentation = resolvePresentation({ source_type: video.source_type, transition_profile: profile, transition_ms: Number(transitionMs), palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom }, { reducedMotion });
   const [showPreview, setShowPreview] = useState(false);
   const editTrigger = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(false);
@@ -68,8 +80,22 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
       (event.currentTarget.elements.namedItem("duration") as HTMLInputElement)?.focus();
       return;
     }
+    const ms = Number(transitionMs);
+    if (!Number.isInteger(ms) || ms < range.minMs || ms > range.maxMs) {
+      setFormError(`Informe a duração da transição entre ${range.minMs} e ${range.maxMs} ms.`);
+      (event.currentTarget.elements.namedItem("transition_ms") as HTMLInputElement)?.focus();
+      return;
+    }
     setFormError("");
-    void update({ title: title.trim(), fit, max_duration_seconds: maxDuration }).then(saved => { if (saved) {onDraftChange(undefined);editTrigger.current?.focus();} });
+    // Write presentation metadata only when the operator changed its effective
+    // value, so saving a title never silently rewrites a row's safe defaults.
+    const storedProfile = isProfile(video.transition_profile) ? video.transition_profile : "clean";
+    const presentationChanged = profile !== storedProfile
+      || ms !== clampTransitionMs(storedProfile, video.transition_profile === storedProfile ? video.transition_ms : null)
+      || palette !== (isPalette(video.palette) ? video.palette : "neutral")
+      || protectQr !== !!video.protect_qr || protectText !== !!video.protect_text || protectZoom !== !!video.protect_zoom;
+    const presentation = presentationChanged ? { transition_profile: profile, transition_ms: ms, palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom } : {};
+    void update({ title: title.trim(), fit, max_duration_seconds: maxDuration, ...presentation }).then(saved => { if (saved) {onDraftChange(undefined);editTrigger.current?.focus();} });
   };
   const cancelEdit = () => {
     onDraftChange(undefined); setFormError(""); editTrigger.current?.focus();
@@ -101,6 +127,20 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
           <label className="block space-y-1 text-xs text-muted-foreground"><span>Nome do vídeo</span><input name="title" className={inputClass} value={title} maxLength={120} required aria-invalid={!!formError && !title.trim()} aria-describedby={formError ? `video-error-${video.id}` : undefined} onChange={e => changeDraft({ title: e.target.value })} /></label>
           <label className="block space-y-1 text-xs text-muted-foreground"><span>Enquadramento</span><select disabled={video.source_type === "youtube"} className={inputClass} value={fit} onChange={e => changeDraft({ fit: e.target.value as TVVideo["fit"] })}><option value="contain">Vídeo inteiro</option><option value="cover">Preencher tela (recorta)</option></select></label>
           <div className="space-y-1 text-xs text-muted-foreground"><label htmlFor={`video-duration-input-${video.id}`} className="block">Tempo na TV (segundos, opcional)</label><input id={`video-duration-input-${video.id}`} name="duration" className={inputClass} type="number" min={1} max={3600} step={1} value={duration} placeholder="Vídeo inteiro" aria-describedby={`video-duration-${video.id}`} onChange={event => changeDraft({ duration: event.target.value })} /><span id={`video-duration-${video.id}`} className="block leading-relaxed">Em branco, toca o vídeo inteiro. Para passar ao próximo após 15 segundos, informe 15.</span></div>
+          <fieldset className="space-y-2 rounded-lg border border-border p-3 text-xs text-muted-foreground">
+            <legend className="px-1">Transição na TV</legend>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <label className="block space-y-1"><span>Estilo</span><select name="transition_profile" className={inputClass} value={profile} onChange={event => { const next = event.target.value as TransitionProfile; changeDraft({ profile: next, transitionMs: String(TRANSITION_PROFILES[next].defaultMs) }); }}>{(Object.keys(TRANSITION_PROFILES) as TransitionProfile[]).map(key => <option key={key} value={key}>{TRANSITION_PROFILES[key].label}</option>)}</select></label>
+              <label className="block space-y-1"><span>Duração (ms, {range.minMs}–{range.maxMs})</span><input name="transition_ms" type="number" className={inputClass} min={range.minMs} max={range.maxMs} step={10} value={transitionMs} onChange={event => changeDraft({ transitionMs: event.target.value })} /></label>
+              <label className="block space-y-1"><span>Cor da luz</span><select name="palette" className={inputClass} value={palette} onChange={event => changeDraft({ palette: event.target.value as Palette })}>{(Object.keys(PALETTES) as Palette[]).map(key => <option key={key} value={key}>{PALETTES[key].label}</option>)}</select></label>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-gold" checked={protectQr} onChange={event => changeDraft({ protectQr: event.target.checked })} />Contém QR code</label>
+              <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-gold" checked={protectText} onChange={event => changeDraft({ protectText: event.target.checked })} />Contém texto importante</label>
+              <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-gold" checked={protectZoom} onChange={event => changeDraft({ protectZoom: event.target.checked })} />Sem zoom</label>
+            </div>
+            <p data-testid={`presentation-summary-${video.id}`} className="leading-relaxed">Prévia da regra: {describePresentation(draftPresentation)}. QR e texto protegidos nunca recebem zoom nem luz decorativa; o vídeo não é cortado nem encurtado.</p>
+          </fieldset>
           {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
           <div className="flex gap-2"><button type="submit" disabled={busy} className={rowActionClass}><Check size={14} />Salvar</button><button type="button" disabled={busy} className={rowActionClass} onClick={cancelEdit}>Cancelar</button></div>
         </form>
@@ -243,6 +283,7 @@ export default function VideoManager() {
           <button ref={organizeTrigger} type="button" className={actionClass} disabled={organizing || busy || isLoading || isError || currentVideos.length < 2} onClick={() => setOrganizing(true)}><ListOrdered size={17} />Organizar ordem</button>
           {!!dataUpdatedAt && <p className="text-xs text-muted-foreground">{isError ? "Sem atualização agora. Exibindo a última lista recebida." : `Lista conferida às ${new Date(dataUpdatedAt).toLocaleTimeString("pt-BR")}`}</p>}
         </div>
+        {!organizing && <AdjacentPreview videos={videos} />}
         {organizing ? <PlaylistOrderEditor videos={videos} refresh={refetch} onClose={() => { setOrganizing(false); requestAnimationFrame(() => organizeTrigger.current?.focus()); }} /> : <>
         <div className="mb-5 flex flex-wrap items-end gap-3">
           <label className="min-w-40 flex-1 space-y-2 text-xs text-muted-foreground"><span>Buscar por nome</span><input type="search" className={inputClass} value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} placeholder="Nome do vídeo" /></label>

@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw, Settings2 } from "lucide-react";
 import { nextVideoId, playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
 import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
+import { createSourceCooldown, type TVPlaybackSnapshot } from "@/lib/tvPlaybackPolicy";
 
 import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
-export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null }) {
+export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null, onSnapshot }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null; /** Task 2 extension point (status/heartbeat). */ onSnapshot?: (snapshot: TVPlaybackSnapshot) => void }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
   const media = useRef<PlaybackHandle>(null);
@@ -15,7 +16,11 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const [currentId, setCurrentId] = useState<string | null>(initialId);
   const seen = useRef(new Set<string>());
-  const [failed, setFailed] = useState(new Set<string>());
+  // Failures are scoped to the canonical source, not row/position, so polling,
+  // reorders and aliases neither reset nor bypass a cooldown.
+  const cooldown = useRef(createSourceCooldown());
+  const [cooldownRevision, setCooldownRevision] = useState(0);
+  const [reducedEffects, setReducedEffects] = useState(false);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -31,14 +36,18 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     setNotice("Atualizando a programação…");
     try {
       await onRefresh();
-      setFailed(new Set());
+      cooldown.current.clear(); setCooldownRevision(value => value + 1);
       setNotice("Programação atualizada.");
     } catch {
       setNotice("Não foi possível atualizar. Confira a conexão e tente novamente.");
     } finally { setManualRefreshing(false); }
   };
-  const playlistKey = playlist.map(v => `${v.id}:${v.url}`).join("|");
-  useEffect(() => { setFailed(new Set()); }, [playlistKey]);
+  // Stable between cooldown changes so the watchdog interval is not reset by progress renders.
+  const failed = useMemo(() => {
+    const now = Date.now();
+    return new Set(playlist.filter(v => cooldown.current.isCooling(videoSourceKey(v), now)).map(v => v.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cooldownRevision signals ref changes.
+  }, [playlist, cooldownRevision]);
   const requested = videos.find(v => v.id === currentId && v.active && !v.archived_at);
   const requestedKey = requested && videoSourceKey(requested);
   const retained = playlist.find(v => !failed.has(v.id) && (v.id === currentId || videoSourceKey(v) === requestedKey));
@@ -70,8 +79,12 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const advance = useCallback((broken = false) => {
     if (broken && media.current?.recover?.()) { lastProgress.current = Date.now(); setNotice("Usando a versão compatível deste vídeo."); return; }
     const excluded = new Set(failed);
-    if (broken && current) excluded.add(current.id);
-    if (broken) { setFailed(excluded); setNotice("Um vídeo não respondeu. Seguindo a programação."); } else setNotice("");
+    if (broken && current) {
+      cooldown.current.fail(videoSourceKey(current));
+      for (const video of playlist) if (videoSourceKey(video) === videoSourceKey(current)) excluded.add(video.id);
+      setCooldownRevision(value => value + 1);
+    }
+    if (broken) setNotice("Um vídeo não respondeu. Seguindo a programação."); else setNotice("");
     const next = nextVideoId(playlist, current?.id ?? null, excluded, seen.current);
     const nextVideo = playlist.find(video => video.id === next);
     if (nextVideo) {
@@ -102,9 +115,28 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
 
   useEffect(() => {
     if (current || !playlist.length) return;
-    const timer = setTimeout(() => { setFailed(new Set()); setCurrentId(null); }, 30_000);
+    const timer = setTimeout(() => { cooldown.current.clear(); setCooldownRevision(value => value + 1); setCurrentId(null); }, 30_000);
     return () => clearTimeout(timer);
   }, [current, playlist.length]);
+
+  // Retry each failed source independently when its own cooldown expires. The
+  // healthy current source is retained by identity, so it is never restarted.
+  useEffect(() => {
+    const expiry = cooldown.current.nextExpiry();
+    if (expiry === null) return;
+    const timer = setTimeout(() => setCooldownRevision(value => value + 1), Math.max(0, expiry - Date.now()) + 10);
+    return () => clearTimeout(timer);
+  }, [cooldownRevision]);
+
+  // Predict (without consuming cycle state) the item that will follow.
+  const upcomingId = current ? nextVideoId(playlist, current.id, failed, seen.current) : null;
+  const upcoming = playlist.find(video => video.id === upcomingId && videoSourceKey(video) !== selectedKey) ?? null;
+
+  const snapshotRef = useRef(onSnapshot); snapshotRef.current = onSnapshot;
+  const snapshotState: TVPlaybackSnapshot["state"] = !current ? "idle" : paused ? "paused" : blocked ? "blocked" : "playing";
+  useEffect(() => {
+    snapshotRef.current?.({ currentId: selectedId ?? null, sourceKey: selectedKey ?? null, state: snapshotState, reducedEffects });
+  }, [selectedId, selectedKey, snapshotState, reducedEffects]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -173,8 +205,9 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
         if (event.key.toLowerCase() === "m") setMuted(value => !value);
       }}>
       {current ? (
-        <CinematicStage ref={media} video={current} paused={paused} muted={muted}
-          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); lastProgress.current = Date.now(); }}
+        <CinematicStage ref={media} video={current} upcoming={upcoming} paused={paused} muted={muted}
+          onReducedEffects={setReducedEffects}
+          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); lastProgress.current = Date.now(); if (selectedKey) cooldown.current.succeed(selectedKey); }}
           onBlocked={() => setBlocked(true)} onEnded={() => advance()} onError={() => advance(true)}
           onProgress={(seconds = 0, duration = 0) => { lastProgress.current = Date.now(); setPlayback({seconds,duration}); }} />
       ) : (

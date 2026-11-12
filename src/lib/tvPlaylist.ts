@@ -14,6 +14,13 @@ export interface TVVideo {
   active: boolean;
   archived_at: string | null;
   fit: "contain" | "cover";
+  /** Additive presentation metadata; NULL/unknown values resolve to safe defaults. */
+  transition_profile?: string | null;
+  transition_ms?: number | null;
+  palette?: string | null;
+  protect_qr?: boolean | null;
+  protect_text?: boolean | null;
+  protect_zoom?: boolean | null;
 }
 
 export const TV_BUCKET = "tv-videos";

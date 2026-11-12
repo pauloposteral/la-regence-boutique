@@ -19,3 +19,7 @@
 - [x] Migrate Vite 6.4.5, Vitest 4.1.12, React Router 7.18.4, selector-parser 7.1.7; only braces (no upstream fix) remains, documented.
 - [x] Changed-file lint clean; legacy debt listed in evidence.
 - [ ] Measure production initial JS bytes and confirm independent frontend typecheck: harness exposes build OK, not a size/typecheck report; external CI validation required.
+## TV cinema — 2026-11-12
+- [x] Task 1: prewarm (2 decks max), profiles/palettes/protection, source cooldown, admin settings + preview; tests/tsc/build passed.
+- [ ] Task 2 (screen status, offline cache): not started per instruction.
+- [ ] Task 3 publish/verification: root handles deployment.

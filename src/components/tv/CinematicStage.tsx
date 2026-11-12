@@ -2,13 +2,17 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import type { TVVideo } from '@/lib/tvPlaylist';
 import { fileSourceUrl, playbackDuration, videoSourceKey } from '@/lib/tvPlaylist';
 import { loadYouTubeAPI, type YouTubePlayer } from '@/lib/youtubePlayer';
+import { createPressureTracker, PALETTES, resolvePresentation, type ResolvedPresentation } from '@/lib/tvPlaybackPolicy';
 import './cinema.css';
 
 export interface PlaybackHandle { play(): void; restart(): void; recover?(): boolean }
 interface DeckProps {
   video: TVVideo; paused: boolean; muted: boolean; selected: boolean;
   onReady(): void; onPaused?(): void; onProgress(seconds?: number, duration?: number): void; onEnded(): void; onError(): void; onBlocked(): void;
+  /** Measured decoder statistics and stalls of the selected deck (no estimates). */
+  onSample?(dropped: number, total: number): void; onStall?(): void;
 }
+const PALETTE_RGB = Object.fromEntries(Object.entries(PALETTES).map(([name, value]) => [name, value.rgb])) as Record<string, string>;
 const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, ref) {
   const media = useRef<HTMLVideoElement>(null);
   // A source-keyed deck retains playback across catalog aliases. Preserve media
@@ -19,7 +23,27 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
   const wasSelected = useRef(props.selected);
   const finished = useRef(false);
   const previousTime = useRef(-1);
-  const reset = () => { finished.current = false; previousTime.current = -1; };
+  // Invalidates pending first-frame callbacks from a previous source/selection.
+  const readyToken = useRef(0);
+  const [prepared, setPrepared] = useState(false);
+  const reset = () => { finished.current = false; previousTime.current = -1; readyToken.current++; };
+  const announceReady = () => {
+    const video = media.current;
+    const state = callbacks.current;
+    if (!video || !state.selected || state.paused) return;
+    const token = ++readyToken.current;
+    const fire = () => {
+      if (readyToken.current !== token) return;
+      readyToken.current++;
+      if (callbacks.current.selected && !callbacks.current.paused) callbacks.current.onReady();
+    };
+    // Reveal on an actually presented frame where supported; `playing` is the
+    // compatible fallback (and a short guard covers throttled hidden tabs).
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      video.requestVideoFrameCallback(fire);
+      setTimeout(fire, 250);
+    } else fire();
+  };
   const finish = () => {
     if (!callbacks.current.selected || callbacks.current.paused || finished.current) return;
     finished.current = true; callbacks.current.onEnded();
@@ -33,6 +57,8 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
       previousTime.current = video.currentTime;
       state.onProgress(video.currentTime, duration);
     }
+    const quality = typeof video.getVideoPlaybackQuality === 'function' ? video.getVideoPlaybackQuality() : null;
+    if (quality) state.onSample?.(quality.droppedVideoFrames, quality.totalVideoFrames);
     if (video.ended || duration > 0 && video.currentTime >= duration - 0.05) finish();
   };
   const recover = () => {
@@ -47,10 +73,11 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
   };
   useEffect(() => {
     if (props.selected && !wasSelected.current && media.current) { reset(); media.current.currentTime = 0; }
+    if (!props.selected) readyToken.current++;
     wasSelected.current = props.selected;
   }, [props.selected]);
   useImperativeHandle(ref, () => ({ play, recover, restart: () => { reset(); if (media.current) media.current.currentTime = 0; play(); } }));
-  useEffect(() => { reset(); media.current?.load(); }, [source]);
+  useEffect(() => { reset(); setPrepared(false); media.current?.load(); }, [source]);
   useEffect(() => { if (props.paused) media.current?.pause(); else play(); }, [props.paused, source]);
   const reportRef = useRef(report); reportRef.current = report;
   useEffect(() => {
@@ -58,9 +85,11 @@ const FileDeck = forwardRef<PlaybackHandle, DeckProps>(function FileDeck(props, 
     return () => clearInterval(timer);
   }, []);
   return <video ref={media} src={source} aria-label={props.selected ? 'Vídeo em exibição' : undefined}
-    aria-hidden={!props.selected} autoPlay={props.selected && !props.paused} muted={props.muted} playsInline preload="auto" controls={false} disablePictureInPicture
+    aria-hidden={!props.selected} data-tv-prepared={prepared} autoPlay={props.selected && !props.paused} muted={props.muted} playsInline preload="auto" controls={false} disablePictureInPicture
     className="h-full w-full" style={{ objectFit: props.video.fit }}
-    onPlaying={() => { if (callbacks.current.selected && !callbacks.current.paused) callbacks.current.onReady(); }}
+    onLoadedData={() => setPrepared(true)}
+    onWaiting={() => { if (callbacks.current.selected && !callbacks.current.paused) callbacks.current.onStall?.(); }}
+    onPlaying={announceReady}
     onCanPlay={() => { if (callbacks.current.selected && !callbacks.current.paused) play(); }}
     onPause={() => { if (callbacks.current.selected && !callbacks.current.paused && media.current && !media.current.ended && media.current.readyState >= 2) play(); }}
     onTimeUpdate={report} onEnded={finish} onError={() => { if (!callbacks.current.selected) return; if (!recover()) callbacks.current.onError(); }} />;
@@ -156,9 +185,13 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
   return <div ref={host} className="h-full w-full" aria-label={props.selected ? `YouTube: ${props.video.title}` : undefined} aria-hidden={!props.selected} />;
 });
 
-type StageProps = Omit<DeckProps, 'selected'>;
-const DISSOLVE_MS = 1200;
-type Handoff = { from: string; to: string; serial: number };
+type StageProps = Omit<DeckProps, 'selected' | 'onSample' | 'onStall'> & {
+  /** Next eligible item; native files are prepared (paused, muted, hidden) in advance. */
+  upcoming?: TVVideo | null;
+  onReducedEffects?(reduced: boolean): void;
+};
+type Handoff = { from: string; to: string; serial: number; presentation: ResolvedPresentation };
+const STEADY_MS = 700;
 
 export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(props, ref) {
   const key = videoSourceKey(props.video);
@@ -169,7 +202,12 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
   const visibleKey = useRef(front); visibleKey.current = front;
   const activeHandoff = useRef(handoff); activeHandoff.current = handoff;
   const serial = useRef(0);
-  const clock = useRef({ serial: 0, remaining: DISSOLVE_MS + 100 });
+  const clock = useRef({ serial: 0, remaining: STEADY_MS + 100 });
+  const pressure = useRef(createPressureTracker());
+  const [reducedEffects, setReducedEffects] = useState(false);
+  const notePressure = (value: boolean) => { if (value && !reducedEffects) { setReducedEffects(true); latest.current.onReducedEffects?.(true); } };
+  const upcoming = props.upcoming && props.upcoming.source_type !== 'youtube' ? props.upcoming : null;
+  const upcomingKey = upcoming ? videoSourceKey(upcoming) : null;
   const handles = useRef(new Map<string, PlaybackHandle>());
   const selected = useRef(key); selected.current = key;
   const latest = useRef(props); latest.current = props;
@@ -195,7 +233,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
   useEffect(() => {
     if (!handoff) return;
     if (reducedMotion) { finishHandoff(handoff.serial); return; }
-    if (clock.current.serial !== handoff.serial) clock.current = { serial: handoff.serial, remaining: DISSOLVE_MS + 100 };
+    if (clock.current.serial !== handoff.serial) clock.current = { serial: handoff.serial, remaining: handoff.presentation.durationMs + 100 };
     if (props.paused) return;
     const started = performance.now();
     const timer = setTimeout(() => { if (!latest.current.paused) finishHandoff(handoff.serial); }, clock.current.remaining);
@@ -211,27 +249,33 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
       // Queue rapid skips until this pair completes instead of opening a third decoder.
       if (handoff) return previous.map(video => videoSourceKey(video) === key ? props.video : video);
       const visible = previous.find(video => videoSourceKey(video) === visibleKey.current);
-      return visible && videoSourceKey(visible) !== key ? [visible, props.video] : [props.video];
+      if (visible && videoSourceKey(visible) !== key) return [visible, props.video];
+      // Steady state: the second (and last) slot prepares the next native source.
+      // A replanned upcoming item replaces it; it never becomes a third deck.
+      return upcoming && upcomingKey !== key ? [props.video, upcoming] : [props.video];
     });
-  }, [key, props.video, front, handoff]);
+  }, [key, props.video, front, handoff, upcoming, upcomingKey]);
   useImperativeHandle(ref, () => ({
     play: () => handles.current.get(selected.current)?.play(),
     restart: () => handles.current.get(selected.current)?.restart(),
     recover: () => handles.current.get(selected.current)?.recover?.() ?? false,
   }));
+  const presentation = handoff?.presentation;
   return <div className={`tv-cinema-stage absolute inset-0 overflow-hidden ${props.paused ? 'tv-cinema-paused' : ''}`}
-    data-tv-transition={handoff ? 'dissolve' : 'steady'}
-    style={{ '--tv-dissolve-duration': `${DISSOLVE_MS}ms` } as CSSProperties}>
+    data-tv-transition={presentation ? presentation.profile : 'steady'}
+    data-tv-palette={presentation?.palette} data-tv-effects={reducedEffects ? 'reduced' : 'full'}
+    style={{ '--tv-dissolve-duration': `${presentation?.durationMs ?? STEADY_MS}ms`, ...(presentation ? { '--tv-light-rgb': PALETTE_RGB[presentation.palette] } : {}) } as CSSProperties}>
     {decks.map(video => {
       const id = videoSourceKey(video);
       const isSelected = id === key && (!handoff || handoff.to === key);
       const visible = front === id;
       const outgoing = handoff?.from === id;
       const entering = handoff?.to === id;
+      const scale = entering && !!presentation?.scale;
       const Deck = video.source_type === 'youtube' ? YouTubeDeck : FileDeck;
       return <div key={id} data-tv-deck={video.id} data-visible={visible} data-tv-phase={outgoing ? 'outgoing' : entering ? 'entering' : visible ? 'front' : 'preparing'}
         {...(!isSelected ? { inert: "" } : {})}
-        className={`tv-cinema-deck bg-brown-deep ${video.source_type === 'youtube' ? 'tv-cinema-youtube' : ''} ${visible ? 'tv-cinema-visible' : ''} ${outgoing ? 'tv-cinema-outgoing' : ''} ${entering ? 'tv-cinema-entering' : ''}`}
+        className={`tv-cinema-deck bg-brown-deep ${video.source_type === 'youtube' ? 'tv-cinema-youtube' : ''} ${visible ? 'tv-cinema-visible' : ''} ${outgoing ? 'tv-cinema-outgoing' : ''} ${entering ? 'tv-cinema-entering' : ''} ${scale ? 'tv-cinema-scale' : ''}`}
         aria-hidden={!isSelected}
         onAnimationEnd={event => {
           if (event.target !== event.currentTarget || !['tv-cinema-reveal', 'tv-cinema-dissolve'].includes(event.animationName)) return;
@@ -247,7 +291,7 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
               visibleKey.current = id;
               setFront(id);
               if (previous && !reducedMotion) {
-                const next = { from: previous, to: id, serial: ++serial.current };
+                const next = { from: previous, to: id, serial: ++serial.current, presentation: resolvePresentation(video, { reducedMotion, pressure: reducedEffects }) };
                 activeHandoff.current = next;
                 setHandoff(next);
               }
@@ -255,12 +299,14 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
             latest.current.onReady();
           }}
           onPaused={() => { if (selected.current === id) props.onPaused?.(); }}
+          onSample={(dropped, total) => { if (selected.current === id) notePressure(pressure.current.sample(dropped, total)); }}
+          onStall={() => { if (selected.current === id) notePressure(pressure.current.stall()); }}
           onProgress={(time, duration) => { if (selected.current === id) props.onProgress(time, duration); }}
           onEnded={() => { if (selected.current === id) props.onEnded(); }}
           onError={() => { if (selected.current === id) props.onError(); }}
           onBlocked={() => { if (selected.current === id) props.onBlocked(); }} />
       </div>;
     })}
-    {handoff && !reducedMotion && <div key={handoff.serial} className="tv-cinema-light" aria-hidden="true" />}
+    {handoff && presentation?.light && !reducedMotion && <div key={handoff.serial} className="tv-cinema-light" aria-hidden="true" />}
   </div>;
 });

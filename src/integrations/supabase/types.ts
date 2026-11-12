@@ -1228,12 +1228,18 @@ export type Database = {
           fit: string
           id: string
           max_duration_seconds: number | null
+          palette: string | null
           poster_url: string | null
+          protect_qr: boolean
+          protect_text: boolean
+          protect_zoom: boolean
           sort_order: number
           source_type: string
           source_url: string | null
           storage_path: string | null
           title: string
+          transition_ms: number | null
+          transition_profile: string | null
           url: string
           youtube_id: string | null
         }
@@ -1246,12 +1252,18 @@ export type Database = {
           fit?: string
           id?: string
           max_duration_seconds?: number | null
+          palette?: string | null
           poster_url?: string | null
+          protect_qr?: boolean
+          protect_text?: boolean
+          protect_zoom?: boolean
           sort_order?: number
           source_type?: string
           source_url?: string | null
           storage_path?: string | null
           title: string
+          transition_ms?: number | null
+          transition_profile?: string | null
           url: string
           youtube_id?: string | null
         }
@@ -1264,12 +1276,18 @@ export type Database = {
           fit?: string
           id?: string
           max_duration_seconds?: number | null
+          palette?: string | null
           poster_url?: string | null
+          protect_qr?: boolean
+          protect_text?: boolean
+          protect_zoom?: boolean
           sort_order?: number
           source_type?: string
           source_url?: string | null
           storage_path?: string | null
           title?: string
+          transition_ms?: number | null
+          transition_profile?: string | null
           url?: string
           youtube_id?: string | null
         }

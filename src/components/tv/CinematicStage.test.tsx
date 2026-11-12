@@ -267,3 +267,95 @@ it('tries the compatible source once on decode error before skipping', () => {
  fireEvent.error(v); expect(v.src).toBe('https://example.com/hd.mp4'); expect(events.onError).not.toHaveBeenCalled();
  fireEvent.error(v); expect(events.onError).toHaveBeenCalledTimes(1);
 });
+
+const third: TVVideo = { ...first, id:'three', url:'https://example.com/3.mp4' };
+const decks = (container: HTMLElement) => container.querySelectorAll('[data-tv-deck]');
+it('prepares the next native source paused, muted and hidden before the current one ends', () => {
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} upcoming={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ const prepared=view.container.querySelector('[data-tv-deck="two"]') as HTMLElement;
+ expect(prepared).toHaveAttribute('data-tv-phase','preparing');
+ expect(prepared).toHaveAttribute('data-visible','false');
+ const media=prepared.querySelector('video') as HTMLVideoElement;
+ expect(media.muted).toBe(true); expect(media.autoplay).toBe(false); expect(media).toHaveAttribute('preload','auto');
+ expect(vi.mocked(HTMLMediaElement.prototype.play).mock.contexts).not.toContain(media);
+ fireEvent.playing(media); // Early playing event from a prepared deck cannot reveal it.
+ expect(prepared).toHaveAttribute('data-visible','false');
+ expect(events.onReady).toHaveBeenCalledTimes(1);
+ fireEvent.loadedData(media);
+ expect(media).toHaveAttribute('data-tv-prepared','true');
+ // Handoff reuses the already-loaded element instead of creating a new decoder.
+ view.rerender(<CinematicStage video={second} upcoming={third} paused={false} muted {...events} />);
+ expect(screen.getByLabelText('Vídeo em exibição')).toBe(media);
+ expect(decks(view.container)).toHaveLength(2);
+ expect(view.container.querySelector('[data-tv-deck="three"]')).not.toBeInTheDocument();
+});
+it('never mounts a third decoder when the upcoming item changes during a handoff, and replans afterwards', () => {
+ vi.useFakeTimers();
+ const events=callbacks();
+ const fourth={...first,id:'four',url:'https://example.com/4.mp4'};
+ const view=render(<CinematicStage video={first} upcoming={second} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ view.rerender(<CinematicStage video={second} upcoming={third} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ for (const next of [third, fourth, first]) {
+  view.rerender(<CinematicStage video={second} upcoming={next} paused={false} muted {...events} />);
+  expect(decks(view.container).length).toBeLessThanOrEqual(2);
+ }
+ view.rerender(<CinematicStage video={fourth} upcoming={third} paused={false} muted {...events} />); // rapid skip
+ expect(decks(view.container)).toHaveLength(2);
+ act(()=>vi.advanceTimersByTime(1300));
+ expect(decks(view.container).length).toBeLessThanOrEqual(2);
+ // Live reorder replans the prepared slot in place.
+ view.rerender(<CinematicStage video={fourth} upcoming={first} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ act(()=>vi.advanceTimersByTime(1300));
+ view.rerender(<CinematicStage video={fourth} upcoming={third} paused={false} muted {...events} />);
+ expect(decks(view.container)).toHaveLength(2);
+ expect(view.container.querySelector('[data-tv-deck="three"]')).toBeInTheDocument();
+ expect(view.container.querySelector('[data-tv-deck="one"]')).not.toBeInTheDocument();
+});
+it('does not prewarm YouTube items', () => {
+ const events=callbacks();
+ const yt={...first,id:'yt',source_type:'youtube' as const,youtube_id:'M7lc1UVf-VE'};
+ const view=render(<CinematicStage video={first} upcoming={yt} paused={false} muted {...events} />);
+ expect(decks(view.container)).toHaveLength(1);
+});
+it('waits for a presented frame when requestVideoFrameCallback exists and ignores a stale callback', () => {
+ vi.useFakeTimers();
+ const pending: Array<() => void> = [];
+ Object.defineProperty(HTMLVideoElement.prototype,'requestVideoFrameCallback',{configurable:true,value:(cb:()=>void)=>{pending.push(cb);return pending.length;}});
+ try {
+  const events=callbacks();
+  const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+  expect(events.onReady).not.toHaveBeenCalled();
+  pending.shift()!();
+  expect(events.onReady).toHaveBeenCalledTimes(1);
+  view.rerender(<CinematicStage video={second} paused={false} muted {...events} />);
+  fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+  view.rerender(<CinematicStage video={third} paused={false} muted {...events} />); // superseded before its frame
+  pending.shift()!();
+  act(()=>vi.advanceTimersByTime(300));
+  expect(events.onReady).toHaveBeenCalledTimes(1);
+ } finally { delete (HTMLVideoElement.prototype as { requestVideoFrameCallback?: unknown }).requestVideoFrameCallback; }
+});
+it.each([
+ ['light', {}, 'light', 950, true, false],
+ ['depth', {}, 'depth', 900, false, true],
+ ['depth', {protect_qr:true}, 'depth', 900, false, false],
+ ['light', {protect_text:true}, 'light', 950, false, false],
+ ['clean', {}, 'clean', 700, false, false],
+] as const)('applies %s profile %o with its timing and protection rules', (profile, extra, attr, ms, light, scale) => {
+ const events=callbacks();
+ const view=render(<CinematicStage video={first} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ view.rerender(<CinematicStage video={{...second,transition_profile:profile,palette:'ruby',...extra}} paused={false} muted {...events} />);
+ fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+ const stage=view.container.querySelector('.tv-cinema-stage') as HTMLElement;
+ expect(stage).toHaveAttribute('data-tv-transition',attr);
+ expect(stage.style.getPropertyValue('--tv-dissolve-duration')).toBe(`${ms}ms`);
+ expect(!!view.container.querySelector('.tv-cinema-light')).toBe(light);
+ expect(!!view.container.querySelector('.tv-cinema-scale')).toBe(scale);
+});

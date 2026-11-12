@@ -425,3 +425,53 @@ it('preserves a metadata draft when editing is only collapsed during a refresh',
  expect(screen.getByLabelText('Nome do vídeo')).toHaveValue('Meu rascunho');
  expect(update).not.toHaveBeenCalled();
 });
+
+it('persists transition settings, clamps entry to the profile range and keeps title-only saves free of presentation writes', async () => {
+ playlist.videos = [video('coffee')];
+ showManager();
+ const row = within(screen.getByRole('article', {name:'Vídeo coffee'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ expect(row.getByTestId('presentation-summary-coffee')).toHaveTextContent('Dissolução limpa · 700 ms');
+ fireEvent.change(row.getByLabelText('Estilo'), {target:{value:'light'}});
+ expect(row.getByLabelText(/Duração \(ms, 800–1100\)/)).toHaveValue(950);
+ fireEvent.change(row.getByLabelText(/Duração/), {target:{value:'1200'}});
+ fireEvent.click(row.getByRole('button', {name:'Salvar'}));
+ expect(row.getByRole('alert')).toHaveTextContent('entre 800 e 1100 ms');
+ expect(update).not.toHaveBeenCalled();
+ fireEvent.change(row.getByLabelText(/Duração/), {target:{value:'1000'}});
+ fireEvent.change(row.getByLabelText('Cor da luz'), {target:{value:'pistachio'}});
+ fireEvent.click(row.getByLabelText('Contém QR code'));
+ expect(row.getByTestId('presentation-summary-coffee')).toHaveTextContent('QR protegido');
+ expect(row.getByTestId('presentation-summary-coffee')).not.toHaveTextContent('Pistache');
+ fireEvent.click(row.getByRole('button', {name:'Salvar'}));
+ await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+ expect(update).toHaveBeenLastCalledWith(expect.objectContaining({transition_profile:'light', transition_ms:1000, palette:'pistachio', protect_qr:true, protect_text:false, protect_zoom:false}));
+});
+it('loads saved transition settings into the editor', () => {
+ playlist.videos = [video('coffee',{transition_profile:'depth',transition_ms:850,palette:'cocoa',protect_zoom:true})];
+ showManager();
+ const row = within(screen.getByRole('article', {name:'Vídeo coffee'}));
+ fireEvent.click(row.getByRole('button',{name:'Editar'}));
+ expect(row.getByLabelText('Estilo')).toHaveValue('depth');
+ expect(row.getByLabelText(/Duração/)).toHaveValue(850);
+ expect(row.getByLabelText('Cor da luz')).toHaveValue('cocoa');
+ expect(row.getByLabelText('Sem zoom')).toBeChecked();
+ expect(row.getByTestId('presentation-summary-coffee')).toHaveTextContent('Sem zoom');
+});
+it('shows a labelled previous/current/next preview of active items only, without mounting media', () => {
+ playlist.videos = [video('a',{sort_order:0}), video('paused',{sort_order:1,active:false}), video('b',{sort_order:2,transition_profile:'light',palette:'amber'}), video('c',{sort_order:3})];
+ showManager();
+ fireEvent.click(screen.getByRole('button',{name:/Mostrar prévia da sequência/}));
+ const panel = within(screen.getByRole('region',{name:'Prévia da sequência'}));
+ expect(panel.getByText(/Somente prévia no painel/)).toBeInTheDocument();
+ expect(panel.queryByText('Vídeo paused')).not.toBeInTheDocument();
+ expect(panel.getByRole('combobox')).toHaveValue('a');
+ expect(panel.getByTestId('preview-next')).toHaveTextContent('Vídeo b');
+ expect(panel.getByTestId('preview-policy')).toHaveTextContent('Luz na cor da paleta · 950 ms · Âmbar');
+ fireEvent.click(panel.getByRole('button',{name:'Testar transição para o próximo'}));
+ expect(panel.getByTestId('preview-next').querySelector('.tv-cinema-light')).toBeInTheDocument();
+ fireEvent.change(panel.getByRole('combobox'), {target:{value:'c'}});
+ expect(panel.getByText('Anterior').closest('figure')).toHaveTextContent('Vídeo b');
+ expect(panel.getByTestId('preview-next')).toHaveTextContent('Vídeo a');
+ expect(document.querySelector('video')).not.toBeInTheDocument();
+});

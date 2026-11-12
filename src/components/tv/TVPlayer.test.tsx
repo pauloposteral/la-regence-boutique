@@ -97,7 +97,7 @@ describe("TV playback", () => {
     view.rerender(<TVPlayer videos={[...videos,{...copy,sort_order:-1}]} />);
     expect(screen.getByLabelText('Vídeo em exibição')).toBe(media);
     expect(media.currentTime).toBe(3);
-    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(HTMLMediaElement.prototype.load).mock.contexts.filter(context => context === media)).toHaveLength(1);
   });
   it('keeps the cycle history after a manual refresh', async () => {
     const third={...videos[0],id:'terceiro',title:'terceiro',url:'https://example.com/terceiro.mp4',sort_order:2};
@@ -173,7 +173,7 @@ describe("TV playback", () => {
     expect(media.src).toContain("cafe.mp4");
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Reproduzir" })); });
     expect(media.currentTime).toBe(12);
-    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(HTMLMediaElement.prototype.load).mock.contexts.filter(context => context === media)).toHaveLength(1);
   });
 });
   it('starts the requested active item for the admin preview link', () => {
@@ -203,4 +203,43 @@ describe("TV playback", () => {
     expect(screen.queryByText('Programação atualizada.')).not.toBeInTheDocument();
     expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('cafe.mp4');
     expect(screen.getByRole('button', {name:'Atualizar programação'})).toBeEnabled();
+  });
+  it('prepares the next item before the current one ends and hands off to the same element', () => {
+    const view = render(<TVPlayer videos={videos} />);
+    fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+    const prepared = view.container.querySelector('[data-tv-deck="produto"] video') as HTMLVideoElement;
+    expect(prepared).toBeInTheDocument();
+    expect(prepared.parentElement).toHaveAttribute('data-tv-phase', 'preparing');
+    expect(view.container.querySelectorAll('[data-tv-deck]')).toHaveLength(2);
+    fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
+    expect(screen.getByLabelText('Vídeo em exibição')).toBe(prepared);
+    expect(view.container.querySelectorAll('[data-tv-deck]').length).toBeLessThanOrEqual(2);
+  });
+  it('keeps a source cooldown through unrelated updates and reorders, then retries it alone without restarting the current video', () => {
+    vi.useFakeTimers();
+    const three: TVVideo[] = ['a', 'b', 'c'].map((id, i) => ({ ...videos[0], id, title: id, url: `https://example.com/${id}.mp4`, sort_order: i }));
+    const view = render(<TVPlayer videos={three} />);
+    const current = () => screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+    fireEvent.error(current()); // a fails (no fallback)
+    expect(current().src).toContain('b.mp4');
+    // Unrelated poll with new metadata and a reorder; plus an alias row of the failed source.
+    const reordered = [{ ...three[2], sort_order: 0, title: 'c novo' }, { ...three[1], sort_order: 1 }, { ...three[0], sort_order: 2 }, { ...three[0], id: 'a-alias', sort_order: 3 }];
+    view.rerender(<TVPlayer videos={reordered} />);
+    expect(current().src).toContain('b.mp4');
+    fireEvent.playing(current()); act(() => { vi.advanceTimersByTime(1300); }); fireEvent.ended(current());
+    expect(current().src).toContain('c.mp4');
+    fireEvent.playing(current()); act(() => { vi.advanceTimersByTime(1300); }); fireEvent.ended(current());
+    expect(current().src).toContain('b.mp4'); // a and its alias still cooling
+    const healthy = current();
+    fireEvent.playing(healthy); act(() => { vi.advanceTimersByTime(1300); });
+    const loads = () => vi.mocked(HTMLMediaElement.prototype.load).mock.contexts.filter(context => context === healthy).length;
+    const before = loads();
+    healthy.currentTime = 7;
+    // The healthy video keeps reporting progress while a's cooldown expires.
+    for (let step = 1; step <= 13; step++) { healthy.currentTime = 7 + step; fireEvent.timeUpdate(healthy); act(() => { vi.advanceTimersByTime(5_000); }); }
+    expect(current()).toBe(healthy);
+    expect(healthy.currentTime).toBe(20);
+    expect(loads()).toBe(before);
+    fireEvent.ended(healthy);
+    expect(current().src).toContain('a.mp4'); // retried independently
   });

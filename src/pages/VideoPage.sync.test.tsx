@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { TVVideo } from "@/lib/tvPlaylist";
 import VideoPage from "./VideoPage";
+const callsOn = (fn: (...args: never[]) => unknown, element: Element) => vi.mocked(fn).mock.contexts.filter(context => context === element).length;
 
 const mocks = vi.hoisted(() => ({
   read: vi.fn(),
@@ -113,8 +114,8 @@ it("updates through Realtime while preserving the native element, pause, positio
   await advance(1300); // Let the real handoff complete before the later 12-second pause.
   reportTime(playing, 12);
   fireEvent.click(screen.getByRole("button", { name: "Pausar" }));
-  const loadCount = vi.mocked(HTMLMediaElement.prototype.load).mock.calls.length;
-  const playCount = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+  const loadCount = callsOn(HTMLMediaElement.prototype.load, playing);
+  const playCount = callsOn(HTMLMediaElement.prototype.play, playing);
 
   const added = video("novo", 0);
   const updated = [
@@ -133,8 +134,9 @@ it("updates through Realtime while preserving the native element, pause, positio
   expect(screen.getByText(/2 de 3 · Pausado · 12 \/ 60 s/)).toBeInTheDocument();
   expect(currentMedia()).toBe(playing);
   expect(playing.currentTime).toBe(12);
-  expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loadCount);
-  expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(playCount);
+  // Per element: a prepared upcoming deck may legitimately load/replan.
+  expect(callsOn(HTMLMediaElement.prototype.load, playing)).toBe(loadCount);
+  expect(callsOn(HTMLMediaElement.prototype.play, playing)).toBe(playCount);
 
   fireEvent.click(screen.getByRole("button", { name: "Reproduzir" }));
   expect(playing.currentTime).toBe(12);
@@ -149,8 +151,8 @@ it("keeps the real player and media available while a refresh is pending and aft
   const playing = currentMedia();
   fireEvent.playing(playing);
   reportTime(playing, 18);
-  const loadCount = vi.mocked(HTMLMediaElement.prototype.load).mock.calls.length;
-  const playCount = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+  const loadCount = callsOn(HTMLMediaElement.prototype.load, playing);
+  const playCount = callsOn(HTMLMediaElement.prototype.play, playing);
   let finish!: (value: { data: null; error: Error }) => void;
   mocks.read.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
 
@@ -172,8 +174,9 @@ it("keeps the real player and media available while a refresh is pending and aft
   expect(screen.getByRole("button", { name: "Pausar" })).toBeInTheDocument();
   expect(currentMedia()).toBe(playing);
   expect(playing.currentTime).toBe(18);
-  expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loadCount);
-  expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(playCount);
+  // Per element: a prepared upcoming deck may legitimately load/replan.
+  expect(callsOn(HTMLMediaElement.prototype.load, playing)).toBe(loadCount);
+  expect(callsOn(HTMLMediaElement.prototype.play, playing)).toBe(playCount);
   reportTime(playing, 19);
   expect(screen.getByText(/19 \/ 60 s/)).toBeInTheDocument();
 });

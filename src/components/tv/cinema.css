@@ -3,19 +3,22 @@
 .tv-cinema-visible { z-index: 2; opacity: 1; pointer-events: auto; }
 /* Keep a fully opaque backing frame: fading both layers exposes the dark stage. */
 .tv-cinema-outgoing { z-index: 1; opacity: 1; pointer-events: none; }
+/* Profiles (policy in src/lib/tvPlaybackPolicy.ts): opacity-only by default;
+   subtle scale only when the policy allows it (never protected QR/text, never YouTube). */
 .tv-cinema-entering {
-  animation: tv-cinema-reveal var(--tv-dissolve-duration) cubic-bezier(.22,.61,.36,1) both;
-  will-change: opacity, transform;
+  animation: tv-cinema-dissolve var(--tv-dissolve-duration) cubic-bezier(.22,.61,.36,1) both;
+  will-change: opacity;
 }
+.tv-cinema-entering.tv-cinema-scale { animation-name: tv-cinema-reveal; will-change: opacity, transform; }
 .tv-cinema-youtube.tv-cinema-entering { animation-name: tv-cinema-dissolve; will-change: opacity; }
 .tv-cinema-light {
   position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
-  background: radial-gradient(ellipse at 68% 38%, rgba(255,210,145,.075), transparent 68%);
+  background: radial-gradient(ellipse at 68% 38%, rgba(var(--tv-light-rgb, 255,238,215), .08), transparent 68%);
   animation: tv-cinema-warm-light var(--tv-dissolve-duration) ease-in-out both;
 }
 .tv-cinema-paused .tv-cinema-entering, .tv-cinema-paused .tv-cinema-light { animation-play-state: paused; }
 @keyframes tv-cinema-reveal {
-  from { opacity: 0; transform: scale(1.012); }
+  from { opacity: 0; transform: scale(1.015); }
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes tv-cinema-dissolve { from { opacity: 0; } to { opacity: 1; } }

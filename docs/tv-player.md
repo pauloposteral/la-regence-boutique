@@ -215,3 +215,13 @@ Foram extraídos quadros reais dos15arquivos existentes em JPEG320×180, cerca d
 Novos uploads capturam a capa localmente pelo navegador, com prazo de10s, e enviam JPEG ao bucket tv-videos com a sessão administrativa existente. O envio tem cancelamento efetivo e timeout15s; limpeza de objetos é best-effort e não prende a interface. Falha da capa permite salvar o vídeo sem capa. A migração20261015174500 adiciona poster_url com validação HTTPS/caminho local e permite image/jpeg no bucket, preservando limite50MB e RLS administrativa.
 
 Validação:95testes aprovados, incluindo lista compacta, imagens com erro, busca/filtros, edição, foco após salvamento assíncrono, geração de JPEG, cancelamento e timeout. TypeScript, lint dos arquivos do escopo e build aprovados. A interface administrativa autenticada não foi exercitada em navegador nesta sessão; comportamento coberto por testes de componentes.
+
+## Continuidade e transições (Task 1 — 2026-11-12)
+
+- Pré-preparo: com o vídeo atual em tela, o próximo arquivo nativo elegível ocupa o segundo (e último) deck — pausado, mudo, invisível, `preload="auto"`. A troca reutiliza o mesmo elemento. Nunca há mais de dois decks; durante uma troca o próximo previsto é ignorado e replanejado depois. YouTube não é pré-carregado.
+- Revelação: `requestVideoFrameCallback` quando disponível (quadro realmente apresentado), com `playing` como fallback compatível; callbacks antigos são invalidados por token.
+- Perfis (`src/lib/tvPlaybackPolicy.ts`, usados pelo player e pela prévia do painel): limpo 700 ms (600–800), luz 950 ms (800–1100), profundidade 900 ms (800–1000). Cores âmbar/rubi/pistache/cacau/neutra. QR/texto protegidos: sem escala global e sem luz decorativa; "sem zoom" remove a escala; YouTube só opacidade; movimento reduzido = troca direta. Valores ausentes/desconhecidos = limpo/neutro.
+- Falhas: cooldown por fonte canônica (60 s, dobrando até 10 min), mantido entre atualizações/reordenações e aliases; cada fonte volta sozinha ao expirar, sem reiniciar o vídeo atual. Atualização manual limpa os cooldowns. Fallback continua com uma tentativa por montagem do deck.
+- Pressão medida (quadros descartados via `getVideoPlaybackQuality` ou travamentos `waiting` repetidos) reduz as transições ao perfil limpo na sessão. Não usa estimativas de capacidade nem cria/recodifica vídeos.
+- Painel: "Transição na TV" por vídeo e "Prévia da sequência" (anterior/atual/próximo, só capas, rotulada como prévia — não é telemetria da TV).
+- Extensão para Task 2: `TVPlayer` aceita `onSnapshot` (`TVPlaybackSnapshot`).
