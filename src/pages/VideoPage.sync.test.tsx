@@ -60,10 +60,10 @@ function reportTime(media: HTMLVideoElement, seconds: number) {
 }
 
 beforeEach(() => {
-  vi.spyOn(Math, 'random').mockReturnValue(0);
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-17T12:00:00Z"));
   vi.resetAllMocks();
+  vi.spyOn(Math, 'random').mockReturnValue(0);
   focusManager.setFocused(true);
   onlineManager.setOnline(true);
   client = new QueryClient({
