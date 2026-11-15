@@ -114,6 +114,20 @@ export interface SourceCooldown {
 }
 export const COOLDOWN_BASE_MS = 60_000;
 export const COOLDOWN_MAX_MS = 10 * 60_000;
+
+/** An external embed that never presents a frame must not hold an unattended
+ *  playlist behind a user-gesture prompt. Operator pause always wins; native
+ *  autoplay blocks still wait for the gesture needed by the entire browser. */
+export function shouldRecoverPlayback(
+  video: Pick<TVVideo, "source_type">,
+  state: { paused: boolean; blocked: boolean; started: boolean; idleMs: number },
+): boolean {
+  if (state.paused) return false;
+  const externalStart = video.source_type === "youtube" && !state.started;
+  if (state.blocked && !externalStart) return false;
+  return state.idleMs >= (externalStart ? 12_000 : 30_000);
+}
+
 export function createSourceCooldown(): SourceCooldown {
   const entries = new Map<string, { until: number; failures: number }>();
   return {

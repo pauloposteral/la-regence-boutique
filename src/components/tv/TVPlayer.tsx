@@ -3,7 +3,7 @@ import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateC
 import { playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
 import { createTVShuffle } from "@/lib/tvShuffle";
 import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
-import { createSourceCooldown, type TVPlaybackSnapshot } from "@/lib/tvPlaybackPolicy";
+import { createSourceCooldown, shouldRecoverPlayback, type TVPlaybackSnapshot } from "@/lib/tvPlaybackPolicy";
 
 import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
@@ -34,6 +34,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const [manualRefreshing, setManualRefreshing] = useState(false);
   // Observed media facts of the selected deck only (never inferred from selection).
   const [mediaActive, setMediaActive] = useState(false);
+  const [presented, setPresented] = useState<{ key: string; title: string } | null>(null);
   const [buffering, setBuffering] = useState(false);
   const [compatible, setCompatible] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -64,6 +65,9 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const currentUrl = current?.url;
   const selectedId = current?.id;
   const selectedKey = current && videoSourceKey(current);
+  // The outgoing frame stays visible while the selected source prepares. Keep
+  // its actual title until onReady confirms that the new frame is presented.
+  const displayed = current && presented ? playlist.find(video => videoSourceKey(video) === presented.key) ?? presented : null;
   const retainedId = retained?.id;
   useEffect(() => {
     if (!selectedId || !selectedKey) return;
@@ -80,6 +84,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   }, []);
 
   const play = useCallback(() => {
+    lastProgress.current = Date.now();
     media.current?.play();
   }, []);
 
@@ -111,15 +116,19 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     lastProgress.current = Date.now();
     setBlocked(false);
     setPlayback({seconds:0,duration:0});
+    if (!selectedId) setPresented(null);
     setMediaActive(false); setBuffering(false); setCompatible(false); setDimensions({ width: 0, height: 0 });
   }, [currentUrl, selectedId]);
 
+  const checkPlayback = useRef(() => {});
+  checkPlayback.current = () => {
+    if (current && shouldRecoverPlayback(current, { paused, blocked, started: mediaActive, idleMs: Date.now() - lastProgress.current })) advance(true);
+  };
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (current && !paused && !blocked && Date.now() - lastProgress.current > 30_000) advance(true);
-    }, 5000);
+    // Progress, controls and catalog renders must not postpone this check.
+    const timer = setInterval(() => checkPlayback.current(), 1000);
     return () => clearInterval(timer);
-  }, [advance, current, paused, blocked]);
+  }, []);
 
   // Retry each failed source independently when its own cooldown expires. The
   // healthy current source is retained by identity, so it is never restarted.
@@ -215,7 +224,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       {current ? (
         <CinematicStage ref={media} video={current} upcoming={upcoming} paused={paused} muted={muted}
           onReducedEffects={setReducedEffects}
-          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); setMediaActive(true); setBuffering(false); lastProgress.current = Date.now(); if (selectedKey) cooldown.current.succeed(selectedKey); }}
+          onPaused={() => setPaused(true)} onReady={() => { setPaused(false); setBlocked(false); setMediaActive(true); setBuffering(false); if (selectedKey) setPresented({ key: selectedKey, title: current.title }); lastProgress.current = Date.now(); if (selectedKey) cooldown.current.succeed(selectedKey); }}
           onBlocked={() => setBlocked(true)} onEnded={() => { if (mediaActive && current) setLastCompletedId(current.id); advance(); }} onError={() => advance(true)}
           onBuffering={() => setBuffering(true)}
           onMediaInfo={(width, height) => setDimensions(previous => previous.width === width && previous.height === height ? previous : { width, height })}
@@ -238,9 +247,9 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       {blocked && <div className="absolute inset-0 flex items-center justify-center bg-brown-deep/60">
         <button className="rounded-full bg-gold px-8 py-5 text-lg text-white" onClick={() => { play(); setPaused(false); }} aria-label="Iniciar reprodução"><Play className="mr-3 inline h-6 w-6" />Iniciar reprodução</button>
       </div>}
-      {playback.duration > 0 && (controlsVisible || paused || blocked) && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin={0} aria-valuemax={playback.duration} aria-valuenow={Math.min(playback.seconds, playback.duration)}><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
+      {mediaActive && playback.duration > 0 && (controlsVisible || paused || blocked) && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin={0} aria-valuemax={playback.duration} aria-valuenow={Math.min(playback.seconds, playback.duration)}><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
       <div role="group" aria-label="Controles da TV" className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.length} vídeos · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Aleatório sem repetição"}` : ""}{playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p></div>
+        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{displayed?.title ?? current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.length} vídeos · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Aleatório sem repetição"}` : ""}{mediaActive && playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p>{current && !mediaActive && <p className="mt-1 text-xs text-white/60">{displayed && presented?.key !== selectedKey ? `Preparando: ${current.title}` : "Aguardando o início do vídeo."}</p>}</div>
         {current && <>
           <button className={buttonClass} onClick={togglePause} aria-label={paused ? "Reproduzir" : "Pausar"}>{paused ? <Play /> : <Pause />}</button>
           <button className={buttonClass} onClick={() => advance()} aria-label="Próximo vídeo"><SkipForward /></button>
