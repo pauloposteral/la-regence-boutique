@@ -23,7 +23,10 @@ const rowActionClass = "inline-flex cursor-pointer items-center justify-center g
 const PAGE_SIZE = 12;
 const searchableTitle = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 type PlaylistFilter = "all" | "active" | "paused" | "archived";
-type VideoDraft = { title: string; fit: TVVideo["fit"]; duration: string; editing: boolean; profile?: TransitionProfile; transitionMs?: string; palette?: Palette; protectQr?: boolean; protectText?: boolean; protectZoom?: boolean };
+type ProfileChoice = TransitionProfile | 'auto';
+const profileChoice = (value?: string | null): ProfileChoice => value == null ? 'auto' : isProfile(value) ? value : 'clean';
+const profileRange = (profile: ProfileChoice) => TRANSITION_PROFILES[profile === 'auto' ? 'light' : profile];
+type VideoDraft = { title: string; fit: TVVideo["fit"]; duration: string; editing: boolean; profile?: ProfileChoice; transitionMs?: string; palette?: Palette; protectQr?: boolean; protectText?: boolean; protectZoom?: boolean };
 
 const inputClass = "w-full rounded-lg border border-input bg-white px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 
@@ -40,16 +43,16 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
   const fit = draft?.fit ?? video.fit;
   const duration = draft?.duration ?? video.max_duration_seconds?.toString() ?? "";
   const editing = draft?.editing ?? false;
-  const profile: TransitionProfile = draft?.profile ?? (isProfile(video.transition_profile) ? video.transition_profile : "clean");
-  const transitionMs = draft?.transitionMs ?? String(clampTransitionMs(profile, video.transition_profile === profile ? video.transition_ms : null));
+  const profile: ProfileChoice = draft?.profile ?? profileChoice(video.transition_profile);
+  const transitionMs = draft?.transitionMs ?? String(clampTransitionMs(profile === 'auto' ? 'light' : profile, video.transition_profile === profile ? video.transition_ms : null));
   const palette: Palette = draft?.palette ?? (isPalette(video.palette) ? video.palette : "neutral");
   const protectQr = draft?.protectQr ?? !!video.protect_qr;
   const protectText = draft?.protectText ?? !!video.protect_text;
   const protectZoom = draft?.protectZoom ?? !!video.protect_zoom;
   const reducedMotion = usePrefersReducedMotion();
   const changeDraft = (changes: Partial<VideoDraft>) => onDraftChange({ title, fit, duration, editing, profile, transitionMs, palette, protectQr, protectText, protectZoom, ...changes });
-  const range = TRANSITION_PROFILES[profile];
-  const draftPresentation = resolvePresentation({ source_type: video.source_type, transition_profile: profile, transition_ms: Number(transitionMs), palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom }, { reducedMotion });
+  const range = profileRange(profile);
+  const draftPresentation = resolvePresentation({ source_type: video.source_type, transition_profile: profile === 'auto' ? null : profile, transition_ms: Number(transitionMs), palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom }, { reducedMotion, transitionIndex: 0 });
   const [showPreview, setShowPreview] = useState(false);
   const editTrigger = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(false);
@@ -81,7 +84,7 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
       return;
     }
     const ms = Number(transitionMs);
-    if (!Number.isInteger(ms) || ms < range.minMs || ms > range.maxMs) {
+    if (profile !== 'auto' && (!Number.isInteger(ms) || ms < range.minMs || ms > range.maxMs)) {
       setFormError(`Informe a duração da transição entre ${range.minMs} e ${range.maxMs} ms.`);
       (event.currentTarget.elements.namedItem("transition_ms") as HTMLInputElement)?.focus();
       return;
@@ -89,12 +92,12 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
     setFormError("");
     // Write presentation metadata only when the operator changed its effective
     // value, so saving a title never silently rewrites a row's safe defaults.
-    const storedProfile = isProfile(video.transition_profile) ? video.transition_profile : "clean";
+    const storedProfile = profileChoice(video.transition_profile);
     const presentationChanged = profile !== storedProfile
-      || ms !== clampTransitionMs(storedProfile, video.transition_profile === storedProfile ? video.transition_ms : null)
+      || (profile !== 'auto' && ms !== clampTransitionMs(storedProfile === 'auto' ? 'light' : storedProfile, video.transition_profile === storedProfile ? video.transition_ms : null))
       || palette !== (isPalette(video.palette) ? video.palette : "neutral")
       || protectQr !== !!video.protect_qr || protectText !== !!video.protect_text || protectZoom !== !!video.protect_zoom;
-    const presentation = presentationChanged ? { transition_profile: profile, transition_ms: ms, palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom } : {};
+    const presentation = presentationChanged ? { transition_profile: profile === 'auto' ? null : profile, transition_ms: profile === 'auto' ? null : ms, palette, protect_qr: protectQr, protect_text: protectText, protect_zoom: protectZoom } : {};
     void update({ title: title.trim(), fit, max_duration_seconds: maxDuration, ...presentation }).then(saved => { if (saved) {onDraftChange(undefined);editTrigger.current?.focus();} });
   };
   const cancelEdit = () => {
@@ -130,8 +133,8 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
           <fieldset className="space-y-2 rounded-lg border border-border p-3 text-xs text-muted-foreground">
             <legend className="px-1">Transição na TV</legend>
             <div className="grid gap-2 sm:grid-cols-3">
-              <label className="block space-y-1"><span>Estilo</span><select name="transition_profile" className={inputClass} value={profile} onChange={event => { const next = event.target.value as TransitionProfile; changeDraft({ profile: next, transitionMs: String(TRANSITION_PROFILES[next].defaultMs) }); }}>{(Object.keys(TRANSITION_PROFILES) as TransitionProfile[]).map(key => <option key={key} value={key}>{TRANSITION_PROFILES[key].label}</option>)}</select></label>
-              <label className="block space-y-1"><span>Duração (ms, {range.minMs}–{range.maxMs})</span><input name="transition_ms" type="number" className={inputClass} min={range.minMs} max={range.maxMs} step={10} value={transitionMs} onChange={event => changeDraft({ transitionMs: event.target.value })} /></label>
+              <label className="block space-y-1"><span>Estilo</span><select name="transition_profile" className={inputClass} value={profile} onChange={event => { const next = event.target.value as ProfileChoice; changeDraft({ profile: next, transitionMs: String(profileRange(next).defaultMs) }); }}><option value="auto">Cinema automático</option>{(Object.keys(TRANSITION_PROFILES) as TransitionProfile[]).map(key => <option key={key} value={key}>{TRANSITION_PROFILES[key].label}</option>)}</select></label>
+              <label className="block space-y-1"><span>{profile === 'auto' ? 'Duração automática (700–950 ms)' : `Duração (ms, ${range.minMs}–${range.maxMs})`}</span><input name="transition_ms" type="number" disabled={profile === 'auto'} className={inputClass} min={range.minMs} max={range.maxMs} step={10} value={transitionMs} onChange={event => changeDraft({ transitionMs: event.target.value })} /></label>
               <label className="block space-y-1"><span>Cor da luz</span><select name="palette" className={inputClass} value={palette} onChange={event => changeDraft({ palette: event.target.value as Palette })}>{(Object.keys(PALETTES) as Palette[]).map(key => <option key={key} value={key}>{PALETTES[key].label}</option>)}</select></label>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -139,7 +142,7 @@ export function VideoRow({ video, refresh, position, draft, onDraftChange }: { v
               <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-gold" checked={protectText} onChange={event => changeDraft({ protectText: event.target.checked })} />Contém texto importante</label>
               <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-gold" checked={protectZoom} onChange={event => changeDraft({ protectZoom: event.target.checked })} />Sem zoom</label>
             </div>
-            <p data-testid={`presentation-summary-${video.id}`} className="leading-relaxed">Prévia da regra: {describePresentation(draftPresentation)}. QR e texto protegidos nunca recebem zoom nem luz decorativa; o vídeo não é cortado nem encurtado.</p>
+            <p data-testid={`presentation-summary-${video.id}`} className="leading-relaxed">{profile === 'auto' ? 'Cinema automático: alterna luz, profundidade e dissolução. Primeira troca: ' : 'Prévia da regra: '}{describePresentation(draftPresentation)}. QR e texto protegidos nunca recebem zoom nem luz decorativa; o vídeo não é cortado nem encurtado.</p>
           </fieldset>
           {formError && <p id={`video-error-${video.id}`} role="alert" className="text-sm text-destructive">{formError}</p>}
           <div className="flex gap-2"><button type="submit" disabled={busy} className={rowActionClass}><Check size={14} />Salvar</button><button type="button" disabled={busy} className={rowActionClass} onClick={cancelEdit}>Cancelar</button></div>

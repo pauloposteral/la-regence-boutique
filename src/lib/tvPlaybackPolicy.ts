@@ -40,7 +40,7 @@ export interface ResolvedPresentation {
   reasons: string[];
 }
 
-export interface PresentationContext { reducedMotion?: boolean; pressure?: boolean }
+export interface PresentationContext { reducedMotion?: boolean; pressure?: boolean; transitionIndex?: number }
 
 // Own keys only: inherited names such as "constructor" or "__proto__" are not valid values.
 const ownKey = (record: object, value: unknown): boolean => typeof value === "string" && Object.prototype.hasOwnProperty.call(record, value);
@@ -64,7 +64,10 @@ export function clampTransitionMs(profile: TransitionProfile, ms?: number | null
 /** Single policy used by the live player and the admin preview. */
 export function resolvePresentation(video: Pick<TVVideo, "source_type"> & PresentationSettings, context: PresentationContext = {}): ResolvedPresentation {
   const reasons: string[] = [];
-  let profile: TransitionProfile = isProfile(video.transition_profile) ? video.transition_profile : "clean";
+  const automatic = video.transition_profile == null && context.transitionIndex !== undefined;
+  const sequence: TransitionProfile[] = ['light', 'depth', 'clean'];
+  const index = Math.max(0, Math.floor(context.transitionIndex ?? 0));
+  let profile: TransitionProfile = isProfile(video.transition_profile) ? video.transition_profile : automatic ? sequence[index % sequence.length] ?? 'clean' : "clean";
   const palette: Palette = isPalette(video.palette) ? video.palette : "neutral";
   const protectedContent = isProtectedContent(video);
   let scale = profile === "depth";

@@ -9,6 +9,7 @@ const videos: TVVideo[] = ["cafe", "produto"].map((id, i) => ({
 }));
 
 beforeEach(() => {
+  vi.spyOn(Math, 'random').mockReturnValue(0);
   vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
   vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
@@ -16,6 +17,20 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("TV playback", () => {
+  it('starts randomly and promotes exactly the preloaded random source after progress and a catalog poll', () => {
+    vi.mocked(Math.random).mockReturnValue(0.8);
+    const list = [...videos, { ...videos[0], id: 'third', title: 'third', url: 'https://example.com/third.mp4', sort_order: 2 }];
+    const view = render(<TVPlayer videos={list} />);
+    const first = screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement;
+    expect(first.src).toContain('third.mp4');
+    fireEvent.playing(first);
+    const prepared = view.container.querySelector('[data-tv-phase="preparing"] video');
+    first.currentTime = 2; fireEvent.timeUpdate(first);
+    view.rerender(<TVPlayer videos={list.map(v => ({ ...v, title: v.title + ' edited' }))} />);
+    expect(view.container.querySelector('[data-tv-phase="preparing"] video')).toBe(prepared);
+    fireEvent.ended(first);
+    expect(screen.getByLabelText('Vídeo em exibição')).toBe(prepared);
+  });
   it('does not resume an operator-paused video when entering fullscreen', async () => {
     render(<TVPlayer videos={videos} />);
     const stage=screen.getByLabelText('TV La Régence');
@@ -87,7 +102,7 @@ describe("TV playback", () => {
     render(<TVPlayer videos={[videos[0],{...videos[0],id:'copy',sort_order:0.5},videos[1]]} />);
     fireEvent.ended(screen.getByLabelText('Vídeo em exibição'));
     expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
-    expect(screen.getByText(/2 de 2 · Sequência automática/)).toBeInTheDocument();
+    expect(screen.getByText(/2 vídeos · Aleatório sem repetição/)).toBeInTheDocument();
   });
   it.each(['https://example.com/cafe.mp4', 'https://EXAMPLE.com:443/cafe.mp4#preview'])('does not restart an equivalent source when its representative changes: %s', url => {
     const copy={...videos[0],id:'copy',sort_order:2,url};
@@ -179,7 +194,7 @@ describe("TV playback", () => {
   it('starts the requested active item for the admin preview link', () => {
     render(<TVPlayer videos={videos} initialId="produto" />);
     expect((screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src).toContain('produto.mp4');
-    expect(screen.getByText(/2 de 2 · Sequência automática/)).toBeInTheDocument();
+    expect(screen.getByText(/2 vídeos · Aleatório sem repetição/)).toBeInTheDocument();
   });
   it('offers a manual playlist refresh without reloading the entire site', async () => {
     const refresh=vi.fn(); render(<TVPlayer videos={videos} onRefresh={refresh} />);
@@ -241,6 +256,9 @@ describe("TV playback", () => {
     expect(healthy.currentTime).toBe(20);
     expect(loads()).toBe(before);
     fireEvent.ended(healthy);
+    // Shuffle retains the already prepared c; recovered a rejoins this round.
+    expect(current().src).toContain('c.mp4');
+    fireEvent.playing(current()); act(() => { vi.advanceTimersByTime(1300); }); fireEvent.ended(current());
     expect(current().src).toContain('a.mp4'); // retried independently
   });
 

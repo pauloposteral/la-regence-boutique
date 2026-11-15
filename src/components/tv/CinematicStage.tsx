@@ -315,7 +315,8 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
               visibleKey.current = id;
               setFront(id);
               if (previous && !reducedMotion) {
-                const next = { from: previous, to: id, serial: ++serial.current, presentation: resolvePairPresentation(video, decks.find(deck => videoSourceKey(deck) === previous), { reducedMotion, pressure: reducedEffects }) };
+                const transitionIndex = serial.current++;
+                const next = { from: previous, to: id, serial: serial.current, presentation: resolvePairPresentation(video, decks.find(deck => videoSourceKey(deck) === previous), { reducedMotion, pressure: reducedEffects, transitionIndex }) };
                 activeHandoff.current = next;
                 setHandoff(next);
               }

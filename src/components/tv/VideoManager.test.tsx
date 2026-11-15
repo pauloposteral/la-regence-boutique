@@ -431,7 +431,7 @@ it('persists transition settings, clamps entry to the profile range and keeps ti
  showManager();
  const row = within(screen.getByRole('article', {name:'Vídeo coffee'}));
  fireEvent.click(row.getByRole('button',{name:'Editar'}));
- expect(row.getByTestId('presentation-summary-coffee')).toHaveTextContent('Dissolução limpa · 700 ms');
+ expect(row.getByTestId('presentation-summary-coffee')).toHaveTextContent('Cinema automático');
  fireEvent.change(row.getByLabelText('Estilo'), {target:{value:'light'}});
  expect(row.getByLabelText(/Duração \(ms, 800–1100\)/)).toHaveValue(950);
  fireEvent.change(row.getByLabelText(/Duração/), {target:{value:'1200'}});

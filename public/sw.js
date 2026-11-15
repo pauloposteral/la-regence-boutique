@@ -7,7 +7,7 @@
 
 importScripts("/tv-offline-sw.js");
 
-const VERSION = "v4-tv-offline-20261112";
+const VERSION = "v5-tv-shuffle-cinema-20261115";
 const STATIC_CACHE = `lr-static-${VERSION}`;
 const RUNTIME_CACHE = `lr-runtime-${VERSION}`;
 

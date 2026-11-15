@@ -19,7 +19,7 @@ export default function AdjacentPreview({ videos }: { videos: TVVideo[] }) {
   if (playlist.length === 0) return <section aria-label="Prévia da sequência" className="mb-5 rounded-xl border border-dashed border-gold/30 p-4 text-sm text-muted-foreground">Prévia indisponível: nenhum vídeo ativo na programação.</section>;
   const at = (offset: number) => playlist[(index + offset + playlist.length) % playlist.length];
   const previous = at(-1), current = at(0), next = at(1);
-  const presentation = resolvePairPresentation(next, current, { reducedMotion });
+  const presentation = resolvePairPresentation(next, current, { reducedMotion, transitionIndex: Math.max(0, run - 1) });
   const style = { "--tv-dissolve-duration": `${presentation.durationMs}ms`, "--tv-light-rgb": PALETTES[presentation.palette].rgb } as CSSProperties;
   const card = (video: TVVideo, label: string, extra = "") => <figure className="min-w-0 space-y-1.5">
     <figcaption className="text-[10px] uppercase tracking-[.2em] text-gold">{label}</figcaption>
@@ -28,7 +28,7 @@ export default function AdjacentPreview({ videos }: { videos: TVVideo[] }) {
   </figure>;
   return <section aria-label="Prévia da sequência" className="mb-5 rounded-xl border border-gold/25 bg-white p-4">
     <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-      <div><h3 className="text-base">Prévia da sequência</h3><p className="text-xs text-muted-foreground">Somente prévia no painel — não mostra o que a TV está exibindo agora.</p><button type="button" aria-expanded className="mt-1 text-xs underline decoration-gold/60 underline-offset-4" onClick={() => setOpen(false)}>Fechar prévia da sequência</button></div>
+      <div><h3 className="text-base">Prévia da sequência</h3><p className="text-xs text-muted-foreground">Somente prévia no painel, na ordem do catálogo. A TV sorteia os vídeos sem repetição a cada rodada.</p><button type="button" aria-expanded className="mt-1 text-xs underline decoration-gold/60 underline-offset-4" onClick={() => setOpen(false)}>Fechar prévia da sequência</button></div>
       <label className="space-y-1 text-xs text-muted-foreground"><span className="block">Vídeo atual da prévia</span>
         <select className="rounded-lg border border-input bg-white px-3 py-2 text-sm" value={current.id} onChange={event => setCurrentId(event.target.value)}>
           {playlist.map(video => <option key={video.id} value={video.id}>{video.title}</option>)}

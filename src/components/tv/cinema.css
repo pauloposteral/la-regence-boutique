@@ -13,13 +13,26 @@
 .tv-cinema-youtube.tv-cinema-entering { animation-name: tv-cinema-dissolve; will-change: opacity; }
 .tv-cinema-light {
   position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
-  background: radial-gradient(ellipse at 68% 38%, rgba(var(--tv-light-rgb, 255,238,215), .08), transparent 68%);
+  background: radial-gradient(ellipse at 68% 38%, rgba(var(--tv-light-rgb, 255,238,215), .14), transparent 68%);
   animation: tv-cinema-warm-light var(--tv-dissolve-duration) ease-in-out both;
 }
-.tv-cinema-paused .tv-cinema-entering, .tv-cinema-paused .tv-cinema-light { animation-play-state: paused; }
+/* A traveling studio-light ribbon, rendered only during an unprotected handoff.
+   Transform/opacity only: no full-screen blur or third video decoder. */
+.tv-cinema-light::after {
+  content: ''; position: absolute; inset: -20% -40%;
+  background: linear-gradient(112deg, transparent 37%, rgba(var(--tv-light-rgb, 255,238,215), .12) 47%, rgba(var(--tv-light-rgb, 255,238,215), .22) 50%, transparent 61%);
+  animation: tv-cinema-light-sweep var(--tv-dissolve-duration) cubic-bezier(.2,.65,.3,1) both;
+  will-change: transform, opacity;
+}
+.tv-cinema-paused .tv-cinema-entering, .tv-cinema-paused .tv-cinema-light, .tv-cinema-paused .tv-cinema-light::after { animation-play-state: paused; }
 @keyframes tv-cinema-reveal {
-  from { opacity: 0; transform: scale(1.015); }
+  from { opacity: 0; transform: scale(1.035); }
   to { opacity: 1; transform: scale(1); }
+}
+@keyframes tv-cinema-light-sweep {
+  0% { transform: translate3d(-30%,0,0); opacity: 0; }
+  45% { opacity: 1; }
+  100% { transform: translate3d(30%,0,0); opacity: 0; }
 }
 @keyframes tv-cinema-dissolve { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tv-cinema-warm-light { 0%, 100% { opacity: 0; } 45% { opacity: .7; } }
