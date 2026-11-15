@@ -24,4 +24,3 @@
 - [ ] Task 2 (screen status, offline cache): not started per instruction.
 - [ ] Task 3 publish/verification: root handles deployment.
 - [x] Publicar 7 vídeos + capas na TV (15/11) — ids 98857e2e…17b27821, ordem 46–52
-- [ ] Task 2 TV (heartbeat/offline): em andamento, não commitado — falta UI admin, integração VideoPage, testes, docs, relatório
