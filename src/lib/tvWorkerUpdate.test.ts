@@ -1,9 +1,17 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { runInNewContext } from 'node:vm';
+import { createContext, runInContext } from 'node:vm';
 import { afterEach, expect, it, vi } from 'vitest';
 import { watchTVWorkerUpdates } from './tvWorkerUpdate';
+
+function runWorker(globals: Record<string, unknown>) {
+  const scope = createContext(globals);
+  globals.importScripts = (...paths: string[]) => paths.forEach(path => {
+    runInContext(readFileSync(resolve(process.cwd(), 'public', path.replace(/^\//, '')), 'utf8'), scope);
+  });
+  runInContext(readFileSync(resolve(process.cwd(), 'public/sw.js'), 'utf8'), scope);
+}
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); window.history.replaceState(null,'','/'); });
 
@@ -58,7 +66,7 @@ it('refreshes only exact TV routes on worker activation and preserves their full
   ];
   const clients=urls.map(url=>({url,navigate:vi.fn().mockResolvedValue(undefined)}));
   const listeners=new Map<string,(event:{waitUntil(promise:Promise<unknown>):void})=>void>();
-  runInNewContext(readFileSync(resolve(process.cwd(),'public/sw.js'),'utf8'),{
+  runWorker({
     self:{location:{origin:'https://cafelaregence.com.br'},addEventListener:(name:string,listener:(event:{waitUntil(promise:Promise<unknown>):void})=>void)=>listeners.set(name,listener),clients:{claim:vi.fn().mockResolvedValue(undefined),matchAll:vi.fn().mockResolvedValue(clients)}},
     caches:{keys:vi.fn().mockResolvedValue(['lr-static-v1']),delete:vi.fn().mockResolvedValue(true)},URL,Promise,
   });
@@ -73,7 +81,7 @@ it('refreshes only exact TV routes on worker activation and preserves their full
 it('finishes worker activation without waiting for a pending TV navigation', async () => {
   const navigate=vi.fn(()=>new Promise(()=>{}));
   const listeners=new Map<string,(event:{waitUntil(promise:Promise<unknown>):void})=>void>();
-  runInNewContext(readFileSync(resolve(process.cwd(),'public/sw.js'),'utf8'),{
+  runWorker({
     self:{location:{origin:'https://cafelaregence.com.br'},addEventListener:(name:string,listener:(event:{waitUntil(promise:Promise<unknown>):void})=>void)=>listeners.set(name,listener),clients:{claim:vi.fn().mockResolvedValue(undefined),matchAll:vi.fn().mockResolvedValue([{url:'https://cafelaregence.com.br/video',navigate}])}},
     caches:{keys:vi.fn().mockResolvedValue([]),delete:vi.fn().mockResolvedValue(true)},URL,Promise,
   });

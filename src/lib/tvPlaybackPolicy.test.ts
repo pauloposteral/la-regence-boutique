@@ -4,6 +4,12 @@ import { fileSourceUrl, videoSourceKey, type TVVideo } from "./tvPlaylist";
 
 const file = { source_type: "file" as const };
 describe("presentation policy", () => {
+  it('rotates automatic cinema profiles but preserves explicit operator settings and protection', () => {
+    expect([0, 1, 2, 3].map(transitionIndex => resolvePresentation(file, { transitionIndex }).profile)).toEqual(['light', 'depth', 'clean', 'light']);
+    expect(resolvePresentation({ ...file, transition_profile: 'clean' }, { transitionIndex: 1 }).profile).toBe('clean');
+    expect(resolvePresentation({ ...file, protect_text: true }, { transitionIndex: 0 }).light).toBe(false);
+    expect(resolvePresentation(file, { transitionIndex: 1, pressure: true }).scale).toBe(false);
+  });
   it.each([["clean", 700, 600, 800], ["light", 950, 800, 1100], ["depth", 900, 800, 1000]] as const)("%s defaults to %i ms and clamps to %i–%i", (profile, def, min, max) => {
     expect(resolvePresentation({ ...file, transition_profile: profile }).durationMs).toBe(def);
     expect(clampTransitionMs(profile, 1)).toBe(min);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw, Settings2 } from "lucide-react";
-import { nextVideoId, playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
+import { playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
+import { createTVShuffle } from "@/lib/tvShuffle";
 import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
 import { createSourceCooldown, type TVPlaybackSnapshot } from "@/lib/tvPlaybackPolicy";
 
@@ -16,6 +17,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const [currentId, setCurrentId] = useState<string | null>(initialId);
   const seen = useRef(new Set<string>());
+  const [shuffle] = useState(() => createTVShuffle());
   // Failures are scoped to the canonical source, not row/position, so polling,
   // reorders and aliases neither reset nor bypass a cooldown.
   const cooldown = useRef(createSourceCooldown());
@@ -57,9 +59,8 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const requested = videos.find(v => v.id === currentId && v.active && !v.archived_at);
   const requestedKey = requested && videoSourceKey(requested);
   const retained = playlist.find(v => !failed.has(v.id) && (v.id === currentId || videoSourceKey(v) === requestedKey));
-  const current = retained
-    ?? playlist.find(v => !failed.has(v.id) && !seen.current.has(videoSourceKey(v)))
-    ?? playlist.find(v => !failed.has(v.id));
+  const fallbackId = retained ? null : shuffle.pick(playlist, currentId, failed, seen.current);
+  const current = retained ?? playlist.find(v => v.id === fallbackId);
   const currentUrl = current?.url;
   const selectedId = current?.id;
   const selectedKey = current && videoSourceKey(current);
@@ -91,7 +92,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       setCooldownRevision(value => value + 1);
     }
     if (broken) setNotice("Um vídeo não respondeu. Seguindo a programação."); else setNotice("");
-    const next = nextVideoId(playlist, current?.id ?? null, excluded, seen.current);
+    const next = shuffle.pick(playlist, current?.id ?? null, excluded, seen.current);
     const nextVideo = playlist.find(video => video.id === next);
     if (nextVideo) {
       const key = videoSourceKey(nextVideo);
@@ -104,7 +105,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       media.current.restart();
     }
     lastProgress.current = Date.now();
-  }, [current, failed, playlist]);
+  }, [current, failed, playlist, shuffle]);
 
   useEffect(() => {
     lastProgress.current = Date.now();
@@ -130,7 +131,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   }, [cooldownRevision]);
 
   // Predict (without consuming cycle state) the item that will follow.
-  const upcomingId = current ? nextVideoId(playlist, current.id, failed, seen.current) : null;
+  const upcomingId = current ? shuffle.pick(playlist, current.id, failed, seen.current) : null;
   const upcoming = playlist.find(video => video.id === upcomingId && videoSourceKey(video) !== selectedKey) ?? null;
 
   const snapshotRef = useRef(onSnapshot); snapshotRef.current = onSnapshot;
@@ -239,7 +240,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
       </div>}
       {playback.duration > 0 && (controlsVisible || paused || blocked) && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-white/10" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin={0} aria-valuemax={playback.duration} aria-valuenow={Math.min(playback.seconds, playback.duration)}><div className="h-full bg-gold" style={{width:`${Math.min(100, playback.seconds / playback.duration * 100)}%`}} /></div>}
       <div role="group" aria-label="Controles da TV" className={`absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-3 bg-gradient-to-t from-brown-deep/95 to-transparent p-5 pt-16 transition-opacity duration-300 ${controlsVisible || paused || blocked ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.findIndex(v => v.id === current.id) + 1} de ${playlist.length} · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Sequência automática"}` : ""}{playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p></div>
+        <div className="mr-auto min-w-0"><p className="text-[10px] uppercase tracking-[.3em] text-gold-light">La Régence · TV</p><p className="mt-1 truncate text-sm text-white/80">{current?.title ?? "Programação"}</p><p className="mt-1 text-xs text-white/60">{current ? `${playlist.length} vídeos · ${paused ? "Pausado" : blocked ? "Aguardando início" : "Aleatório sem repetição"}` : ""}{playback.duration > 0 ? ` · ${Math.floor(playback.seconds)} / ${Math.ceil(playback.duration)} s` : ""}</p></div>
         {current && <>
           <button className={buttonClass} onClick={togglePause} aria-label={paused ? "Reproduzir" : "Pausar"}>{paused ? <Play /> : <Pause />}</button>
           <button className={buttonClass} onClick={() => advance()} aria-label="Próximo vídeo"><SkipForward /></button>

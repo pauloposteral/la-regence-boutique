@@ -173,7 +173,7 @@ export function createOfflineStore(deps: StoreDeps = {}) {
           const { manifest } = await read();
           // Generation check: a removal/pause committed while downloading wins.
           if (!manifest.eligible.includes(plan!.key)) return "idle";
-          if (!result.ok) {
+          if (result.ok === false) {
             if (result.reason !== "aborted") { manifest.failures[plan!.key] = now() + OFFLINE_LIMITS.failureCooldownMs; await writeManifest(manifest); }
             return "failed";
           }

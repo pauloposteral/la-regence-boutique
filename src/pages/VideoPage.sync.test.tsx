@@ -60,6 +60,7 @@ function reportTime(media: HTMLVideoElement, seconds: number) {
 }
 
 beforeEach(() => {
+  vi.spyOn(Math, 'random').mockReturnValue(0);
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-17T12:00:00Z"));
   vi.resetAllMocks();
@@ -131,7 +132,7 @@ it("updates through Realtime while preserving the native element, pause, positio
 
   expect(mocks.read).toHaveBeenCalledTimes(2);
   expect(screen.getByText("Produto atualizado")).toBeInTheDocument();
-  expect(screen.getByText(/2 de 3 · Pausado · 12 \/ 60 s/)).toBeInTheDocument();
+  expect(screen.getByText(/3 vídeos · Pausado · 12 \/ 60 s/)).toBeInTheDocument();
   expect(currentMedia()).toBe(playing);
   expect(playing.currentTime).toBe(12);
   // Per element: a prepared upcoming deck may legitimately load/replan.
