@@ -132,7 +132,9 @@ const YouTubeDeck = forwardRef<PlaybackHandle, DeckProps>(function YouTubeDeck(p
   useEffect(() => {
     let cancelled = false;
     let instance: YouTubePlayer | undefined;
-    let previousTime = -1;
+    // Metadata may be ready while the embed has presented no frame. Zero is
+    // not progress and must not extend the startup watchdog or show a counter.
+    let previousTime = 0;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
     let autoplayRetryUsed = false;
     let pauseRetries = 0;
@@ -289,6 +291,11 @@ export default forwardRef<PlaybackHandle, StageProps>(function CinematicStage(pr
     data-tv-transition={presentation ? presentation.profile : 'steady'}
     data-tv-palette={presentation?.palette} data-tv-effects={reducedEffects ? 'reduced' : 'full'}
     style={{ '--tv-dissolve-duration': `${presentation?.durationMs ?? STEADY_MS}ms`, ...(presentation ? { '--tv-light-rgb': PALETTE_RGB[presentation.palette] } : {}) } as CSSProperties}>
+    {front === null && <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-5 p-8 text-center" aria-live="polite">
+      <img src="/favicon.jpeg" alt="" className="h-24 w-24 rounded-full border border-gold/50 object-cover" />
+      <p className="font-display text-4xl lg:text-6xl">La Régence</p>
+      <p className="text-lg text-gold-light">Preparando a programação…</p>
+    </div>}
     {decks.map(video => {
       const id = videoSourceKey(video);
       const isSelected = id === key && (!handoff || handoff.to === key);
