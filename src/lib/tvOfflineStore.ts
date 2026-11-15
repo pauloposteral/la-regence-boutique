@@ -174,7 +174,7 @@ export function createOfflineStore(deps: StoreDeps = {}) {
           // Generation check: a removal/pause committed while downloading wins.
           if (!manifest.eligible.includes(plan!.key)) return "idle";
           if (!result.ok) {
-            if (result.reason !== "aborted") { manifest.failures[plan!.key] = now() + OFFLINE_LIMITS.failureCooldownMs; await writeManifest(manifest); }
+            if ((result as { ok: false; reason: string }).reason !== "aborted") { manifest.failures[plan!.key] = now() + OFFLINE_LIMITS.failureCooldownMs; await writeManifest(manifest); }
             return "failed";
           }
           const committed = Object.values(manifest.ready).reduce((sum, record) => sum + record.bytes, 0);
