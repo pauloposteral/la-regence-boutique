@@ -46,3 +46,34 @@ describe('TV shuffle reservations', () => {
     expect(picker.pick([], null)).toBeNull();
   });
 });
+
+describe('different edits of the same product', () => {
+  it('spaces campaigns within a round and across its boundary without dropping individual films', () => {
+    const groups = ['pizza', 'pizza', 'soda', 'soda', 'nutellino', 'drip'];
+    const videos = groups.map((rotation_group, i) => ({ ...list[i], rotation_group }));
+    for (let seed = 1; seed <= 32; seed++) {
+      let state = seed;
+      const picker = createTVShuffle(() => ((state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32));
+      const seen = new Set<string>();
+      let current: string | null = null;
+      for (let round = 0; round < 6; round++) {
+        const ids: string[] = [];
+        for (let i = 0; i < videos.length; i++) {
+          const id = picker.pick(videos, current, new Set(), seen)!;
+          if (current !== null) expect(groups[Number(id)]).not.toBe(groups[Number(current)]);
+          const key = videoSourceKey(videos[Number(id)]);
+          if (seen.has(key)) seen.clear();
+          seen.add(key);
+          current = id;
+          ids.push(id);
+        }
+        expect(new Set(ids).size).toBe(videos.length);
+      }
+    }
+  });
+
+  it('plays both editions when the entire program is one product', () => {
+    const videos = list.slice(0, 2).map(v => ({ ...v, rotation_group: 'same product' }));
+    expect(createTVShuffle(() => 0).pick(videos, '0')).toBe('1');
+  });
+});

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Maximize, Minimize, Pause, Play, SkipForward, Volume2, VolumeX, RotateCcw, Settings2 } from "lucide-react";
 import { playableVideos, videoSourceKey, type TVVideo } from "@/lib/tvPlaylist";
-import { createTVShuffle } from "@/lib/tvShuffle";
+import { createTVShuffle, readTVRound, saveTVRound } from "@/lib/tvShuffle";
 import { watchTVWorkerUpdates } from "@/lib/tvWorkerUpdate";
 import { createSourceCooldown, shouldRecoverPlayback, type TVPlaybackSnapshot } from "@/lib/tvPlaybackPolicy";
 
@@ -9,14 +9,16 @@ import CinematicStage, { type PlaybackHandle } from "./CinematicStage";
 
 type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
 
-export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null, onSnapshot, operatorPanel }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null; /** Observed playback status for the paired-screen heartbeat. */ onSnapshot?: (snapshot: TVPlaybackSnapshot) => void; /** Operator-only extras shown inside the hidden control panel (e.g. pairing). */ operatorPanel?: ReactNode }) {
+export default function TVPlayer({ videos, onRefresh, refreshing = false, initialId = null, rememberRotation = false, onSnapshot, operatorPanel }: { videos: TVVideo[]; onRefresh?: () => void | Promise<void>; refreshing?: boolean; initialId?: string | null; rememberRotation?: boolean; /** Observed playback status for the paired-screen heartbeat. */ onSnapshot?: (snapshot: TVPlaybackSnapshot) => void; /** Operator-only extras shown inside the hidden control panel (e.g. pairing). */ operatorPanel?: ReactNode }) {
   const playlist = useMemo(() => playableVideos(videos), [videos]);
   const stage = useRef<HTMLDivElement>(null);
   const media = useRef<PlaybackHandle>(null);
   const lastProgress = useRef(Date.now());
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
-  const [currentId, setCurrentId] = useState<string | null>(initialId);
-  const seen = useRef(new Set<string>());
+  const [restored] = useState(() => readTVRound(rememberRotation, initialId));
+  const [currentId, setCurrentId] = useState<string | null>(restored.lastSource ? null : initialId);
+  const seen = useRef(restored.seen);
+  const previousSource = useRef(restored.lastSource);
   const [shuffle] = useState(() => createTVShuffle());
   // Failures are scoped to the canonical source, not row/position, so polling,
   // reorders and aliases neither reset nor bypass a cooldown.
@@ -60,7 +62,7 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
   const requested = videos.find(v => v.id === currentId && v.active && !v.archived_at);
   const requestedKey = requested && videoSourceKey(requested);
   const retained = playlist.find(v => !failed.has(v.id) && (v.id === currentId || videoSourceKey(v) === requestedKey));
-  const fallbackId = retained ? null : shuffle.pick(playlist, currentId, failed, seen.current);
+  const fallbackId = retained ? null : shuffle.pick(playlist, currentId, failed, seen.current, previousSource.current);
   const current = retained ?? playlist.find(v => v.id === fallbackId);
   const currentUrl = current?.url;
   const selectedId = current?.id;
@@ -73,9 +75,13 @@ export default function TVPlayer({ videos, onRefresh, refreshing = false, initia
     if (!selectedId || !selectedKey) return;
     if (!retainedId && seen.current.has(selectedKey)) seen.current.clear();
     seen.current.add(selectedKey);
+    if (previousSource.current !== selectedKey) {
+      previousSource.current = selectedKey;
+      if (rememberRotation) saveTVRound(initialId, seen.current, selectedKey, playlist);
+    }
     // Retain the first selection across background refreshes and insertions.
     setCurrentId(selectedId);
-  }, [selectedId, selectedKey, retainedId]);
+  }, [selectedId, selectedKey, retainedId, rememberRotation, initialId, playlist]);
 
   const showControls = useCallback(() => {
     setControlsVisible(true);

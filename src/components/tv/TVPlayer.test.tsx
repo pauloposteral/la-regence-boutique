@@ -311,3 +311,35 @@ describe("per-source cooldown (review fix round 1)", () => {
   });
 });
 
+
+describe('TV rotation across page loads', () => {
+  beforeEach(() => window.localStorage.clear());
+  afterEach(() => window.localStorage.clear());
+
+  it('continues the round across reloads and does not restart the last piece at its boundary', () => {
+    const third = { ...videos[0], id: 'third', title: 'Third', url: 'https://example.com/third.mp4', sort_order: 2 };
+    const read = () => (screen.getByLabelText('Vídeo em exibição') as HTMLVideoElement).src;
+    const played: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const view = render(<TVPlayer rememberRotation videos={[...videos, third]} />);
+      fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+      played.push(read());
+      view.unmount();
+    }
+    expect(new Set(played.slice(0, 3)).size).toBe(3);
+    expect(new Set(played.slice(3)).size).toBe(3);
+    expect(played[2]).not.toBe(played[3]);
+  });
+
+  it('a targeted preview does not consume a turn on the normal screen', () => {
+    let view = render(<TVPlayer rememberRotation videos={videos} />);
+    fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+    view.unmount();
+    view = render(<TVPlayer videos={videos} initialId="produto" />);
+    expect(screen.getByLabelText('Vídeo em exibição')).toHaveAttribute('src', videos[1].url);
+    fireEvent.playing(screen.getByLabelText('Vídeo em exibição'));
+    view.unmount();
+    render(<TVPlayer rememberRotation videos={videos} />);
+    expect(screen.getByLabelText('Vídeo em exibição')).toHaveAttribute('src', videos[1].url);
+  });
+});
