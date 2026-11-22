@@ -1,4 +1,5 @@
 export interface TVVideo {
+  rotation_group?: string | null;
   poster_url?: string | null;
   fallback_url?: string | null;
   max_duration_seconds?: number | null;

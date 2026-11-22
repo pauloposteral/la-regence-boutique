@@ -1295,6 +1295,7 @@ export type Database = {
           poster_url: string | null
           protect_qr: boolean
           protect_text: boolean
+          rotation_group: string | null
           protect_zoom: boolean
           sort_order: number
           source_type: string
@@ -1319,6 +1320,7 @@ export type Database = {
           poster_url?: string | null
           protect_qr?: boolean
           protect_text?: boolean
+          rotation_group?: string | null
           protect_zoom?: boolean
           sort_order?: number
           source_type?: string
@@ -1343,6 +1345,7 @@ export type Database = {
           poster_url?: string | null
           protect_qr?: boolean
           protect_text?: boolean
+          rotation_group?: string | null
           protect_zoom?: boolean
           sort_order?: number
           source_type?: string

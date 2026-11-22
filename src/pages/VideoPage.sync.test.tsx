@@ -60,6 +60,8 @@ function reportTime(media: HTMLVideoElement, seconds: number) {
 }
 
 beforeEach(() => {
+  window.localStorage.clear();
+  window.sessionStorage.clear();
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-17T12:00:00Z"));
   vi.resetAllMocks();

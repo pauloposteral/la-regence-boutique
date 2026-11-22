@@ -39,6 +39,7 @@ export function offlineMediaKey(raw: unknown, appOrigin: string): string | null 
   if (typeof raw !== "string" || raw.length === 0 || raw.length > 2048) return null;
   const text = raw.trim();
   // Encoded separators/traversal, backslashes, whitespace and control characters are never normalised into an allowed path.
+  // eslint-disable-next-line no-control-regex -- Raw control bytes are invalid in a media URL.
   if (/[\\\s\u0000-\u001f]/.test(text) || /%(2e|2f|5c|00)/i.test(text) || text.includes("..")) return null;
   if (/^(blob|data|javascript):/i.test(text)) return null;
   let url: URL;
@@ -92,6 +93,7 @@ export function sanitizeSnapshotRows(input: unknown): TVVideo[] | null {
       fallback_url: optionalText(row.fallback_url, 2048),
       poster_url: optionalText(row.poster_url, 2048),
       max_duration_seconds: optionalInt(row.max_duration_seconds, 1, 86_400),
+      rotation_group: optionalText(row.rotation_group, 120),
       transition_profile: optionalText(row.transition_profile, 16),
       transition_ms: optionalInt(row.transition_ms, 0, 5_000),
       palette: optionalText(row.palette, 16),
@@ -102,7 +104,7 @@ export function sanitizeSnapshotRows(input: unknown): TVVideo[] | null {
 }
 
 const SNAPSHOT_FIELDS = ["id", "title", "url", "sort_order", "fit", "source_type", "youtube_id", "fallback_url", "poster_url",
-  "max_duration_seconds", "transition_profile", "transition_ms", "palette", "protect_qr", "protect_text", "protect_zoom"] as const;
+  "max_duration_seconds", "transition_profile", "transition_ms", "palette", "protect_qr", "protect_text", "protect_zoom", "rotation_group"] as const;
 
 /** Canonical (fixed key order) serialization; null when over the byte budget. */
 export function serializeSnapshotRows(rows: readonly TVVideo[]): string | null {
